@@ -1,38 +1,48 @@
-export default function Home() {
-  const categories = [
-    "Image Tools",
-    "Text Tools",
-    "Developer Tools",
-    "SEO Tools",
-  ];
+import Container from "@/components/Container";
+import CategoryCard from "@/components/CategoryCard";
 
+const categories = [
+  {
+    title: "Image Tools",
+    description: "Convert, compress, resize, crop, and optimize images quickly in the browser.",
+  },
+  {
+    title: "Text Tools",
+    description: "Count words, change case, clean spacing, and improve everyday text workflows.",
+  },
+  {
+    title: "Developer Tools",
+    description: "Format JSON, encode Base64, transform URLs, and streamline development tasks.",
+  },
+  {
+    title: "SEO Tools",
+    description: "Generate slugs, meta tags, and useful search optimization helpers for websites.",
+  },
+];
+
+export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-      <main className="mx-auto w-full max-w-5xl">
-        <div className="mb-12 space-y-4 text-center">
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-            Tools Website
+    <section className="py-16 sm:py-20">
+      <Container>
+        <div className="mx-auto max-w-3xl text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+            Practical Online Tools
           </h1>
-          <p className="mx-auto max-w-2xl text-base text-slate-600 sm:text-lg">
-            A fast, scalable platform for practical online utilities across
-            images, text, development, and SEO workflows.
+          <p className="mt-5 text-lg leading-8 text-slate-600 sm:text-xl">
+            Fast, simple, and scalable browser-based utilities for images, text, development, and SEO.
           </p>
         </div>
 
-        <section className="grid gap-4 sm:grid-cols-2">
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
           {categories.map((category) => (
-            <article
-              key={category}
-              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-            >
-              <h2 className="text-lg font-medium">{category}</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Curated utilities coming soon.
-              </p>
-            </article>
+            <CategoryCard
+              key={category.title}
+              title={category.title}
+              description={category.description}
+            />
           ))}
-        </section>
-      </main>
-    </div>
+        </div>
+      </Container>
+    </section>
   );
 }
