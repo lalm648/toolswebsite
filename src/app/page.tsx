@@ -1,47 +1,51 @@
+import CategoryGrid from "@/components/CategoryGrid";
 import Container from "@/components/Container";
-import CategoryCard from "@/components/CategoryCard";
-
-const categories = [
-  {
-    title: "Image Tools",
-    description: "Convert, compress, resize, crop, and optimize images quickly in the browser.",
-  },
-  {
-    title: "Text Tools",
-    description: "Count words, change case, clean spacing, and improve everyday text workflows.",
-  },
-  {
-    title: "Developer Tools",
-    description: "Format JSON, encode Base64, transform URLs, and streamline development tasks.",
-  },
-  {
-    title: "SEO Tools",
-    description: "Generate slugs, meta tags, and useful search optimization helpers for websites.",
-  },
-];
+import SearchBar from "@/components/SearchBar";
+import CTABlock from "@/components/tool/CTABlock";
+import FAQSection from "@/components/tool/FAQSection";
+import { Card, CardContent } from "@/components/ui/card";
+import { categories } from "@/lib/data/tools";
 
 export default function Home() {
   return (
     <section className="py-16 sm:py-20">
-      <Container>
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-            Practical Online Tools
-          </h1>
-          <p className="mt-5 text-lg leading-8 text-slate-600 sm:text-xl">
-            Fast, simple, and scalable browser-based utilities for images, text, development, and SEO.
-          </p>
-        </div>
+      <Container className="space-y-14">
+        <Card className="rounded-[2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(228,236,255,0.98)_48%,rgba(255,236,248,0.96))] shadow-[var(--shadow-lift)]">
+          <CardContent className="px-6 py-12 text-center sm:px-10">
+            <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-6xl">
+              Practical online tools with real structure
+            </h1>
+            <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl">
+              Phase 4 is about the shell first: core pages, category routes, trust pages, and shared
+              components before tool logic.
+            </p>
+            <div className="mt-8">
+              <SearchBar />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
-          {categories.map((category) => (
-            <CategoryCard
-              key={category.title}
-              title={category.title}
-              description={category.description}
-            />
-          ))}
-        </div>
+        <CategoryGrid categories={categories} />
+
+        <FAQSection
+          items={[
+            {
+              question: "What is complete now?",
+              answer: "The project now has the important shell pieces the prompt asked for, not just a single landing page.",
+            },
+            {
+              question: "What comes next?",
+              answer: "Individual tool routes and then real browser-side tool logic.",
+            },
+          ]}
+        />
+
+        <CTABlock
+          title="Next: build the first working tool"
+          description="The structure is in place. The next practical move is implementing one tool end to end."
+          href="/tools/image"
+          label="Open categories"
+        />
       </Container>
     </section>
   );

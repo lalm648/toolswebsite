@@ -1,8 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eef2ff;
+  --foreground: #27324d;
+  --brand-50: #fff0fa;
+  --brand-100: #ffd6f0;
+  --brand-200: #ffb3e3;
+  --brand-300: #ff85d2;
+  --brand-500: #f04db8;
+  --brand-600: #dc379f;
+  --brand-700: #b82980;
+  --accent-50: #eef2ff;
+  --accent-100: #dde6ff;
+  --accent-200: #c7d6ff;
+  --accent-300: #a6bcff;
+  --accent-500: #6d7cff;
+  --accent-600: #5867ef;
+  --accent-700: #4753c7;
+  --ink-900: #1d2340;
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --outline-soft: rgba(198, 207, 246, 0.88);
+  --outline-strong: rgba(168, 181, 238, 0.95);
+  --ring-soft: rgba(240, 77, 184, 0.16);
+  --shadow-soft: 0 8px 20px -14px rgba(80, 88, 170, 0.12);
+  --shadow-lift: 0 16px 32px -18px rgba(80, 88, 170, 0.16);
 }
 
 @theme inline {
@@ -12,15 +34,36 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    "Plus Jakarta Sans",
+    "Inter",
+    "Segoe UI",
+    sans-serif;
+  background-image:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.98), transparent 30%),
+    radial-gradient(circle at top right, rgba(255, 214, 240, 0.45), transparent 24%),
+    linear-gradient(180deg, #f6f7ff 0%, #eef2ff 52%, #f3f1ff 100%);
+}
+
+a,
+button,
+input,
+svg,
+span,
+div {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 240ms ease,
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+::selection {
+  background: var(--brand-500);
+  color: white;
 }
