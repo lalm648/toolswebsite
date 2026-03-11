@@ -84,6 +84,20 @@ const iconMap = {
       <path d="M13 15H9v-4" />
     </svg>
   ),
+  "rotate-image": (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M18 8V4l3 3-3 3V8h-5.5A6.5 6.5 0 1 0 19 14.5" />
+      <path d="M18.8 11.5A6.5 6.5 0 0 1 8 18.3" />
+    </svg>
+  ),
+  "crop-image": (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M8 3.5v11a2 2 0 0 0 2 2h10" />
+      <path d="M3.5 8h11a2 2 0 0 1 2 2v10" />
+      <path d="M6 6h12" />
+      <path d="M6 6v12" />
+    </svg>
+  ),
   "word-counter": (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
       <path d="M5 7.5h14" />
@@ -134,7 +148,7 @@ export default function ToolCard({ tool }: ToolCardProps) {
       href={tool.href}
       className="group block focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
     >
-      <Card className="h-full bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(233,240,255,0.98)_55%,rgba(255,240,248,0.96))] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-[var(--outline-strong)] group-hover:shadow-[var(--shadow-lift)]">
+      <Card className="h-full bg-[var(--surface-card)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-[var(--outline-strong)] group-hover:shadow-[var(--shadow-lift)]">
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-4">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-[0.9rem] bg-[linear-gradient(135deg,var(--accent-100),var(--brand-100))] text-[var(--accent-600)] shadow-[0_8px_18px_-12px_rgba(109,124,255,0.35)] group-hover:scale-[1.03] group-hover:bg-[linear-gradient(135deg,var(--accent-500),var(--brand-500))] group-hover:text-white">
@@ -147,7 +161,7 @@ export default function ToolCard({ tool }: ToolCardProps) {
           <h3 className="mt-5 text-lg font-semibold tracking-tight text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
             {tool.title}
           </h3>
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{tool.description}</p>
+          <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--muted-foreground)]">{tool.description}</p>
           <div className="mt-5 flex items-center gap-2 text-sm font-medium text-[var(--ink-900)]">
             <span>Open tool</span>
             <span className="group-hover:translate-x-0.5 group-hover:text-[var(--brand-500)]">→</span>

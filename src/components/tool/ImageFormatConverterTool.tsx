@@ -8,11 +8,12 @@ import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  exportCanvasWithStrategy,
   formatBytes,
+  getSizeDelta,
   imagePreviewBackgroundClassName,
   loadImageFromUrl,
   replaceFileExtension,
-  toBlobFromCanvas,
   type ImageDimensions,
 } from "@/lib/image-conversion";
 
@@ -37,6 +38,23 @@ type ImageFormatConverterToolProps = {
   outputMimeType: string;
   outputExtension: string;
   outputQuality?: number;
+  outputQualityCandidates?: number[];
+  targetMaxSizeRatio?: number;
+  qualityControl?: {
+    min: number;
+    max: number;
+    step?: number;
+    defaultValue: number;
+  };
+  qualityNote?: {
+    label: string;
+    description: string;
+    value: string;
+    sliderValue?: number;
+    sliderMin?: number;
+    sliderMax?: number;
+  };
+  sizeDeltaText?: (convertedSize: number, originalSize: number) => string | null;
   fillBackgroundColor?: string;
   originalPreviewBackground?: PreviewBackground;
   convertedPreviewBackground?: PreviewBackground;
@@ -54,6 +72,11 @@ export default function ImageFormatConverterTool({
   outputMimeType,
   outputExtension,
   outputQuality,
+  outputQualityCandidates,
+  targetMaxSizeRatio,
+  qualityControl,
+  qualityNote,
+  sizeDeltaText,
   fillBackgroundColor,
   originalPreviewBackground = "plain",
   convertedPreviewBackground = "plain",
@@ -67,6 +90,7 @@ export default function ImageFormatConverterTool({
   const [isConverting, setIsConverting] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState("");
+  const [qualityPercent, setQualityPercent] = useState(qualityControl?.defaultValue ?? 82);
 
   useEffect(() => {
     return () => {
@@ -155,7 +179,25 @@ export default function ImageFormatConverterTool({
 
       context.drawImage(image, 0, 0);
 
-      const blob = await toBlobFromCanvas(canvas, outputMimeType, outputQuality);
+      const selectedQuality = qualityControl ? qualityPercent / 100 : outputQuality;
+      const selectedQualityCandidates =
+        qualityControl && targetMaxSizeRatio
+          ? Array.from(
+              new Set(
+                [qualityPercent, qualityPercent - 8, qualityPercent - 16, qualityPercent - 24]
+                  .filter((value) => value >= qualityControl.min)
+                  .map((value) => Number((value / 100).toFixed(2)))
+              )
+            )
+          : outputQualityCandidates;
+
+      const blob = await exportCanvasWithStrategy(canvas, {
+        outputMimeType,
+        outputQuality: selectedQuality,
+        qualityCandidates: selectedQualityCandidates,
+        targetMaxSizeRatio,
+        originalSize: file.size,
+      });
 
       if (!blob) {
         setError(
@@ -218,11 +260,11 @@ export default function ImageFormatConverterTool({
           />
 
           {file ? (
-            <div className="rounded-2xl border border-[var(--outline-soft)] bg-[rgba(255,255,255,0.84)] p-4 text-left">
+            <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-left">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-[var(--ink-900)]">{file.name}</p>
-                  <p className="mt-1 text-xs text-slate-500">{formatBytes(file.size)}</p>
+                  <p className="mt-1 text-xs text-[var(--muted-foreground)]">{formatBytes(file.size)}</p>
                 </div>
                 <Badge variant="secondary" className="normal-case tracking-normal text-[11px] font-medium">
                   Ready to convert
@@ -236,6 +278,45 @@ export default function ImageFormatConverterTool({
                   Reset
                 </Button>
               </div>
+
+              {qualityControl || qualityNote ? (
+                <div className="mt-5 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--ink-900)]">
+                        {qualityNote?.label ?? "Quality"}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                        {qualityNote?.description ?? "Lower quality usually means a smaller file size."}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="min-w-16 justify-center normal-case tracking-normal">
+                      {qualityNote?.value ?? `${qualityPercent}%`}
+                    </Badge>
+                  </div>
+                  {qualityControl ? (
+                    <>
+                      <input
+                        type="range"
+                        min={qualityControl.min}
+                        max={qualityControl.max}
+                        step={qualityControl.step ?? 1}
+                        value={qualityPercent}
+                        onChange={(event) => {
+                          setQualityPercent(Number(event.target.value));
+                          setConverted(null);
+                        }}
+                        className="mt-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--outline-soft)] accent-[var(--accent-500)]"
+                        aria-label={`${outputLabel} quality`}
+                      />
+                      <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--muted-foreground)]">
+                        <span>{qualityControl.min}%</span>
+                        <span>{qualityControl.max}%</span>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -247,8 +328,8 @@ export default function ImageFormatConverterTool({
         {previewUrl ? (
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[rgba(255,255,255,0.84)] p-4">
-                <p className="text-sm font-medium text-slate-500">{`Original ${inputLabel}`}</p>
+              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4">
+                <p className="text-sm font-medium text-[var(--muted-foreground)]">{`Original ${inputLabel}`}</p>
                 <div
                   className={`relative mt-4 aspect-square overflow-hidden rounded-xl ${imagePreviewBackgroundClassName[originalPreviewBackground]}`}
                 >
@@ -262,14 +343,14 @@ export default function ImageFormatConverterTool({
                   />
                 </div>
                 {originalDimensions ? (
-                  <p className="mt-3 text-xs text-slate-500">
+                  <p className="mt-3 text-xs text-[var(--muted-foreground)]">
                     {originalDimensions.width} × {originalDimensions.height}
                   </p>
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[rgba(255,255,255,0.84)] p-4">
-                <p className="text-sm font-medium text-slate-500">{`Converted ${outputLabel}`}</p>
+              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4">
+                <p className="text-sm font-medium text-[var(--muted-foreground)]">{`Converted ${outputLabel}`}</p>
                 {converted ? (
                   <div
                     className={`relative mt-4 aspect-square overflow-hidden rounded-xl ${imagePreviewBackgroundClassName[convertedPreviewBackground]}`}
@@ -284,7 +365,7 @@ export default function ImageFormatConverterTool({
                     />
                   </div>
                 ) : (
-                  <div className="mt-4 flex aspect-square items-center justify-center rounded-xl border border-dashed border-[var(--outline-soft)] bg-[rgba(238,242,255,0.9)] text-sm text-slate-500">
+                  <div className="mt-4 flex aspect-square items-center justify-center rounded-xl border border-dashed border-[var(--outline-soft)] bg-[var(--surface-panel)] text-sm text-[var(--muted-foreground)]">
                     {isConverting ? `Building ${outputLabel}...` : `${outputLabel} preview will appear here`}
                   </div>
                 )}
@@ -292,13 +373,22 @@ export default function ImageFormatConverterTool({
             </div>
 
             {converted ? (
-              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[rgba(255,255,255,0.84)] p-4">
+              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-[var(--ink-900)]">{converted.fileName}</p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">
                       {converted.width} × {converted.height} · {formatBytes(converted.size)}
                     </p>
+                    {(() => {
+                      const deltaText =
+                        sizeDeltaText?.(converted.size, file.size) ??
+                        getSizeDelta(converted.size, file.size);
+
+                      return deltaText ? (
+                        <p className="mt-1 text-xs text-[var(--muted-foreground)]">{deltaText}</p>
+                      ) : null;
+                    })()}
                   </div>
                   <Button asChild>
                     <a href={converted.url} download={converted.fileName}>
@@ -310,7 +400,7 @@ export default function ImageFormatConverterTool({
             ) : null}
           </div>
         ) : (
-          <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-[var(--outline-soft)] bg-[rgba(238,242,255,0.9)] text-center text-sm text-slate-500">
+          <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-[var(--outline-soft)] bg-[var(--surface-panel)] text-center text-sm text-[var(--muted-foreground)]">
             {`Upload a ${inputLabel} to preview, convert, and download it here.`}
           </div>
         )}

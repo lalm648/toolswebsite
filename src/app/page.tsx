@@ -10,12 +10,12 @@ export default function Home() {
   return (
     <section className="py-16 sm:py-20">
       <Container className="space-y-14">
-        <Card className="rounded-[2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(228,236,255,0.98)_48%,rgba(255,236,248,0.96))] shadow-[var(--shadow-lift)]">
+        <Card className="rounded-[2rem] bg-[var(--surface-hero)] shadow-[var(--shadow-lift)]">
           <CardContent className="px-6 py-12 text-center sm:px-10">
             <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-6xl">
               Practical online tools with real structure
             </h1>
-            <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl">
+            <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-[var(--muted-foreground)] sm:text-xl">
               Phase 4 is about the shell first: core pages, category routes, trust pages, and shared
               components before tool logic.
             </p>

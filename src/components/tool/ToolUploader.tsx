@@ -35,7 +35,7 @@ export default function ToolUploader({
 }: ToolUploaderProps) {
   return (
     <Card
-      className={`bg-gray-50 ${isDragActive ? "border-[var(--accent-500)] bg-[linear-gradient(180deg,rgba(238,242,255,0.98),rgba(255,240,250,0.94))] shadow-[var(--shadow-lift)]" : ""}`}
+      className={`bg-[var(--surface-raised)] ${isDragActive ? "border-[var(--accent-500)] bg-[var(--surface-panel)] shadow-[var(--shadow-lift)]" : ""}`}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
       onDragOver={onDragOver}
@@ -59,13 +59,13 @@ export default function ToolUploader({
           </div>
           <div className="px-4 py-6 text-center">
             <h2 className="text-xl font-semibold text-[var(--ink-900)]">{title}</h2>
-            <p className="mt-3 max-w-md text-sm leading-7 text-slate-500">{description}</p>
+            <p className="mt-3 max-w-md text-sm leading-7 text-[var(--muted-foreground)]">{description}</p>
           </div>
           <Button onClick={onButtonClick} size="lg" className="min-w-36">
             {buttonLabel}
           </Button>
-          {dropHint ? <p className="mt-3 text-sm text-slate-500">{dropHint}</p> : null}
-          {helperText ? <p className="mt-4 text-xs text-slate-400">{helperText}</p> : null}
+          {dropHint ? <p className="mt-3 text-sm text-[var(--muted-foreground)]">{dropHint}</p> : null}
+          {helperText ? <p className="mt-4 text-xs text-[var(--muted-foreground)]">{helperText}</p> : null}
           {children ? <div className="mt-8 w-full">{children}</div> : null}
         </div>
       </CardContent>

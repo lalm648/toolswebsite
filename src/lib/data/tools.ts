@@ -60,6 +60,8 @@ export type ToolDefinition = {
     | "png-to-avif"
     | "image-compressor"
     | "image-resizer"
+    | "rotate-image"
+    | "crop-image"
     | "word-counter"
     | "case-converter"
     | "json-formatter"
@@ -139,6 +141,24 @@ export const tools: ToolDefinition[] = [
     category: "image",
     meta: "Sizing",
     icon: "image-resizer",
+  },
+  {
+    slug: "rotate-image",
+    title: "Rotate Image",
+    description: "Rotate visuals quickly in the browser and export them in the format you need.",
+    href: "/tools/image/rotate-image",
+    category: "image",
+    meta: "Editing",
+    icon: "rotate-image",
+  },
+  {
+    slug: "crop-image",
+    title: "Crop Image",
+    description: "Crop visuals in the browser with aspect presets, live preview, and instant export.",
+    href: "/tools/image/crop-image",
+    category: "image",
+    meta: "Editing",
+    icon: "crop-image",
   },
   {
     slug: "word-counter",

@@ -14,7 +14,9 @@ export default function PngToWebpTool() {
       helperText="PNG files only"
       outputMimeType="image/webp"
       outputExtension="webp"
-      outputQuality={0.92}
+      outputQuality={0.72}
+      targetMaxSizeRatio={0.6}
+      qualityControl={{ min: 35, max: 95, defaultValue: 72 }}
       originalPreviewBackground="checkerboard"
       convertedPreviewBackground="checkerboard"
       unsupportedExportMessage="This browser could not export WebP from canvas. Try another browser or format."

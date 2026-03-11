@@ -11,7 +11,7 @@ type CategoryHeroProps = {
 
 export default function CategoryHero({ category, value, onChange }: CategoryHeroProps) {
   return (
-    <Card className="rounded-[2rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(226,235,255,0.98)_46%,rgba(255,236,248,0.97))]">
+    <Card className="rounded-[2rem] bg-[var(--surface-hero)]">
       <CardContent className="px-6 py-12 sm:px-10 sm:py-16">
         <div className="mx-auto max-w-3xl text-center">
           <Badge>{category.badge}</Badge>
@@ -21,7 +21,7 @@ export default function CategoryHero({ category, value, onChange }: CategoryHero
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-6xl">
             {category.title}
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-[var(--muted-foreground)]">
             {category.description}
           </p>
           <div className="mt-8">

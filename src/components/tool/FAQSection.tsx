@@ -23,11 +23,11 @@ export default function FAQSection({ items }: FAQSectionProps) {
         {items.map((item) => (
           <Card
             key={item.question}
-            className="bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(237,242,255,0.97)_56%,rgba(255,242,249,0.95))] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-lift)]"
+            className="bg-[var(--surface-card)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-lift)]"
           >
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-[var(--ink-900)]">{item.question}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-600">{item.answer}</p>
+              <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{item.answer}</p>
             </CardContent>
           </Card>
         ))}

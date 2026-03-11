@@ -43,3 +43,83 @@ export function toBlobFromCanvas(canvas: HTMLCanvasElement, mimeType: string, qu
     canvas.toBlob((blob) => resolve(blob), mimeType, quality);
   });
 }
+
+type ExportStrategyOptions = {
+  outputMimeType: string;
+  outputQuality?: number;
+  qualityCandidates?: number[];
+  targetMaxSizeRatio?: number;
+  originalSize: number;
+};
+
+export async function exportCanvasWithStrategy(
+  canvas: HTMLCanvasElement,
+  { outputMimeType, outputQuality, qualityCandidates, targetMaxSizeRatio, originalSize }: ExportStrategyOptions
+) {
+  if (!qualityCandidates?.length) {
+    return toBlobFromCanvas(canvas, outputMimeType, outputQuality);
+  }
+
+  let smallestBlob: Blob | null = null;
+
+  for (const quality of qualityCandidates) {
+    const blob = await toBlobFromCanvas(canvas, outputMimeType, quality);
+
+    if (!blob) {
+      continue;
+    }
+
+    if (!smallestBlob || blob.size < smallestBlob.size) {
+      smallestBlob = blob;
+    }
+
+    if (targetMaxSizeRatio && blob.size <= originalSize * targetMaxSizeRatio) {
+      return blob;
+    }
+  }
+
+  return smallestBlob;
+}
+
+export function getSizeDelta(copySize: number, originalSize: number) {
+  if (!originalSize) {
+    return null;
+  }
+
+  const ratio = copySize / originalSize;
+  const percentage = Math.abs((1 - ratio) * 100);
+
+  if (ratio === 1) {
+    return "Same file size";
+  }
+
+  if (ratio < 1) {
+    return `${percentage.toFixed(0)}% smaller than original`;
+  }
+
+  return `${percentage.toFixed(0)}% larger than original`;
+}
+
+export function scaleDimensionsToFit(
+  width: number,
+  height: number,
+  maxWidth?: number,
+  maxHeight?: number
+) {
+  if (!maxWidth && !maxHeight) {
+    return { width, height };
+  }
+
+  const widthLimit = maxWidth && maxWidth > 0 ? maxWidth / width : 1;
+  const heightLimit = maxHeight && maxHeight > 0 ? maxHeight / height : 1;
+  const ratio = Math.min(widthLimit, heightLimit, 1);
+
+  return {
+    width: Math.max(1, Math.round(width * ratio)),
+    height: Math.max(1, Math.round(height * ratio)),
+  };
+}
+
+export function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}

@@ -15,8 +15,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                try {
+                  var stored = localStorage.getItem("theme");
+                  var theme = stored === "light" || stored === "dark"
+                    ? stored
+                    : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+                  document.documentElement.dataset.theme = theme;
+                } catch (error) {}
+              })();
+            `,
+          }}
+        />
         <div className="flex min-h-screen flex-col">
           <Header />
           <main className="flex-1">{children}</main>

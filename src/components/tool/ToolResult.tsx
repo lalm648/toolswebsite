@@ -8,7 +8,7 @@ type ToolResultProps = {
 
 export default function ToolResult({ title, children }: ToolResultProps) {
   return (
-    <Card className="bg-gray-50">
+    <Card className="bg-[var(--surface-raised)]">
       <CardContent className="p-10 sm:p-12">
         <div className="text-center">
           <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] bg-[linear-gradient(135deg,var(--accent-200),var(--accent-500))] text-white shadow-[var(--shadow-soft)]">

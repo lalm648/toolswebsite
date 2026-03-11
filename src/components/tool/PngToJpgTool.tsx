@@ -14,7 +14,8 @@ export default function PngToJpgTool() {
       helperText="PNG files only"
       outputMimeType="image/jpeg"
       outputExtension="jpg"
-      outputQuality={0.92}
+      outputQuality={0.86}
+      qualityControl={{ min: 45, max: 95, defaultValue: 86 }}
       fillBackgroundColor="#ffffff"
       originalPreviewBackground="checkerboard"
       convertedPreviewBackground="white"

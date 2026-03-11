@@ -14,7 +14,9 @@ export default function JpgToAvifTool() {
       helperText="JPG or JPEG files only"
       outputMimeType="image/avif"
       outputExtension="avif"
-      outputQuality={0.9}
+      outputQuality={0.62}
+      targetMaxSizeRatio={0.55}
+      qualityControl={{ min: 35, max: 90, defaultValue: 62 }}
       unsupportedExportMessage="This browser could not export AVIF from canvas. Try a Chromium-based browser or use WebP instead."
     />
   );

@@ -14,7 +14,9 @@ export default function PngToAvifTool() {
       helperText="PNG files only"
       outputMimeType="image/avif"
       outputExtension="avif"
-      outputQuality={0.9}
+      outputQuality={0.58}
+      targetMaxSizeRatio={0.55}
+      qualityControl={{ min: 30, max: 90, defaultValue: 58 }}
       originalPreviewBackground="checkerboard"
       convertedPreviewBackground="checkerboard"
       unsupportedExportMessage="This browser could not export AVIF from canvas. Try a Chromium-based browser or use WebP instead."

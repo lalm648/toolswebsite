@@ -11,8 +11,8 @@ const buttonVariants = cva(
         default:
           "bg-[linear-gradient(135deg,var(--accent-500),var(--brand-500))] text-white shadow-[var(--shadow-soft)] hover:-translate-y-0.5 hover:brightness-105",
         secondary:
-          "border border-[var(--outline-soft)] bg-white text-[var(--ink-900)] shadow-[var(--shadow-soft)] hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:bg-[var(--accent-50)]",
-        ghost: "text-slate-600 hover:bg-[var(--accent-50)] hover:text-[var(--accent-700)]",
+          "border border-[var(--outline-soft)] bg-[var(--surface-raised)] text-[var(--ink-900)] shadow-[var(--shadow-soft)] hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:bg-[var(--accent-50)]",
+        ghost: "text-[var(--muted-foreground)] hover:bg-[var(--accent-50)] hover:text-[var(--accent-700)]",
       },
       size: {
         default: "h-11 px-5 py-2.5",

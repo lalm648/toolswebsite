@@ -33,7 +33,7 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
     <div className="space-y-12">
       <CategoryHero category={category} value={query} onChange={setQuery} />
 
-      <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[linear-gradient(180deg,rgba(241,245,255,0.92),rgba(255,245,251,0.82))] p-5 shadow-[var(--shadow-soft)] sm:p-7">
+      <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-7">
         <ToolsSection
           title="Choose the workflow you need"
           description="Start with conversion, compression, or resizing. Each card leads into a dedicated tool page, and the layout is designed to scale cleanly as more utilities are added."
@@ -42,7 +42,7 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
         />
       </div>
 
-      <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(237,243,255,0.92))] p-5 shadow-[var(--shadow-soft)] sm:p-7">
+      <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-7">
         <FAQSection
           items={[
             {
