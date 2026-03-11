@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
 import Container from "@/components/Container";
+import CategoryBrowser from "@/components/tool/CategoryBrowser";
+import { getCategoryBySlug, getToolsByCategory } from "@/lib/data/tools";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata(
   "Developer Tools | ToolsWebsite",
-  "Browse developer tools on ToolsWebsite."
+  "Browse developer tools for formatting, encoding, and common engineering workflows."
 );
 
 export default function DeveloperToolsPage() {
+  const category = getCategoryBySlug("developer");
+  const tools = getToolsByCategory("developer");
+
+  if (!category) {
+    return null;
+  }
+
   return (
     <section className="py-16 sm:py-20">
-      <Container className="max-w-3xl">
-        <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-          Developer Tools
-        </h1>
-        <p className="mt-4 text-lg leading-8 text-slate-600">
-          This category page is in place. Individual developer tool routes come next.
-        </p>
+      <Container className="space-y-12">
+        <CategoryBrowser category={category} tools={tools} />
       </Container>
     </section>
   );
