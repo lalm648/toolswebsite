@@ -438,7 +438,7 @@ export default function RotateImageTool() {
                       {rotated.width} × {rotated.height} · {formatBytes(rotated.size)}
                     </p>
                     <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      {getSizeDelta(rotated.size, file.size) ?? "Size comparison unavailable"}
+                      {file ? getSizeDelta(rotated.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
                     </p>
                   </div>
                   <Button asChild>

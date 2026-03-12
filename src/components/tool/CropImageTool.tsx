@@ -113,7 +113,18 @@ function getPreviewGeometry(
 export default function CropImageTool() {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewFrameRef = useRef<HTMLDivElement>(null);
-  const dragStateRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
+  const dragStateRef = useRef<
+    | {
+        mode: "move" | "resize-left" | "resize-right" | "resize-top" | "resize-bottom";
+        startPointerX: number;
+        startPointerY: number;
+        startCropX: number;
+        startCropY: number;
+        startCropWidth: number;
+        startCropHeight: number;
+      }
+    | null
+  >(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [originalDimensions, setOriginalDimensions] = useState<ImageDimensions | null>(null);
@@ -168,21 +179,77 @@ export default function CropImageTool() {
         return;
       }
 
-      const imageX = ((event.clientX - geometry.left) / geometry.width) * originalDimensions.width;
-      const imageY = ((event.clientY - geometry.top) / geometry.height) * originalDimensions.height;
-      const nextX = clamp(
-        Math.round(imageX - dragStateRef.current.offsetX),
-        0,
-        originalDimensions.width - cropWidth
-      );
-      const nextY = clamp(
-        Math.round(imageY - dragStateRef.current.offsetY),
-        0,
-        originalDimensions.height - cropHeight
-      );
+      const pointerDeltaX =
+        ((event.clientX - dragStateRef.current.startPointerX) / geometry.width) * originalDimensions.width;
+      const pointerDeltaY =
+        ((event.clientY - dragStateRef.current.startPointerY) / geometry.height) * originalDimensions.height;
 
-      setCropX(nextX);
-      setCropY(nextY);
+      if (dragStateRef.current.mode === "move") {
+        const nextX = clamp(
+          Math.round(dragStateRef.current.startCropX + pointerDeltaX),
+          0,
+          originalDimensions.width - dragStateRef.current.startCropWidth
+        );
+        const nextY = clamp(
+          Math.round(dragStateRef.current.startCropY + pointerDeltaY),
+          0,
+          originalDimensions.height - dragStateRef.current.startCropHeight
+        );
+
+        setCropX(nextX);
+        setCropY(nextY);
+        setCropped(null);
+        return;
+      }
+
+      if (dragStateRef.current.mode === "resize-left") {
+        const nextX = clamp(
+          Math.round(dragStateRef.current.startCropX + pointerDeltaX),
+          0,
+          dragStateRef.current.startCropX + dragStateRef.current.startCropWidth - 1
+        );
+
+        setCropX(nextX);
+        setCropWidth(dragStateRef.current.startCropWidth + dragStateRef.current.startCropX - nextX);
+        setCropped(null);
+        return;
+      }
+
+      if (dragStateRef.current.mode === "resize-right") {
+        setCropWidth(
+          clamp(
+            Math.round(dragStateRef.current.startCropWidth + pointerDeltaX),
+            1,
+            originalDimensions.width - dragStateRef.current.startCropX
+          )
+        );
+        setCropped(null);
+        return;
+      }
+
+      if (dragStateRef.current.mode === "resize-top") {
+        const nextY = clamp(
+          Math.round(dragStateRef.current.startCropY + pointerDeltaY),
+          0,
+          dragStateRef.current.startCropY + dragStateRef.current.startCropHeight - 1
+        );
+
+        setCropY(nextY);
+        setCropHeight(dragStateRef.current.startCropHeight + dragStateRef.current.startCropY - nextY);
+        setCropped(null);
+        return;
+      }
+
+      if (dragStateRef.current.mode === "resize-bottom") {
+        setCropHeight(
+          clamp(
+            Math.round(dragStateRef.current.startCropHeight + pointerDeltaY),
+            1,
+            originalDimensions.height - dragStateRef.current.startCropY
+          )
+        );
+      }
+
       setCropped(null);
     }
 
@@ -373,12 +440,33 @@ export default function CropImageTool() {
       return;
     }
 
-    const imageX = ((event.clientX - geometry.left) / geometry.width) * originalDimensions.width;
-    const imageY = ((event.clientY - geometry.top) / geometry.height) * originalDimensions.height;
+    dragStateRef.current = {
+      mode: "move",
+      startPointerX: event.clientX,
+      startPointerY: event.clientY,
+      startCropX: cropX,
+      startCropY: cropY,
+      startCropWidth: cropWidth,
+      startCropHeight: cropHeight,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleCropResizeStart(
+    mode: "resize-left" | "resize-right" | "resize-top" | "resize-bottom",
+    event: ReactPointerEvent<HTMLDivElement>
+  ) {
+    event.stopPropagation();
 
     dragStateRef.current = {
-      offsetX: imageX - cropX,
-      offsetY: imageY - cropY,
+      mode,
+      startPointerX: event.clientX,
+      startPointerY: event.clientY,
+      startCropX: cropX,
+      startCropY: cropY,
+      startCropWidth: cropWidth,
+      startCropHeight: cropHeight,
     };
 
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -483,11 +571,11 @@ export default function CropImageTool() {
           />
 
           {file ? (
-            <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-left">
+            <div className="rounded-2xl border border-(--outline-soft) bg-(--surface-raised) p-4 text-left">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-[var(--ink-900)]">{file.name}</p>
-                  <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                  <p className="text-sm font-semibold text-(--ink-900)">{file.name}</p>
+                  <p className="mt-1 text-xs text-(--muted-foreground)">
                     {formatBytes(file.size)}
                     {originalDimensions ? ` · ${originalDimensions.width} × ${originalDimensions.height}` : ""}
                   </p>
@@ -497,18 +585,18 @@ export default function CropImageTool() {
                 </Badge>
               </div>
 
-              <div className="mt-5 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4">
-                <p className="text-sm font-semibold text-[var(--ink-900)]">Aspect preset</p>
+              <div className="mt-5 rounded-2xl border border-(--outline-soft) bg-(--surface-panel) p-4">
+                <p className="text-sm font-semibold text-(--ink-900)">Aspect preset</p>
                 <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {aspectPresets.map((preset) => (
                     <button
                       key={preset.value}
                       type="button"
                       onClick={() => setPreset(preset.value)}
-                      className={`rounded-2xl border px-3 py-3 text-sm font-medium shadow-[var(--shadow-soft)] ${
+                      className={`rounded-2xl border px-3 py-3 text-sm font-medium shadow-(--shadow-soft) ${
                         aspectPreset === preset.value
-                          ? "border-[var(--accent-500)] bg-[var(--accent-50)] text-[var(--accent-700)]"
-                          : "border-[var(--outline-soft)] bg-[var(--surface-raised)] text-[var(--ink-900)]"
+                          ? "border-(--accent-500) bg-(--accent-50) text-(--accent-700)"
+                          : "border-(--outline-soft) bg-(--surface-raised) text-(--ink-900)"
                       }`}
                     >
                       {preset.label}
@@ -518,8 +606,8 @@ export default function CropImageTool() {
               </div>
 
               {originalDimensions ? (
-                <div className="mt-4 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4">
-                  <p className="text-sm font-semibold text-[var(--ink-900)]">Crop area</p>
+                <div className="mt-4 rounded-2xl border border-(--outline-soft) bg-(--surface-panel) p-4">
+                  <p className="text-sm font-semibold text-(--ink-900)">Crop area</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <Button type="button" variant="secondary" onClick={centerCrop}>
                       Center crop
@@ -529,7 +617,7 @@ export default function CropImageTool() {
                     </Button>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <label className="text-xs text-[var(--muted-foreground)]">
+                    <label className="text-xs text-(--muted-foreground)">
                       X
                       <input
                         type="number"
@@ -546,10 +634,10 @@ export default function CropImageTool() {
                           );
                           setCropped(null);
                         }}
-                        className="mt-2 flex h-11 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--ink-900)] outline-none"
+                        className="mt-2 flex h-11 w-full rounded-2xl border border-(--outline-soft) bg-(--surface-raised) px-4 py-3 text-sm text-(--ink-900) outline-none"
                       />
                     </label>
-                    <label className="text-xs text-[var(--muted-foreground)]">
+                    <label className="text-xs text-(--muted-foreground)">
                       Y
                       <input
                         type="number"
@@ -566,13 +654,13 @@ export default function CropImageTool() {
                           );
                           setCropped(null);
                         }}
-                        className="mt-2 flex h-11 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4 py-3 text-sm text-[var(--ink-900)] outline-none"
+                        className="mt-2 flex h-11 w-full rounded-2xl border border-(--outline-soft) bg-(--surface-raised) px-4 py-3 text-sm text-(--ink-900) outline-none"
                       />
                     </label>
                   </div>
                   <div className="mt-4 grid gap-4">
                     <div>
-                      <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+                      <div className="flex items-center justify-between text-xs text-(--muted-foreground)">
                         <span>Left</span>
                         <span>{cropX}px</span>
                       </div>
@@ -586,13 +674,13 @@ export default function CropImageTool() {
                           setCropX(next);
                           setCropped(null);
                         }}
-                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--outline-soft)] accent-[var(--accent-500)]"
+                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-(--outline-soft) accent-(--accent-500)"
                         aria-label="Crop left"
                       />
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+                      <div className="flex items-center justify-between text-xs text-(--muted-foreground)">
                         <span>Top</span>
                         <span>{cropY}px</span>
                       </div>
@@ -606,13 +694,13 @@ export default function CropImageTool() {
                           setCropY(next);
                           setCropped(null);
                         }}
-                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--outline-soft)] accent-[var(--accent-500)]"
+                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-(--outline-soft) accent-(--accent-500)"
                         aria-label="Crop top"
                       />
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+                      <div className="flex items-center justify-between text-xs text-(--muted-foreground)">
                         <span>Width</span>
                         <span>{cropWidth}px</span>
                       </div>
@@ -625,13 +713,13 @@ export default function CropImageTool() {
                           updateCropWidth(Number(event.target.value));
                           setCropped(null);
                         }}
-                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--outline-soft)] accent-[var(--accent-500)]"
+                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-(--outline-soft) accent-(--accent-500)"
                         aria-label="Crop width"
                       />
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+                      <div className="flex items-center justify-between text-xs text-(--muted-foreground)">
                         <span>Height</span>
                         <span>{cropHeight}px</span>
                       </div>
@@ -645,12 +733,12 @@ export default function CropImageTool() {
                           setCropped(null);
                         }}
                         disabled={aspectPreset !== "free"}
-                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--outline-soft)] accent-[var(--accent-500)] disabled:cursor-not-allowed"
+                        className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-(--outline-soft) accent-(--accent-500) disabled:cursor-not-allowed"
                         aria-label="Crop height"
                       />
                     </div>
                   </div>
-                  <p className="mt-3 text-xs text-[var(--muted-foreground)]">
+                  <p className="mt-3 text-xs text-(--muted-foreground)">
                     {aspectPreset === "free"
                       ? "Adjust width and height freely."
                       : "Height follows the selected aspect ratio preset."}
@@ -658,8 +746,8 @@ export default function CropImageTool() {
                 </div>
               ) : null}
 
-              <div className="mt-4 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4">
-                <p className="text-sm font-semibold text-[var(--ink-900)]">Output format</p>
+              <div className="mt-4 rounded-2xl border border-(--outline-soft) bg-(--surface-panel) p-4">
+                <p className="text-sm font-semibold text-(--ink-900)">Output format</p>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   {outputOptions.map((option) => (
                     <button
@@ -669,14 +757,14 @@ export default function CropImageTool() {
                         setOutputFormat(option.value);
                         setCropped(null);
                       }}
-                      className={`rounded-2xl border p-3 text-left shadow-[var(--shadow-soft)] ${
+                      className={`rounded-2xl border p-3 text-left shadow-(--shadow-soft) ${
                         outputFormat === option.value
-                          ? "border-[var(--accent-500)] bg-[var(--accent-50)]"
-                          : "border-[var(--outline-soft)] bg-[var(--surface-raised)]"
+                          ? "border-(--accent-500) bg-(--accent-50)"
+                          : "border-(--outline-soft) bg-(--surface-raised)"
                       }`}
                     >
-                      <p className="text-sm font-semibold text-[var(--ink-900)]">{option.label}</p>
-                      <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">{option.description}</p>
+                      <p className="text-sm font-semibold text-(--ink-900)">{option.label}</p>
+                      <p className="mt-1 text-xs leading-5 text-(--muted-foreground)">{option.description}</p>
                     </button>
                   ))}
                 </div>
@@ -693,7 +781,7 @@ export default function CropImageTool() {
             </div>
           ) : null}
 
-          {error ? <p className="mt-4 text-sm text-[var(--brand-600)]">{error}</p> : null}
+          {error ? <p className="mt-4 text-sm text-(--brand-600)">{error}</p> : null}
         </ToolUploader>
       </div>
 
@@ -701,8 +789,8 @@ export default function CropImageTool() {
         {previewUrl && originalDimensions ? (
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4">
-                <p className="text-sm font-medium text-[var(--muted-foreground)]">Crop frame</p>
+              <div className="rounded-2xl border border-(--outline-soft) bg-(--surface-raised) p-4">
+                <p className="text-sm font-medium text-(--muted-foreground)">Crop frame</p>
                 <div
                   ref={previewFrameRef}
                   className={`relative mt-4 aspect-square overflow-hidden rounded-xl ${
@@ -735,13 +823,37 @@ export default function CropImageTool() {
                       <div className="pointer-events-none absolute left-2/3 top-0 h-full border-l border-white/35" />
                       <div className="pointer-events-none absolute top-1/3 left-0 w-full border-t border-white/35" />
                       <div className="pointer-events-none absolute top-2/3 left-0 w-full border-t border-white/35" />
+                      {aspectPreset === "free" ? (
+                        <>
+                          <div
+                            onPointerDown={(event) => handleCropResizeStart("resize-left", event)}
+                            className="absolute bottom-3 left-0 top-3 -ml-2 w-4 cursor-ew-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            aria-hidden="true"
+                          />
+                          <div
+                            onPointerDown={(event) => handleCropResizeStart("resize-right", event)}
+                            className="absolute bottom-3 right-0 top-3 -mr-2 w-4 cursor-ew-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            aria-hidden="true"
+                          />
+                          <div
+                            onPointerDown={(event) => handleCropResizeStart("resize-top", event)}
+                            className="absolute left-3 right-3 top-0 -mt-2 h-4 cursor-ns-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            aria-hidden="true"
+                          />
+                          <div
+                            onPointerDown={(event) => handleCropResizeStart("resize-bottom", event)}
+                            className="absolute bottom-0 left-3 right-3 -mb-2 h-4 cursor-ns-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            aria-hidden="true"
+                          />
+                        </>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4">
-                <p className="text-sm font-medium text-[var(--muted-foreground)]">
+              <div className="rounded-2xl border border-(--outline-soft) bg-(--surface-raised) p-4">
+                <p className="text-sm font-medium text-(--muted-foreground)">
                   {cropped ? "Cropped result" : "Live crop preview"}
                 </p>
                 {cropped ? (
@@ -767,32 +879,41 @@ export default function CropImageTool() {
                       imagePreviewBackgroundClassName[usesTransparencyBackground ? "checkerboard" : "plain"]
                     }`}
                   >
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `url(${previewUrl})`,
-                        backgroundSize: `${(originalDimensions.width / cropWidth) * 100}% ${(originalDimensions.height / cropHeight) * 100}%`,
-                        backgroundPosition: `${(cropX / Math.max(1, originalDimensions.width - cropWidth)) * 100 || 0}% ${
-                          (cropY / Math.max(1, originalDimensions.height - cropHeight)) * 100 || 0
-                        }%`,
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    />
+                    <div className="absolute inset-0 flex items-center justify-center p-3">
+                      <div
+                        className="relative max-h-full w-full overflow-hidden rounded-lg"
+                        style={{
+                          aspectRatio: `${cropWidth} / ${Math.max(1, cropHeight)}`,
+                        }}
+                      >
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage: `url(${previewUrl})`,
+                            backgroundSize: `${(originalDimensions.width / cropWidth) * 100}% ${(originalDimensions.height / cropHeight) * 100}%`,
+                            backgroundPosition: `${(cropX / Math.max(1, originalDimensions.width - cropWidth)) * 100 || 0}% ${
+                              (cropY / Math.max(1, originalDimensions.height - cropHeight)) * 100 || 0
+                            }%`,
+                            backgroundRepeat: "no-repeat",
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
             {cropped ? (
-              <div className="rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4">
+              <div className="rounded-2xl border border-(--outline-soft) bg-(--surface-raised) p-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-[var(--ink-900)]">{cropped.fileName}</p>
-                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                    <p className="text-sm font-semibold text-(--ink-900)">{cropped.fileName}</p>
+                    <p className="mt-1 text-sm text-(--muted-foreground)">
                       {cropped.width} × {cropped.height} · {formatBytes(cropped.size)}
                     </p>
-                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      {getSizeDelta(cropped.size, file.size) ?? "Size comparison unavailable"}
+                    <p className="mt-1 text-xs text-(--muted-foreground)">
+                      {file ? getSizeDelta(cropped.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
                     </p>
                   </div>
                   <Button asChild>
@@ -805,7 +926,7 @@ export default function CropImageTool() {
             ) : null}
           </div>
         ) : (
-          <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-[var(--outline-soft)] bg-[var(--surface-panel)] text-center text-sm text-[var(--muted-foreground)]">
+          <div className="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-(--outline-soft) bg-(--surface-panel) text-center text-sm text-(--muted-foreground)">
             Upload an image to crop it and preview the result here.
           </div>
         )}

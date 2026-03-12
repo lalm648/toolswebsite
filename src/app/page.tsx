@@ -1,50 +1,32 @@
-import CategoryGrid from "@/components/CategoryGrid";
 import Container from "@/components/Container";
-import SearchBar from "@/components/SearchBar";
+import HomeCatalog from "@/components/HomeCatalog";
 import CTABlock from "@/components/tool/CTABlock";
 import FAQSection from "@/components/tool/FAQSection";
-import { Card, CardContent } from "@/components/ui/card";
-import { categories } from "@/lib/data/tools";
 
 export default function Home() {
   return (
     <section className="py-16 sm:py-20">
       <Container className="space-y-14">
-        <Card className="rounded-[2rem] bg-[var(--surface-hero)] shadow-[var(--shadow-lift)]">
-          <CardContent className="px-6 py-12 text-center sm:px-10">
-            <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-6xl">
-              Practical online tools with real structure
-            </h1>
-            <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-[var(--muted-foreground)] sm:text-xl">
-              Phase 4 is about the shell first: core pages, category routes, trust pages, and shared
-              components before tool logic.
-            </p>
-            <div className="mt-8">
-              <SearchBar />
-            </div>
-          </CardContent>
-        </Card>
-
-        <CategoryGrid categories={categories} />
+        <HomeCatalog />
 
         <FAQSection
           items={[
             {
               question: "What is complete now?",
-              answer: "The project now has the important shell pieces the prompt asked for, not just a single landing page.",
+              answer: "You can already use browser-based tools for common image, text, developer, and SEO tasks.",
             },
             {
               question: "What comes next?",
-              answer: "Individual tool routes and then real browser-side tool logic.",
+              answer: "The next improvements are deeper tool coverage, more edge-case handling, and stronger QA.",
             },
           ]}
         />
 
         <CTABlock
-          title="Next: build the first working tool"
-          description="The structure is in place. The next practical move is implementing one tool end to end."
+          title="Browse the full tool library"
+          description="Start with image, text, developer, or SEO utilities built to run directly in your browser."
           href="/tools/image"
-          label="Open categories"
+          label="Explore tools"
         />
       </Container>
     </section>

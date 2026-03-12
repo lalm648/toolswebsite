@@ -381,9 +381,9 @@ export default function ImageFormatConverterTool({
                       {converted.width} × {converted.height} · {formatBytes(converted.size)}
                     </p>
                     {(() => {
-                      const deltaText =
-                        sizeDeltaText?.(converted.size, file.size) ??
-                        getSizeDelta(converted.size, file.size);
+                      const deltaText = file
+                        ? sizeDeltaText?.(converted.size, file.size) ?? getSizeDelta(converted.size, file.size)
+                        : null;
 
                       return deltaText ? (
                         <p className="mt-1 text-xs text-[var(--muted-foreground)]">{deltaText}</p>

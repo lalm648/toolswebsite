@@ -485,7 +485,7 @@ export default function ImageCompressorTool() {
                       {converted.width} × {converted.height} · {formatBytes(converted.size)}
                     </p>
                     <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      {getSizeDelta(converted.size, file.size) ?? "Size comparison unavailable"}
+                      {file ? getSizeDelta(converted.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
                     </p>
                   </div>
                   <Button asChild>

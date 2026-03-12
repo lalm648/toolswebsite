@@ -454,7 +454,7 @@ export default function ImageResizerTool() {
                       {resized.width} × {resized.height} · {formatBytes(resized.size)}
                     </p>
                     <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      {getSizeDelta(resized.size, file.size) ?? "Size comparison unavailable"}
+                      {file ? getSizeDelta(resized.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
                     </p>
                   </div>
                   <Button asChild>

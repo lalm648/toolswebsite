@@ -64,6 +64,10 @@ export type ToolDefinition = {
     | "crop-image"
     | "word-counter"
     | "case-converter"
+    | "remove-extra-spaces"
+    | "remove-empty-lines"
+    | "remove-duplicate-lines"
+    | "remove-line-breaks"
     | "json-formatter"
     | "base64-encoder"
     | "meta-tag-generator";
@@ -177,6 +181,42 @@ export const tools: ToolDefinition[] = [
     category: "text",
     meta: "Text formatting",
     icon: "case-converter",
+  },
+  {
+    slug: "remove-extra-spaces",
+    title: "Remove Extra Spaces",
+    description: "Clean pasted text by collapsing repeated spaces and tabs instantly.",
+    href: "/tools/text/remove-extra-spaces",
+    category: "text",
+    meta: "Text cleaning",
+    icon: "remove-extra-spaces",
+  },
+  {
+    slug: "remove-empty-lines",
+    title: "Remove Empty Lines",
+    description: "Delete blank lines from text while keeping the remaining content intact.",
+    href: "/tools/text/remove-empty-lines",
+    category: "text",
+    meta: "Text cleaning",
+    icon: "remove-empty-lines",
+  },
+  {
+    slug: "remove-duplicate-lines",
+    title: "Remove Duplicate Lines",
+    description: "Remove repeated lines from lists and copied content in one step.",
+    href: "/tools/text/remove-duplicate-lines",
+    category: "text",
+    meta: "Text cleaning",
+    icon: "remove-duplicate-lines",
+  },
+  {
+    slug: "remove-line-breaks",
+    title: "Remove Line Breaks",
+    description: "Join wrapped lines into a clean paragraph for reuse and editing.",
+    href: "/tools/text/remove-line-breaks",
+    category: "text",
+    meta: "Text cleaning",
+    icon: "remove-line-breaks",
   },
   {
     slug: "json-formatter",

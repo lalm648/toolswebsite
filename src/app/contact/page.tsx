@@ -15,7 +15,7 @@ export default function ContactPage() {
           Contact
         </h1>
         <p className="mt-6 text-lg leading-8 text-slate-600">
-          This is the trust page for support, requests, and future feature intake.
+          Reach out with tool requests, bug reports, partnership inquiries, or feedback about your workflow.
         </p>
       </Container>
     </section>
