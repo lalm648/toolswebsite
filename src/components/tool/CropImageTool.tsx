@@ -610,7 +610,7 @@ export default function CropImageTool() {
             id={fileInputId}
             type="file"
             accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-            className="sr-only"
+            className="mt-4 block w-full text-sm text-[var(--muted-foreground)] file:mr-4 file:rounded-xl file:border-0 file:bg-[var(--accent-50)] file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-[var(--accent-700)] md:sr-only"
             onChange={(event) => handleSelect(event.target.files?.[0] ?? null)}
           />
 
