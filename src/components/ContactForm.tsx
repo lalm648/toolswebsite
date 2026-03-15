@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "clickproqa@gmail.com";
+const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "contact@example.com";
 
 export default function ContactForm() {
   const [name, setName] = useState("");

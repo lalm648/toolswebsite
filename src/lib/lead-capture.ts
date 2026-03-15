@@ -24,7 +24,7 @@ type ScopedLeadEnv = {
   hiddenFields: Array<{ name: string; value: string }>;
 };
 
-const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "clickproqa@gmail.com";
+const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "contact@example.com";
 
 function normalizeProvider(value: string | undefined): ProviderKind | "" {
   const normalized = value?.trim().toLowerCase();

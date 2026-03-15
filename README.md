@@ -34,14 +34,14 @@ For Netlify, use the same variable names from `.env.example` in:
 `Site configuration` -> `Environment variables`
 
 Important:
-- `NEXT_PUBLIC_*` variables are public by design and may appear in generated HTML, metadata, and client-side bundles.
-- Do not treat `NEXT_PUBLIC_SITE_URL` or `NEXT_PUBLIC_CONTACT_EMAIL` as secrets in hosting dashboards or secret scanners.
+- `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_CONTACT_EMAIL` are public environment variables used in the frontend.
+- Example values are placeholders only. Configure the real values in your hosting platform (e.g. Netlify environment variables).
 
 These public variables are supported by the current app:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://example.com
-NEXT_PUBLIC_CONTACT_EMAIL=clickproqa@gmail.com
+NEXT_PUBLIC_CONTACT_EMAIL=contact@example.com
 NEXT_PUBLIC_NEWSLETTER_PROVIDER=beehiiv
 NEXT_PUBLIC_NEWSLETTER_URL=https://your-newsletter-provider.example/subscribe
 NEXT_PUBLIC_NEWSLETTER_METHOD=post
