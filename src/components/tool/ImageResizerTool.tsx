@@ -8,6 +8,7 @@ import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   formatBytes,
   getSizeDelta,
@@ -117,6 +118,9 @@ export default function ImageResizerTool() {
 
     if (!acceptedMimeTypes.includes(selectedFile.type)) {
       setError("Please upload a JPG, PNG, or WebP image.");
+      trackToolFailure("image-resizer", "select_file", "unsupported_file_type", {
+        input_type: selectedFile.type || "unknown",
+      });
       return;
     }
 
@@ -137,6 +141,10 @@ export default function ImageResizerTool() {
       })
       .catch(() => {
         setError("This image could not be processed.");
+        trackToolFailure("image-resizer", "load_image", "image_load_failed", {
+          input_type: selectedFile.type,
+          input_size: selectedFile.size,
+        });
       });
 
     setFile(selectedFile);
@@ -178,6 +186,10 @@ export default function ImageResizerTool() {
 
     if (!targetWidth || !targetHeight) {
       setError("Enter a valid width and height before resizing.");
+      trackToolFailure("image-resizer", "resize", "invalid_dimensions", {
+        width: targetWidth || undefined,
+        height: targetHeight || undefined,
+      });
       return;
     }
 
@@ -197,6 +209,10 @@ export default function ImageResizerTool() {
       if (!context) {
         setError("Your browser could not start image resizing.");
         setIsResizing(false);
+        trackToolFailure("image-resizer", "resize", "canvas_context_unavailable", {
+          input_type: file.type,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -212,6 +228,11 @@ export default function ImageResizerTool() {
       if (!blob) {
         setError(`This browser could not export ${outputConfig.label}. Try another format.`);
         setIsResizing(false);
+        trackToolFailure("image-resizer", "resize", "export_failed", {
+          input_type: file.type,
+          output_format: outputConfig.extension,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -226,10 +247,23 @@ export default function ImageResizerTool() {
         fileName: replaceFileExtension(file.name, outputConfig.extension),
         mimeType: outputConfig.mimeType,
       });
+      trackEvent("resize_image", {
+        tool_slug: "image-resizer",
+        input_type: file.type,
+        output_format: outputConfig.extension,
+        input_size: file.size,
+        output_size: blob.size,
+        width: targetWidth,
+        height: targetHeight,
+      });
       setIsResizing(false);
     } catch {
       setError("This image could not be resized.");
       setIsResizing(false);
+      trackToolFailure("image-resizer", "resize", "processing_failed", {
+        input_type: file.type,
+        input_size: file.size,
+      });
     }
   }
 
@@ -259,6 +293,8 @@ export default function ImageResizerTool() {
           description="Resize JPG, PNG, or WebP images directly in the browser. Lock the aspect ratio by default, adjust dimensions, preview the result, and download the new file."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          isProcessing={isResizing}
+          processingLabel="Resizing image"
           dropHint="or drag and drop an image here"
           isDragActive={isDragActive}
           onDragEnter={handleDragEnter}
@@ -398,7 +434,7 @@ export default function ImageResizerTool() {
         </ToolUploader>
       </div>
 
-      <ToolResult title="Preview and download">
+      <ToolResult title="Preview and download" isProcessing={isResizing} processingLabel="Building resized preview">
         {previewUrl ? (
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -458,7 +494,17 @@ export default function ImageResizerTool() {
                     </p>
                   </div>
                   <Button asChild>
-                    <a href={resized.url} download={resized.fileName}>
+                    <a
+                      href={resized.url}
+                      download={resized.fileName}
+                      onClick={() =>
+                        trackEvent("download_result", {
+                          tool_slug: "image-resizer",
+                          output_format: resized.mimeType,
+                          file_name: resized.fileName,
+                        })
+                      }
+                    >
                       Download image
                     </a>
                   </Button>

@@ -58,6 +58,7 @@ export default function HomeCatalog() {
               value={query}
               onChange={setQuery}
               placeholder="Search tools or categories like JPG to PNG, text, SEO, or JSON Formatter"
+              analyticsSource="home_catalog"
             />
           </div>
         </CardContent>

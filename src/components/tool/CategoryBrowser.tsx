@@ -1,11 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import NewsletterSignup from "@/components/lead/NewsletterSignup";
+import WaitlistBlock from "@/components/lead/WaitlistBlock";
+import RevealOnScroll from "@/components/RevealOnScroll";
+import ContentSection from "@/components/seo/ContentSection";
 import CTABlock from "@/components/tool/CTABlock";
 import CategoryHero from "@/components/tool/CategoryHero";
 import FAQSection from "@/components/tool/FAQSection";
 import ToolsSection from "@/components/tool/ToolsSection";
 import type { CategoryDefinition, ToolDefinition } from "@/lib/data/tools";
+import { categorySeoContent } from "@/lib/seo/content";
+import { siteFlags } from "@/lib/site-flags";
 
 type CategoryBrowserProps = {
   category: CategoryDefinition;
@@ -14,6 +20,7 @@ type CategoryBrowserProps = {
 
 export default function CategoryBrowser({ category, tools }: CategoryBrowserProps) {
   const [query, setQuery] = useState("");
+  const seoContent = categorySeoContent[category.slug];
 
   const filteredTools = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -42,20 +49,50 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
         />
       </div>
 
+      {seoContent ? (
+        <ContentSection
+          eyebrow={category.eyebrow}
+          title={`About ${category.title}`}
+          intro={seoContent.intro}
+          highlights={seoContent.highlights}
+          faq={seoContent.faq}
+        />
+      ) : null}
+
       <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-7">
         <FAQSection
           items={[
             {
               question: "Will these tools work directly in the browser?",
-              answer: "That is the intended architecture. This category page is the polished foundation before image-processing logic is implemented tool by tool.",
+              answer: "Yes. The main workflows in this section are designed to run in the browser so simple tasks stay fast and easier to use.",
             },
             {
-              question: "Why focus on the category page first?",
-              answer: "Because the category page sets the design system, search behavior, card pattern, and page rhythm that the rest of the tools sections will reuse.",
+              question: "Which tool should I start with?",
+              answer: `Start with the task you need right now. This ${category.title.toLowerCase()} section is organized so you can move from browsing into a focused tool page quickly.`,
             },
           ]}
         />
       </div>
+
+      {siteFlags.showNewsletterSignup || siteFlags.showWaitlistBlock ? (
+        <div className="grid gap-5 xl:grid-cols-2">
+          {siteFlags.showNewsletterSignup ? (
+            <RevealOnScroll>
+              <NewsletterSignup source={`category_${category.slug}`} />
+            </RevealOnScroll>
+          ) : null}
+
+          {siteFlags.showWaitlistBlock ? (
+            <RevealOnScroll>
+              <WaitlistBlock
+                source={`category_${category.slug}`}
+                title={`Join the ${category.slug} workflow waitlist`}
+                description={`Get notified when new ${category.title.toLowerCase()} features, deeper automation, and premium workflow bundles are added.`}
+              />
+            </RevealOnScroll>
+          ) : null}
+        </div>
+      ) : null}
 
       <CTABlock
         title="The category foundation is ready for real tool flows"

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import RemoveLineBreaksTool from "@/components/tool/RemoveLineBreaksTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Remove Line Breaks | ToolsWebsite",
-  "Remove line breaks from text directly in the browser."
-);
+export const metadata: Metadata = buildToolMetadata("remove-line-breaks");
 
 export default function RemoveLineBreaksPage() {
   return (

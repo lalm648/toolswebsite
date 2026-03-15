@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import CropImageTool from "@/components/tool/CropImageTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Crop Image | ToolsWebsite",
-  "Crop JPG, PNG, and WebP images directly in the browser with live preview and instant download."
-);
+export const metadata: Metadata = buildToolMetadata("crop-image");
 
 export default function CropImagePage() {
   return (

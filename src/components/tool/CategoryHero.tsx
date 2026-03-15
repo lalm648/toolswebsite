@@ -29,6 +29,7 @@ export default function CategoryHero({ category, value, onChange }: CategoryHero
               value={value}
               onChange={onChange}
               placeholder={`Search ${category.title.toLowerCase()} like JPG to PNG or Image Resizer`}
+              analyticsSource={`category_${category.slug}`}
             />
           </div>
         </div>

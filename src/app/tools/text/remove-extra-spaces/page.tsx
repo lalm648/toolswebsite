@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import RemoveExtraSpacesTool from "@/components/tool/RemoveExtraSpacesTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Remove Extra Spaces | ToolsWebsite",
-  "Remove extra spaces and tabs from text directly in the browser."
-);
+export const metadata: Metadata = buildToolMetadata("remove-extra-spaces");
 
 export default function RemoveExtraSpacesPage() {
   return (

@@ -7,6 +7,7 @@ import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   exportCanvasWithStrategy,
   formatBytes,
@@ -104,6 +105,9 @@ export default function ImageFormatConverterTool({
 
     if (!acceptedMimeTypes.includes(selectedFile.type)) {
       setError(invalidTypeMessage);
+      trackToolFailure(`${inputLabel.toLowerCase()}-to-${outputLabel.toLowerCase()}`.replace(/\s+/g, "-"), "select_file", "unsupported_file_type", {
+        input_type: selectedFile.type || "unknown",
+      });
       return;
     }
 
@@ -121,6 +125,10 @@ export default function ImageFormatConverterTool({
       })
       .catch(() => {
         setError("This image could not be processed.");
+        trackToolFailure(`${inputLabel.toLowerCase()}-to-${outputLabel.toLowerCase()}`.replace(/\s+/g, "-"), "load_image", "image_load_failed", {
+          input_type: selectedFile.type,
+          input_size: selectedFile.size,
+        });
       });
 
     setFile(selectedFile);
@@ -169,6 +177,10 @@ export default function ImageFormatConverterTool({
       if (!context) {
         setError("Your browser could not start image conversion.");
         setIsConverting(false);
+        trackToolFailure(`${inputLabel.toLowerCase()}-to-${outputLabel.toLowerCase()}`.replace(/\s+/g, "-"), "convert", "canvas_context_unavailable", {
+          input_type: file.type,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -204,6 +216,11 @@ export default function ImageFormatConverterTool({
           unsupportedExportMessage ?? `This browser could not export ${outputLabel}. Try another browser or format.`
         );
         setIsConverting(false);
+        trackToolFailure(`${inputLabel.toLowerCase()}-to-${outputLabel.toLowerCase()}`.replace(/\s+/g, "-"), "convert", "export_failed", {
+          input_type: file.type,
+          output_format: outputExtension,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -217,10 +234,22 @@ export default function ImageFormatConverterTool({
         height: image.naturalHeight,
         fileName: replaceFileExtension(file.name, outputExtension),
       });
+      trackEvent("convert_image", {
+        tool_slug: `${inputLabel.toLowerCase()}-to-${outputLabel.toLowerCase()}`.replace(/\s+/g, "-"),
+        input_type: file.type,
+        output_format: outputExtension,
+        input_size: file.size,
+        output_size: blob.size,
+      });
       setIsConverting(false);
     } catch {
       setError("This image could not be processed.");
       setIsConverting(false);
+      trackToolFailure(`${inputLabel.toLowerCase()}-to-${outputLabel.toLowerCase()}`.replace(/\s+/g, "-"), "convert", "processing_failed", {
+        input_type: file.type,
+        output_format: outputExtension,
+        input_size: file.size,
+      });
     }
   }
 
@@ -243,6 +272,8 @@ export default function ImageFormatConverterTool({
           description={uploaderDescription}
           buttonLabel={file ? `Choose another ${inputLabel}` : "Upload now"}
           onButtonClick={openPicker}
+          isProcessing={isConverting}
+          processingLabel={`Converting to ${outputLabel}`}
           dropHint={`or drag and drop a ${inputLabel} here`}
           isDragActive={isDragActive}
           onDragEnter={handleDragEnter}
@@ -324,7 +355,7 @@ export default function ImageFormatConverterTool({
         </ToolUploader>
       </div>
 
-      <ToolResult title="Preview and download">
+      <ToolResult title="Preview and download" isProcessing={isConverting} processingLabel={`Building ${outputLabel} preview`}>
         {previewUrl ? (
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -391,7 +422,17 @@ export default function ImageFormatConverterTool({
                     })()}
                   </div>
                   <Button asChild>
-                    <a href={converted.url} download={converted.fileName}>
+                    <a
+                      href={converted.url}
+                      download={converted.fileName}
+                      onClick={() =>
+                        trackEvent("download_result", {
+                          tool_slug: `${inputLabel.toLowerCase()}-to-${outputLabel.toLowerCase()}`.replace(/\s+/g, "-"),
+                          output_format: outputExtension,
+                          file_name: converted.fileName,
+                        })
+                      }
+                    >
                       {`Download ${outputLabel}`}
                     </a>
                   </Button>

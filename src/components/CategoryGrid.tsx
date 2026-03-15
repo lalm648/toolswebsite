@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import type { CategoryDefinition } from "@/lib/data/tools";
+import { trackCategoryOpen } from "@/lib/analytics";
 
 type CategoryGridProps = {
   categories: CategoryDefinition[];
@@ -12,6 +15,9 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
         <Link
           key={category.slug}
           href={category.href}
+          onClick={() => {
+            trackCategoryOpen(category.slug);
+          }}
           className="group block rounded-[1.8rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-7 shadow-[var(--shadow-soft)] backdrop-blur hover:-translate-y-1 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-lift)]"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--accent-700)]">

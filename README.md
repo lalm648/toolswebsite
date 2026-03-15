@@ -1,4 +1,8 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a Next.js tools website with browser-first utilities for image, text, developer, and SEO workflows.
+
+## Documentation
+
+- Analytics event model: [docs/analytics.md](/Users/lalmuhammad/Documents/toolswebsite/docs/analytics.md)
 
 ## Getting Started
 
@@ -16,9 +20,42 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the page by modifying files in `src/app` and `src/components`. The page auto-updates as you edit the project.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
+
+These are optional and let you activate monetization/lead-capture flows without a database:
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+NEXT_PUBLIC_CONTACT_EMAIL=clickproqa@gmail.com
+NEXT_PUBLIC_NEWSLETTER_PROVIDER=beehiiv
+NEXT_PUBLIC_NEWSLETTER_URL=https://your-newsletter-provider.example/subscribe
+NEXT_PUBLIC_NEWSLETTER_METHOD=post
+NEXT_PUBLIC_NEWSLETTER_EMAIL_FIELD=email
+NEXT_PUBLIC_NEWSLETTER_SOURCE_FIELD=source
+NEXT_PUBLIC_NEWSLETTER_TARGET=_blank
+NEXT_PUBLIC_NEWSLETTER_HIDDEN_FIELDS='{"publication_id":"pub_123"}'
+NEXT_PUBLIC_WAITLIST_PROVIDER=convertkit
+NEXT_PUBLIC_WAITLIST_URL=https://your-waitlist-provider.example/join
+NEXT_PUBLIC_WAITLIST_METHOD=post
+NEXT_PUBLIC_WAITLIST_EMAIL_FIELD=email_address
+NEXT_PUBLIC_WAITLIST_SOURCE_FIELD=source
+NEXT_PUBLIC_WAITLIST_TARGET=_blank
+NEXT_PUBLIC_WAITLIST_HIDDEN_FIELDS='{"form":"waitlist"}'
+NEXT_PUBLIC_SHOW_AD_SLOTS=true
+NEXT_PUBLIC_SHOW_SPONSORED_BLOCKS=true
+NEXT_PUBLIC_SHOW_NEWSLETTER_SIGNUP=true
+NEXT_PUBLIC_SHOW_WAITLIST_BLOCK=true
+```
+
+If `NEXT_PUBLIC_NEWSLETTER_URL` or `NEXT_PUBLIC_WAITLIST_URL` are not set, the UI falls back to email-based manual handling.
+Set any of the `NEXT_PUBLIC_SHOW_*` flags to `false` to hide those non-critical commercial modules in a given environment.
+
+Provider notes:
+- Supported provider presets are `generic`, `beehiiv`, `convertkit`, and `mailchimp`
+- You can override provider defaults with `*_EMAIL_FIELD`, `*_SOURCE_FIELD`, and `*_HIDDEN_FIELDS`
+- `*_HIDDEN_FIELDS` must be valid JSON for extra embedded-form fields
 
 ## Learn More
 

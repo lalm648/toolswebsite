@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import Container from "@/components/Container";
 import CategoryBrowser from "@/components/tool/CategoryBrowser";
 import { getCategoryBySlug, getToolsByCategory } from "@/lib/data/tools";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildCategoryMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Developer Tools | ToolsWebsite",
-  "Browse developer tools for formatting, encoding, and common engineering workflows."
-);
+export const metadata: Metadata = buildCategoryMetadata("developer");
 
 export default function DeveloperToolsPage() {
   const category = getCategoryBySlug("developer");

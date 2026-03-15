@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import PngToAvifTool from "@/components/tool/PngToAvifTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "PNG to AVIF | ToolsWebsite",
-  "Convert PNG images to AVIF directly in the browser with instant preview and download."
-);
+export const metadata: Metadata = buildToolMetadata("png-to-avif");
 
 export default function PngToAvifPage() {
   return (

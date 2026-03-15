@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import RemoveDuplicateLinesTool from "@/components/tool/RemoveDuplicateLinesTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Remove Duplicate Lines | ToolsWebsite",
-  "Remove duplicate lines from text directly in the browser."
-);
+export const metadata: Metadata = buildToolMetadata("remove-duplicate-lines");
 
 export default function RemoveDuplicateLinesPage() {
   return (

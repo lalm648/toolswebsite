@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ToolDefinition } from "@/lib/data/tools";
+import { trackToolOpen } from "@/lib/analytics";
 
 type ToolCardProps = {
   tool: ToolDefinition;
@@ -209,6 +212,9 @@ export default function ToolCard({ tool }: ToolCardProps) {
   return (
     <Link
       href={tool.href}
+      onClick={() => {
+        trackToolOpen(tool.slug, tool.category);
+      }}
       className="group block focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
     >
       <Card className="h-full bg-[var(--surface-card)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-[var(--outline-strong)] group-hover:shadow-[var(--shadow-lift)]">

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import ImageResizerTool from "@/components/tool/ImageResizerTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Image Resizer | ToolsWebsite",
-  "Resize JPG, PNG, and WebP images directly in the browser with aspect-ratio controls and instant download."
-);
+export const metadata: Metadata = buildToolMetadata("image-resizer");
 
 export default function ImageResizerPage() {
   return (

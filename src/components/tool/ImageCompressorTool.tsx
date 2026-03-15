@@ -8,6 +8,7 @@ import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   exportCanvasWithStrategy,
   formatBytes,
@@ -105,6 +106,9 @@ export default function ImageCompressorTool() {
 
     if (!acceptedMimeTypes.includes(selectedFile.type)) {
       setError("Please upload a JPG, PNG, or WebP image.");
+      trackToolFailure("image-compressor", "select_file", "unsupported_file_type", {
+        input_type: selectedFile.type || "unknown",
+      });
       return;
     }
 
@@ -123,6 +127,10 @@ export default function ImageCompressorTool() {
       })
       .catch(() => {
         setError("This image could not be processed.");
+        trackToolFailure("image-compressor", "load_image", "image_load_failed", {
+          input_type: selectedFile.type,
+          input_size: selectedFile.size,
+        });
       });
 
     setFile(selectedFile);
@@ -194,6 +202,10 @@ export default function ImageCompressorTool() {
       if (!context) {
         setError("Your browser could not start image compression.");
         setIsCompressing(false);
+        trackToolFailure("image-compressor", "compress", "canvas_context_unavailable", {
+          input_type: file.type,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -216,6 +228,11 @@ export default function ImageCompressorTool() {
       if (!blob) {
         setError(`This browser could not export ${outputConfig.label}. Try another format.`);
         setIsCompressing(false);
+        trackToolFailure("image-compressor", "compress", "export_failed", {
+          input_type: file.type,
+          output_format: outputConfig.extension,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -230,10 +247,24 @@ export default function ImageCompressorTool() {
         fileName: replaceFileExtension(file.name, outputConfig.extension),
         mimeType: outputConfig.mimeType,
       });
+      trackEvent("compress_image", {
+        tool_slug: "image-compressor",
+        input_type: file.type,
+        output_format: outputConfig.extension,
+        input_size: file.size,
+        output_size: blob.size,
+        quality_percent: qualityPercent,
+        max_width: maxWidth || undefined,
+        max_height: maxHeight || undefined,
+      });
       setIsCompressing(false);
     } catch {
       setError("This image could not be compressed.");
       setIsCompressing(false);
+      trackToolFailure("image-compressor", "compress", "processing_failed", {
+        input_type: file.type,
+        input_size: file.size,
+      });
     }
   }
 
@@ -264,6 +295,8 @@ export default function ImageCompressorTool() {
           description="Compress JPG, PNG, or WebP images directly in the browser. Adjust quality, resize if needed, and download the optimized file."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          isProcessing={isCompressing}
+          processingLabel="Compressing image"
           dropHint="or drag and drop an image here"
           isDragActive={isDragActive}
           onDragEnter={handleDragEnter}
@@ -429,7 +462,7 @@ export default function ImageCompressorTool() {
         </ToolUploader>
       </div>
 
-      <ToolResult title="Preview and download">
+      <ToolResult title="Preview and download" isProcessing={isCompressing} processingLabel="Building compressed preview">
         {previewUrl ? (
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -489,7 +522,17 @@ export default function ImageCompressorTool() {
                     </p>
                   </div>
                   <Button asChild>
-                    <a href={converted.url} download={converted.fileName}>
+                    <a
+                      href={converted.url}
+                      download={converted.fileName}
+                      onClick={() =>
+                        trackEvent("download_result", {
+                          tool_slug: "image-compressor",
+                          output_format: converted.mimeType,
+                          file_name: converted.fileName,
+                        })
+                      }
+                    >
                       Download image
                     </a>
                   </Button>

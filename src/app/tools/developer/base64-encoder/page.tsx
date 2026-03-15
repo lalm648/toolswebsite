@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import Base64EncoderTool from "@/components/tool/Base64EncoderTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Base64 Encoder | ToolsWebsite",
-  "Encode and decode Base64 directly in the browser."
-);
+export const metadata: Metadata = buildToolMetadata("base64-encoder");
 
 export default function Base64EncoderPage() {
   return (

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import JpgToAvifTool from "@/components/tool/JpgToAvifTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "JPG to AVIF | ToolsWebsite",
-  "Convert JPG images to AVIF directly in the browser with instant preview and download."
-);
+export const metadata: Metadata = buildToolMetadata("jpg-to-avif");
 
 export default function JpgToAvifPage() {
   return (

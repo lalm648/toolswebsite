@@ -7,6 +7,7 @@ import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   formatBytes,
   getSizeDelta,
@@ -101,6 +102,9 @@ export default function RotateImageTool() {
 
     if (!acceptedMimeTypes.includes(selectedFile.type)) {
       setError("Please upload a JPG, PNG, or WebP image.");
+      trackToolFailure("rotate-image", "select_file", "unsupported_file_type", {
+        input_type: selectedFile.type || "unknown",
+      });
       return;
     }
 
@@ -119,6 +123,10 @@ export default function RotateImageTool() {
       })
       .catch(() => {
         setError("This image could not be processed.");
+        trackToolFailure("rotate-image", "load_image", "image_load_failed", {
+          input_type: selectedFile.type,
+          input_size: selectedFile.size,
+        });
       });
 
     setFile(selectedFile);
@@ -177,6 +185,10 @@ export default function RotateImageTool() {
       if (!context) {
         setError("Your browser could not start image rotation.");
         setIsRotating(false);
+        trackToolFailure("rotate-image", "rotate", "canvas_context_unavailable", {
+          input_type: file.type,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -194,6 +206,12 @@ export default function RotateImageTool() {
       if (!blob) {
         setError(`This browser could not export ${outputConfig.label}. Try another format.`);
         setIsRotating(false);
+        trackToolFailure("rotate-image", "rotate", "export_failed", {
+          input_type: file.type,
+          output_format: outputConfig.extension,
+          input_size: file.size,
+          rotation: normalizedRotation,
+        });
         return;
       }
 
@@ -208,10 +226,22 @@ export default function RotateImageTool() {
         fileName: replaceFileExtension(file.name, outputConfig.extension),
         mimeType: outputConfig.mimeType,
       });
+      trackEvent("rotate_image", {
+        tool_slug: "rotate-image",
+        input_type: file.type,
+        output_format: outputConfig.extension,
+        input_size: file.size,
+        output_size: blob.size,
+        rotation: normalizedRotation,
+      });
       setIsRotating(false);
     } catch {
       setError("This image could not be rotated.");
       setIsRotating(false);
+      trackToolFailure("rotate-image", "rotate", "processing_failed", {
+        input_type: file.type,
+        input_size: file.size,
+      });
     }
   }
 
@@ -239,6 +269,8 @@ export default function RotateImageTool() {
           description="Rotate JPG, PNG, or WebP images directly in the browser. Choose the angle, preview the result, and download the rotated image instantly."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          isProcessing={isRotating}
+          processingLabel="Rotating image"
           dropHint="or drag and drop an image here"
           isDragActive={isDragActive}
           onDragEnter={handleDragEnter}
@@ -362,7 +394,7 @@ export default function RotateImageTool() {
         </ToolUploader>
       </div>
 
-      <ToolResult title="Preview and download">
+      <ToolResult title="Preview and download" isProcessing={isRotating} processingLabel="Building rotated preview">
         {previewUrl ? (
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -442,7 +474,17 @@ export default function RotateImageTool() {
                     </p>
                   </div>
                   <Button asChild>
-                    <a href={rotated.url} download={rotated.fileName}>
+                    <a
+                      href={rotated.url}
+                      download={rotated.fileName}
+                      onClick={() =>
+                        trackEvent("download_result", {
+                          tool_slug: "rotate-image",
+                          output_format: rotated.mimeType,
+                          file_name: rotated.fileName,
+                        })
+                      }
+                    >
                       Download image
                     </a>
                   </Button>

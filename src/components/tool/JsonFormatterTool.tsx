@@ -4,6 +4,7 @@ import { useState } from "react";
 import ToolResult from "@/components/tool/ToolResult";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { trackEvent, trackToolFailure } from "@/lib/analytics";
 
 export default function JsonFormatterTool() {
   const [input, setInput] = useState("");
@@ -13,22 +14,40 @@ export default function JsonFormatterTool() {
   function formatJson() {
     try {
       const parsed = JSON.parse(input);
-      setOutput(JSON.stringify(parsed, null, 2));
+      const nextOutput = JSON.stringify(parsed, null, 2);
+      setOutput(nextOutput);
       setError("");
+      trackEvent("format_json", {
+        tool_slug: "json-formatter",
+        input_length: input.length,
+        output_length: nextOutput.length,
+      });
     } catch {
       setOutput("");
       setError("Invalid JSON. Check commas, quotes, and brackets.");
+      trackToolFailure("json-formatter", "format", "invalid_json", {
+        input_length: input.length,
+      });
     }
   }
 
   function minifyJson() {
     try {
       const parsed = JSON.parse(input);
-      setOutput(JSON.stringify(parsed));
+      const nextOutput = JSON.stringify(parsed);
+      setOutput(nextOutput);
       setError("");
+      trackEvent("minify_json", {
+        tool_slug: "json-formatter",
+        input_length: input.length,
+        output_length: nextOutput.length,
+      });
     } catch {
       setOutput("");
       setError("Invalid JSON. Check commas, quotes, and brackets.");
+      trackToolFailure("json-formatter", "minify", "invalid_json", {
+        input_length: input.length,
+      });
     }
   }
 

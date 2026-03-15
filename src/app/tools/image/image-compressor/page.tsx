@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import ImageCompressorTool from "@/components/tool/ImageCompressorTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Image Compressor | ToolsWebsite",
-  "Compress JPG, PNG, and WebP images directly in the browser with quality and resize controls."
-);
+export const metadata: Metadata = buildToolMetadata("image-compressor");
 
 export default function ImageCompressorPage() {
   return (

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import CaseConverterTool from "@/components/tool/CaseConverterTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Case Converter | ToolsWebsite",
-  "Convert text between uppercase, lowercase, title case, and sentence case in the browser."
-);
+export const metadata: Metadata = buildToolMetadata("case-converter");
 
 export default function CaseConverterPage() {
   return (

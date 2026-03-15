@@ -7,6 +7,7 @@ import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   clamp,
   formatBytes,
@@ -278,6 +279,9 @@ export default function CropImageTool() {
 
     if (!acceptedMimeTypes.includes(selectedFile.type)) {
       setError("Please upload a JPG, PNG, or WebP image.");
+      trackToolFailure("crop-image", "select_file", "unsupported_file_type", {
+        input_type: selectedFile.type || "unknown",
+      });
       return;
     }
 
@@ -295,6 +299,10 @@ export default function CropImageTool() {
       })
       .catch(() => {
         setError("This image could not be processed.");
+        trackToolFailure("crop-image", "load_image", "image_load_failed", {
+          input_type: selectedFile.type,
+          input_size: selectedFile.size,
+        });
       });
 
     setFile(selectedFile);
@@ -491,6 +499,10 @@ export default function CropImageTool() {
       if (!context) {
         setError("Your browser could not start image cropping.");
         setIsCropping(false);
+        trackToolFailure("crop-image", "crop", "canvas_context_unavailable", {
+          input_type: file.type,
+          input_size: file.size,
+        });
         return;
       }
 
@@ -506,6 +518,14 @@ export default function CropImageTool() {
       if (!blob) {
         setError(`This browser could not export ${outputConfig.label}. Try another format.`);
         setIsCropping(false);
+        trackToolFailure("crop-image", "crop", "export_failed", {
+          input_type: file.type,
+          output_format: outputConfig.extension,
+          input_size: file.size,
+          crop_width: cropWidth,
+          crop_height: cropHeight,
+          aspect_preset: aspectPreset,
+        });
         return;
       }
 
@@ -520,10 +540,29 @@ export default function CropImageTool() {
         fileName: replaceFileExtension(file.name, outputConfig.extension),
         mimeType: outputConfig.mimeType,
       });
+      trackEvent("crop_image", {
+        tool_slug: "crop-image",
+        input_type: file.type,
+        output_format: outputConfig.extension,
+        input_size: file.size,
+        output_size: blob.size,
+        crop_width: cropWidth,
+        crop_height: cropHeight,
+        crop_x: cropX,
+        crop_y: cropY,
+        aspect_preset: aspectPreset,
+      });
       setIsCropping(false);
     } catch {
       setError("This image could not be cropped.");
       setIsCropping(false);
+      trackToolFailure("crop-image", "crop", "processing_failed", {
+        input_type: file.type,
+        input_size: file.size,
+        crop_width: cropWidth,
+        crop_height: cropHeight,
+        aspect_preset: aspectPreset,
+      });
     }
   }
 
@@ -554,6 +593,8 @@ export default function CropImageTool() {
           description="Crop JPG, PNG, or WebP images directly in the browser. Pick the crop area, preview the result, and download the cropped image instantly."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          isProcessing={isCropping}
+          processingLabel="Cropping image"
           dropHint="or drag and drop an image here"
           isDragActive={isDragActive}
           onDragEnter={handleDragEnter}
@@ -785,7 +826,7 @@ export default function CropImageTool() {
         </ToolUploader>
       </div>
 
-      <ToolResult title="Preview and download">
+      <ToolResult title="Preview and download" isProcessing={isCropping} processingLabel="Building cropped preview">
         {previewUrl && originalDimensions ? (
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -917,7 +958,17 @@ export default function CropImageTool() {
                     </p>
                   </div>
                   <Button asChild>
-                    <a href={cropped.url} download={cropped.fileName}>
+                    <a
+                      href={cropped.url}
+                      download={cropped.fileName}
+                      onClick={() =>
+                        trackEvent("download_result", {
+                          tool_slug: "crop-image",
+                          output_format: cropped.mimeType,
+                          file_name: cropped.fileName,
+                        })
+                      }
+                    >
                       Download image
                     </a>
                   </Button>

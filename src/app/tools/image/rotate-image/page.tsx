@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import RotateImageTool from "@/components/tool/RotateImageTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Rotate Image | ToolsWebsite",
-  "Rotate JPG, PNG, and WebP images directly in the browser with preview and instant download."
-);
+export const metadata: Metadata = buildToolMetadata("rotate-image");
 
 export default function RotateImagePage() {
   return (

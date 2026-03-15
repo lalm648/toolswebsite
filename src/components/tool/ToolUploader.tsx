@@ -9,6 +9,8 @@ type ToolUploaderProps = {
   description: string;
   buttonLabel: string;
   onButtonClick: () => void;
+  isProcessing?: boolean;
+  processingLabel?: string;
   helperText?: string;
   dropHint?: string;
   isDragActive?: boolean;
@@ -24,6 +26,8 @@ export default function ToolUploader({
   description,
   buttonLabel,
   onButtonClick,
+  isProcessing = false,
+  processingLabel = "Processing",
   helperText,
   dropHint,
   isDragActive = false,
@@ -35,19 +39,31 @@ export default function ToolUploader({
 }: ToolUploaderProps) {
   return (
     <Card
-      className={`bg-[var(--surface-raised)] ${isDragActive ? "border-[var(--accent-500)] bg-[var(--surface-panel)] shadow-[var(--shadow-lift)]" : ""}`}
+      className={`bg-[var(--surface-raised)] ${
+        isDragActive || isProcessing ? "border-[var(--accent-500)] bg-[var(--surface-panel)] shadow-[var(--shadow-lift)]" : ""
+      }`}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <CardContent className="p-10 sm:p-12">
+      <CardContent className="p-6 sm:p-7">
         <div className="flex flex-col items-center text-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-[2rem] bg-[linear-gradient(135deg,var(--accent-200),var(--accent-500))] text-white shadow-[var(--shadow-soft)]">
+          <div
+            className={`relative flex h-18 w-18 items-center justify-center rounded-[1.4rem] bg-[linear-gradient(135deg,var(--accent-200),var(--accent-500))] text-white shadow-[var(--shadow-soft)] ${
+              isDragActive || isProcessing ? "motion-float" : ""
+            }`}
+          >
+            {isProcessing ? (
+              <>
+                <span className="pointer-events-none absolute inset-0 rounded-[1.4rem] border border-white/30 motion-pulse-ring" />
+                <span className="pointer-events-none absolute inset-0 rounded-[1.4rem] border border-white/20 motion-pulse-ring [animation-delay:240ms]" />
+              </>
+            ) : null}
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
-              className="h-10 w-10"
+              className="h-8 w-8"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
@@ -57,16 +73,22 @@ export default function ToolUploader({
               <path d="M5 18.5h14" />
             </svg>
           </div>
-          <div className="px-4 py-6 text-center">
-            <h2 className="text-xl font-semibold text-[var(--ink-900)]">{title}</h2>
-            <p className="mt-3 max-w-md text-sm leading-7 text-[var(--muted-foreground)]">{description}</p>
+          <div className="px-2 py-4 text-center">
+            <h2 className="text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
+            <p className="mt-2 max-w-md text-sm leading-6 text-[var(--muted-foreground)]">{description}</p>
           </div>
-          <Button onClick={onButtonClick} size="lg" className="min-w-36">
+          {isProcessing ? (
+            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--accent-50)] px-3 py-1 text-xs font-semibold text-[var(--accent-700)]">
+              <span className="h-2 w-2 rounded-full bg-current motion-status-dot" />
+              <span>{processingLabel}</span>
+            </div>
+          ) : null}
+          <Button onClick={onButtonClick} size="lg" className="mt-4 min-w-36">
             {buttonLabel}
           </Button>
-          {dropHint ? <p className="mt-3 text-sm text-[var(--muted-foreground)]">{dropHint}</p> : null}
-          {helperText ? <p className="mt-4 text-xs text-[var(--muted-foreground)]">{helperText}</p> : null}
-          {children ? <div className="mt-8 w-full">{children}</div> : null}
+          {dropHint ? <p className="mt-2 text-sm text-[var(--muted-foreground)]">{dropHint}</p> : null}
+          {helperText ? <p className="mt-3 text-xs text-[var(--muted-foreground)]">{helperText}</p> : null}
+          {children ? <div className="mt-6 w-full">{children}</div> : null}
         </div>
       </CardContent>
     </Card>

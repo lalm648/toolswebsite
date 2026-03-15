@@ -13,8 +13,11 @@ export default function RelatedTools({ tools }: RelatedToolsProps) {
           Related tools
         </p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-          Keep exploring
+          Continue with similar workflows
         </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+          Explore nearby tools in the same category to handle the next step in your workflow without starting over.
+        </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {tools.map((tool) => (

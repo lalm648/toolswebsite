@@ -254,3 +254,11 @@ export function getCategoryBySlug(slug: ToolCategorySlug) {
 export function getToolsByCategory(slug: ToolCategorySlug) {
   return tools.filter((tool) => tool.category === slug);
 }
+
+export function getToolByTitle(title: string) {
+  return tools.find((tool) => tool.title === title);
+}
+
+export function getRelatedTools(toolSlug: string, category: ToolCategorySlug, limit = 3) {
+  return tools.filter((tool) => tool.category === category && tool.slug !== toolSlug).slice(0, limit);
+}

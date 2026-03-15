@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import JpgToPngTool from "@/components/tool/JpgToPngTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "JPG to PNG | ToolsWebsite",
-  "Convert JPG images to PNG directly in the browser with instant preview and download."
-);
+export const metadata: Metadata = buildToolMetadata("jpg-to-png");
 
 export default function JpgToPngPage() {
   return (

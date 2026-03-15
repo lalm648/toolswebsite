@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import RemoveEmptyLinesTool from "@/components/tool/RemoveEmptyLinesTool";
 import ToolShell from "@/components/tool/ToolShell";
-import { buildMetadata } from "@/lib/seo/metadata";
+import { buildToolMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = buildMetadata(
-  "Remove Empty Lines | ToolsWebsite",
-  "Remove empty lines from text directly in the browser."
-);
+export const metadata: Metadata = buildToolMetadata("remove-empty-lines");
 
 export default function RemoveEmptyLinesPage() {
   return (
