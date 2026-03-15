@@ -65,6 +65,7 @@ function getOutputConfig(format: OutputFormat, sourceMimeType: string) {
 }
 
 export default function ImageResizerTool() {
+  const fileInputId = "image-resizer-upload-input";
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -293,6 +294,7 @@ export default function ImageResizerTool() {
           description="Resize JPG, PNG, or WebP images directly in the browser. Lock the aspect ratio by default, adjust dimensions, preview the result, and download the new file."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          fileInputId={fileInputId}
           isProcessing={isResizing}
           processingLabel="Resizing image"
           dropHint="or drag and drop an image here"
@@ -305,9 +307,10 @@ export default function ImageResizerTool() {
         >
           <input
             ref={inputRef}
+            id={fileInputId}
             type="file"
             accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-            className="hidden"
+            className="sr-only"
             onChange={(event) => handleSelect(event.target.files?.[0] ?? null)}
           />
 

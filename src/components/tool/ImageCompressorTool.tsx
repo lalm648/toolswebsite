@@ -80,6 +80,7 @@ function getSmartQualityCandidates(qualityPercent: number, mimeType: string) {
 }
 
 export default function ImageCompressorTool() {
+  const fileInputId = "image-compressor-upload-input";
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -295,6 +296,7 @@ export default function ImageCompressorTool() {
           description="Compress JPG, PNG, or WebP images directly in the browser. Adjust quality, resize if needed, and download the optimized file."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          fileInputId={fileInputId}
           isProcessing={isCompressing}
           processingLabel="Compressing image"
           dropHint="or drag and drop an image here"
@@ -307,9 +309,10 @@ export default function ImageCompressorTool() {
         >
           <input
             ref={inputRef}
+            id={fileInputId}
             type="file"
             accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-            className="hidden"
+            className="sr-only"
             onChange={(event) => handleSelect(event.target.files?.[0] ?? null)}
           />
 

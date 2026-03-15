@@ -79,6 +79,7 @@ function getRotatedCanvasSize(width: number, height: number, rotation: number) {
 }
 
 export default function RotateImageTool() {
+  const fileInputId = "rotate-image-upload-input";
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -269,6 +270,7 @@ export default function RotateImageTool() {
           description="Rotate JPG, PNG, or WebP images directly in the browser. Choose the angle, preview the result, and download the rotated image instantly."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          fileInputId={fileInputId}
           isProcessing={isRotating}
           processingLabel="Rotating image"
           dropHint="or drag and drop an image here"
@@ -281,9 +283,10 @@ export default function RotateImageTool() {
         >
           <input
             ref={inputRef}
+            id={fileInputId}
             type="file"
             accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-            className="hidden"
+            className="sr-only"
             onChange={(event) => handleSelect(event.target.files?.[0] ?? null)}
           />
 

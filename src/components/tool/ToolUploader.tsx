@@ -9,6 +9,7 @@ type ToolUploaderProps = {
   description: string;
   buttonLabel: string;
   onButtonClick: () => void;
+  fileInputId?: string;
   isProcessing?: boolean;
   processingLabel?: string;
   helperText?: string;
@@ -26,6 +27,7 @@ export default function ToolUploader({
   description,
   buttonLabel,
   onButtonClick,
+  fileInputId,
   isProcessing = false,
   processingLabel = "Processing",
   helperText,
@@ -83,9 +85,17 @@ export default function ToolUploader({
               <span>{processingLabel}</span>
             </div>
           ) : null}
-          <Button onClick={onButtonClick} size="lg" className="mt-4 min-w-36">
-            {buttonLabel}
-          </Button>
+          {fileInputId ? (
+            <Button asChild size="lg" className="mt-4 min-w-36">
+              <label htmlFor={fileInputId} className="cursor-pointer">
+                {buttonLabel}
+              </label>
+            </Button>
+          ) : (
+            <Button onClick={onButtonClick} size="lg" className="mt-4 min-w-36">
+              {buttonLabel}
+            </Button>
+          )}
           {dropHint ? <p className="mt-2 text-sm text-[var(--muted-foreground)]">{dropHint}</p> : null}
           {helperText ? <p className="mt-3 text-xs text-[var(--muted-foreground)]">{helperText}</p> : null}
           {children ? <div className="mt-6 w-full">{children}</div> : null}

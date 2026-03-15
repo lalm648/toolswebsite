@@ -112,6 +112,7 @@ function getPreviewGeometry(
 }
 
 export default function CropImageTool() {
+  const fileInputId = "crop-image-upload-input";
   const inputRef = useRef<HTMLInputElement>(null);
   const previewFrameRef = useRef<HTMLDivElement>(null);
   const dragStateRef = useRef<
@@ -593,6 +594,7 @@ export default function CropImageTool() {
           description="Crop JPG, PNG, or WebP images directly in the browser. Pick the crop area, preview the result, and download the cropped image instantly."
           buttonLabel={file ? "Choose another image" : "Upload now"}
           onButtonClick={openPicker}
+          fileInputId={fileInputId}
           isProcessing={isCropping}
           processingLabel="Cropping image"
           dropHint="or drag and drop an image here"
@@ -605,9 +607,10 @@ export default function CropImageTool() {
         >
           <input
             ref={inputRef}
+            id={fileInputId}
             type="file"
             accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-            className="hidden"
+            className="sr-only"
             onChange={(event) => handleSelect(event.target.files?.[0] ?? null)}
           />
 

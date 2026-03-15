@@ -83,6 +83,7 @@ export default function ImageFormatConverterTool({
   convertedPreviewBackground = "plain",
   unsupportedExportMessage,
 }: ImageFormatConverterToolProps) {
+  const fileInputId = `${inputLabel.toLowerCase().replace(/\s+/g, "-")}-upload-input`;
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -272,6 +273,7 @@ export default function ImageFormatConverterTool({
           description={uploaderDescription}
           buttonLabel={file ? `Choose another ${inputLabel}` : "Upload now"}
           onButtonClick={openPicker}
+          fileInputId={fileInputId}
           isProcessing={isConverting}
           processingLabel={`Converting to ${outputLabel}`}
           dropHint={`or drag and drop a ${inputLabel} here`}
@@ -284,9 +286,10 @@ export default function ImageFormatConverterTool({
         >
           <input
             ref={inputRef}
+            id={fileInputId}
             type="file"
             accept={accept}
-            className="hidden"
+            className="sr-only"
             onChange={(event) => handleSelect(event.target.files?.[0] ?? null)}
           />
 
