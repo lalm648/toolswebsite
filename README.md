@@ -24,7 +24,16 @@ You can start editing the page by modifying files in `src/app` and `src/componen
 
 ## Environment Variables
 
-These are optional and let you activate monetization/lead-capture flows without a database:
+Create a local env file by copying [.env.example](/Users/lalmuhammad/Documents/toolswebsite/.env.example) to `.env.local`.
+
+```bash
+cp .env.example .env.local
+```
+
+For Netlify, use the same variable names from `.env.example` in:
+`Site configuration` -> `Environment variables`
+
+These public variables are supported by the current app:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
@@ -50,7 +59,7 @@ NEXT_PUBLIC_SHOW_WAITLIST_BLOCK=true
 ```
 
 If `NEXT_PUBLIC_NEWSLETTER_URL` or `NEXT_PUBLIC_WAITLIST_URL` are not set, the UI falls back to email-based manual handling.
-Set any of the `NEXT_PUBLIC_SHOW_*` flags to `false` to hide those non-critical commercial modules in a given environment.
+Set any of the `NEXT_PUBLIC_SHOW_*` flags to `true` only when you intentionally want those modules visible.
 
 Provider notes:
 - Supported provider presets are `generic`, `beehiiv`, `convertkit`, and `mailchimp`
