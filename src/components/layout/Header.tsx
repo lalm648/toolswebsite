@@ -91,7 +91,7 @@ export default function Header() {
               href="/#premium"
               className="rounded-full bg-[var(--accent-500)] px-4 py-2 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent-600)]"
             >
-              Get Premium
+              Early access
             </Link>
           </div>
 
