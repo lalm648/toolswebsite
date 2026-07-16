@@ -15,6 +15,45 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
+// Lightweight in-memory rate limiter. Zero dependencies so it works on a
+// self-hosted single instance without Redis/KV. Prevents the network utilities
+// from being abused as an open proxy / port scanner against third parties.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 20;
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function getClientIp(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]!.trim();
+  return request.headers.get("x-real-ip")?.trim() || "unknown";
+}
+
+function checkRateLimit(ip: string) {
+  const now = Date.now();
+  const bucket = rateBuckets.get(ip);
+
+  if (!bucket || now > bucket.resetAt) {
+    rateBuckets.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  if (bucket.count >= RATE_LIMIT_MAX) {
+    return { allowed: false, retryAfter: Math.ceil((bucket.resetAt - now) / 1000) };
+  }
+
+  bucket.count += 1;
+  return { allowed: true, retryAfter: 0 };
+}
+
+// Opportunistically drop expired buckets so the map cannot grow unbounded.
+function pruneRateBuckets() {
+  if (rateBuckets.size < 5000) return;
+  const now = Date.now();
+  for (const [ip, bucket] of rateBuckets) {
+    if (now > bucket.resetAt) rateBuckets.delete(ip);
+  }
+}
+
 const allowedPorts = [
   21, 22, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 3000, 3306, 5432, 6379,
   8080, 8443,
@@ -217,6 +256,15 @@ async function portStatus(port: number, address: string) {
 
 export async function POST(request: Request) {
   try {
+    pruneRateBuckets();
+    const { allowed, retryAfter } = checkRateLimit(getClientIp(request));
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } },
+      );
+    }
+
     const body = (await request.json()) as {
       action?: string;
       input?: string;
@@ -278,22 +326,30 @@ export async function POST(request: Request) {
       const origin = start.origin;
       const queue = [start.toString()];
       const visited = new Set<string>();
-      while (queue.length && visited.size < 25) {
-        const url = queue.shift()!;
-        if (visited.has(url)) continue;
-        visited.add(url);
-        try {
-          const page = await safeRequest(url);
+      // Stay comfortably under the 30s function limit even if pages are slow.
+      const deadline = Date.now() + 22_000;
+      while (queue.length && visited.size < 25 && Date.now() < deadline) {
+        // Fetch up to 4 pages per round so a few slow pages can't serialize
+        // into a function timeout.
+        const batch = queue.splice(0, 4).filter((url) => !visited.has(url));
+        batch.forEach((url) => visited.add(url));
+        const pages = await Promise.all(
+          batch.map((url) => safeRequest(url).catch(() => null)),
+        );
+        for (const page of pages) {
+          if (!page) continue;
           for (const link of extractLinks(page.body, page.url)) {
-            const parsed = new URL(link);
-            if (
-              parsed.origin === origin &&
-              !visited.has(parsed.toString()) &&
-              queue.length < 50
-            )
-              queue.push(parsed.toString());
+            try {
+              const parsed = new URL(link);
+              if (
+                parsed.origin === origin &&
+                !visited.has(parsed.toString()) &&
+                queue.length < 50
+              )
+                queue.push(parsed.toString());
+            } catch {}
           }
-        } catch {}
+        }
       }
       const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...visited].map((url) => `  <url><loc>${url.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</loc></url>`).join("\n")}\n</urlset>`;
       return NextResponse.json({ pages: visited.size, xml });

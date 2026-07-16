@@ -75,30 +75,30 @@ export default function Home() {
         />
 
         {siteFlags.showNewsletterSignup || siteFlags.showWaitlistBlock ? (
-          <div className="grid gap-5 xl:grid-cols-2">
-            {siteFlags.showNewsletterSignup ? (
-              <RevealOnScroll>
-                <NewsletterSignup source="homepage" />
-              </RevealOnScroll>
-            ) : null}
-
+          <div id="premium" className="grid scroll-mt-24 gap-5 xl:grid-cols-2">
             {siteFlags.showWaitlistBlock ? (
               <RevealOnScroll>
                 <WaitlistBlock
                   source="homepage"
                   title="Get on the waitlist for premium tools"
-                  description="Register early interest for pro browser workflows, advanced exports, sponsor packages, and future paid utility bundles."
+                  description="Register early interest for larger file limits, batch processing, an ad-free experience, priority processing, and advanced tools built for power users."
                 />
+              </RevealOnScroll>
+            ) : null}
+
+            {siteFlags.showNewsletterSignup ? (
+              <RevealOnScroll>
+                <NewsletterSignup source="homepage" />
               </RevealOnScroll>
             ) : null}
           </div>
         ) : null}
 
         <CTABlock
-          title="Browse the full tool library"
-          description="Start with image, text, developer, or SEO utilities built to run directly in your browser."
-          href="/tools/image"
-          label="Explore tools"
+          title="Still looking for something?"
+          description={`Explore all ${tools.length} image, PDF, video, audio, developer, and security tools — free and running in your browser.`}
+          href="/"
+          label="Browse all tools"
         />
       </Container>
     </section>

@@ -6,28 +6,31 @@ import { useState } from "react";
 import Container from "@/components/Container";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 
-const categoryLinks = [
+const desktopLinks = [
   { href: "/tools/image", label: "Image" },
+  { href: "/tools/document", label: "PDF" },
+  { href: "/tools/video", label: "Video" },
+  { href: "/tools/developer", label: "Developer" },
+  { href: "/", label: "All Tools" },
+];
+
+// Full list for the mobile menu.
+const links = [
+  { href: "/tools/image", label: "Image" },
+  { href: "/tools/document", label: "PDF" },
   { href: "/tools/video", label: "Video" },
   { href: "/tools/audio", label: "Audio" },
-  { href: "/tools/document", label: "PDF" },
   { href: "/tools/text", label: "Text" },
   { href: "/tools/developer", label: "Developer" },
   { href: "/tools/security", label: "Security" },
   { href: "/tools/network", label: "Network" },
   { href: "/tools/seo", label: "SEO" },
-];
-
-const companyLinks = [
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
-const links = [...categoryLinks, ...companyLinks];
-const desktopLinks = categoryLinks.slice(0, 5);
-const moreLinks = [...categoryLinks.slice(5), ...companyLinks];
-
 function isActiveLink(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -37,16 +40,16 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--outline-soft)] bg-[var(--header-bg)] backdrop-blur-xl">
-      <Container className="py-3">
+      <Container className="py-3.5">
         <div className="flex items-center justify-between gap-4">
           <Link
             href="/"
             className="flex min-w-0 items-center gap-2.5 text-xl font-semibold tracking-tight text-[var(--ink-900)]"
           >
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.75rem] bg-[var(--accent-500)] text-white shadow-[var(--shadow-soft)]">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-500)] text-white shadow-[var(--shadow-soft)]">
               <svg
                 viewBox="0 0 24 24"
-                className="h-5 w-5"
+                className="h-6 w-6"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -58,7 +61,7 @@ export default function Header() {
                 <path d="M12.9 11.1l1.4 1.4-2.1 2.1a4 4 0 0 1-5.6-5.6l2.1-2.1" />
               </svg>
             </span>
-            <span className="truncate text-base font-bold sm:text-lg">
+            <span className="truncate text-lg font-bold sm:text-xl">
               ToolsWebsite
             </span>
           </Link>
@@ -82,24 +85,14 @@ export default function Header() {
                   </Link>
                 );
               })}
-              <details className="group relative">
-                <summary className="list-none cursor-pointer rounded-full px-3 py-2 text-sm font-medium text-[var(--muted-foreground)] hover:bg-[var(--accent-50)] hover:text-[var(--accent-700)]">
-                  More <span aria-hidden="true">⌄</span>
-                </summary>
-                <div className="absolute right-0 top-11 z-50 grid min-w-48 gap-1 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-2 shadow-[var(--shadow-lift)]">
-                  {moreLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="rounded-xl px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent-50)] hover:text-[var(--accent-700)]"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </details>
             </nav>
             <ThemeToggle />
+            <Link
+              href="/#premium"
+              className="rounded-full bg-[var(--accent-500)] px-4 py-2 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent-600)]"
+            >
+              Get Premium
+            </Link>
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">

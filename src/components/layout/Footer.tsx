@@ -47,7 +47,7 @@ const trustSignals = [
 export default function Footer() {
   return (
     <footer className="mt-16 bg-[var(--footer-bg)] text-slate-300">
-      <Container className="py-12">
+      <Container className="py-14">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="max-w-xs">
             <Link
@@ -79,15 +79,15 @@ export default function Footer() {
 
           {columns.map((column) => (
             <div key={column.title}>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
                 {column.title}
               </p>
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-4 space-y-3">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-slate-400 hover:text-white"
+                      className="text-sm text-slate-300 hover:text-white"
                     >
                       {link.label}
                     </Link>

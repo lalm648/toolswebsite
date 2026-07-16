@@ -8,12 +8,14 @@ import { trackToolOpen } from "@/lib/analytics";
 
 type ToolCardProps = {
   tool: ToolDefinition;
+  variant?: "standard" | "featured";
+  badge?: string;
 };
 
 const iconProps = {
   "aria-hidden": "true",
   viewBox: "0 0 24 24",
-  className: "h-6 w-6",
+  className: "h-full w-full",
   fill: "none",
   stroke: "currentColor",
   strokeWidth: "1.8",
@@ -21,16 +23,18 @@ const iconProps = {
   strokeLinejoin: "round",
 } as const;
 
+// Theme-adaptive translucent tints: readable on both the light and dark navy
+// card surfaces, and filling with solid color on hover.
 const categoryAccentStyles: Record<ToolDefinition["category"], string> = {
-  image: "bg-sky-50 text-sky-600 ring-1 ring-sky-100 group-hover:bg-sky-600 group-hover:text-white",
-  video: "bg-violet-50 text-violet-600 ring-1 ring-violet-100 group-hover:bg-violet-600 group-hover:text-white",
-  audio: "bg-fuchsia-50 text-fuchsia-600 ring-1 ring-fuchsia-100 group-hover:bg-fuchsia-600 group-hover:text-white",
-  document: "bg-orange-50 text-orange-600 ring-1 ring-orange-100 group-hover:bg-orange-600 group-hover:text-white",
-  text: "bg-amber-50 text-amber-600 ring-1 ring-amber-100 group-hover:bg-amber-500 group-hover:text-white",
-  developer: "bg-teal-50 text-teal-600 ring-1 ring-teal-100 group-hover:bg-teal-600 group-hover:text-white",
-  security: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 group-hover:bg-emerald-600 group-hover:text-white",
-  network: "bg-cyan-50 text-cyan-600 ring-1 ring-cyan-100 group-hover:bg-cyan-600 group-hover:text-white",
-  seo: "bg-pink-50 text-pink-600 ring-1 ring-pink-100 group-hover:bg-pink-600 group-hover:text-white",
+  image: "bg-blue-500/12 text-blue-500 ring-1 ring-blue-500/20 group-hover:bg-blue-500 group-hover:text-white group-hover:ring-blue-500/40",
+  video: "bg-violet-500/12 text-violet-500 ring-1 ring-violet-500/20 group-hover:bg-violet-500 group-hover:text-white group-hover:ring-violet-500/40",
+  audio: "bg-pink-500/12 text-pink-500 ring-1 ring-pink-500/20 group-hover:bg-pink-500 group-hover:text-white group-hover:ring-pink-500/40",
+  document: "bg-orange-500/12 text-orange-500 ring-1 ring-orange-500/20 group-hover:bg-orange-500 group-hover:text-white group-hover:ring-orange-500/40",
+  text: "bg-amber-500/12 text-amber-500 ring-1 ring-amber-500/20 group-hover:bg-amber-500 group-hover:text-white group-hover:ring-amber-500/40",
+  developer: "bg-cyan-500/12 text-cyan-500 ring-1 ring-cyan-500/20 group-hover:bg-cyan-500 group-hover:text-white group-hover:ring-cyan-500/40",
+  security: "bg-green-500/12 text-green-500 ring-1 ring-green-500/20 group-hover:bg-green-500 group-hover:text-white group-hover:ring-green-500/40",
+  network: "bg-teal-500/12 text-teal-500 ring-1 ring-teal-500/20 group-hover:bg-teal-500 group-hover:text-white group-hover:ring-teal-500/40",
+  seo: "bg-fuchsia-500/12 text-fuchsia-500 ring-1 ring-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white group-hover:ring-fuchsia-500/40",
 };
 
 const iconMap: Record<string, ReactNode> = {
@@ -221,26 +225,48 @@ const categoryIconMap: Record<ToolDefinition["category"], ReactNode> = {
   seo: <svg {...iconProps}><circle cx="11" cy="11" r="6" /><path d="m20 20-4.3-4.3" /></svg>,
 };
 
-export default function ToolCard({ tool }: ToolCardProps) {
+export default function ToolCard({ tool, variant = "standard", badge }: ToolCardProps) {
+  const featured = variant === "featured";
+  const icon = iconMap[tool.icon] ?? categoryIconMap[tool.category];
+
   return (
     <Link
       href={tool.href}
       onClick={() => {
         trackToolOpen(tool.slug, tool.category);
       }}
-      className="group block focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+      className="group block rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
     >
-      <Card className="h-full bg-[var(--surface-card)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-[var(--outline-strong)] group-hover:shadow-[var(--shadow-lift)]">
-        <CardContent className="p-5">
-          <span
-            className={`inline-flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-200 ${categoryAccentStyles[tool.category]}`}
+      <Card className="h-full bg-[var(--surface-card)] transition-all duration-200 group-hover:-translate-y-[3px] group-hover:border-[var(--outline-strong)] group-hover:bg-[var(--surface-card-hover)] group-hover:shadow-[var(--shadow-lift)]">
+        <CardContent className={featured ? "p-6" : "p-5"}>
+          <div className="flex items-start justify-between gap-3">
+            <span
+              className={`inline-flex items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-105 ${
+                featured ? "h-12 w-12 p-2.5" : "h-11 w-11 p-2.5"
+              } ${categoryAccentStyles[tool.category]}`}
+            >
+              {icon}
+            </span>
+            {badge ? (
+              <span className="rounded-full bg-[var(--accent-50)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--accent-700)]">
+                {badge}
+              </span>
+            ) : null}
+          </div>
+          <h3
+            className={`font-bold tracking-tight text-[var(--ink-900)] group-hover:text-[var(--accent-700)] ${
+              featured ? "mt-5 text-lg" : "mt-4 text-[15px]"
+            }`}
           >
-            {iconMap[tool.icon] ?? categoryIconMap[tool.category]}
-          </span>
-          <h3 className="mt-4 text-base font-bold tracking-tight text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
             {tool.title}
           </h3>
-          <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-[var(--muted-foreground)]">{tool.description}</p>
+          <p
+            className={`mt-1.5 text-[var(--muted-foreground)] ${
+              featured ? "text-sm leading-6" : "line-clamp-2 text-[13px] leading-6"
+            }`}
+          >
+            {tool.description}
+          </p>
         </CardContent>
       </Card>
     </Link>

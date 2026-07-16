@@ -728,3 +728,40 @@ export function getToolBySlug(slug: string, category?: ToolCategorySlug) {
 export function getRelatedTools(toolSlug: string, category: ToolCategorySlug, limit = 3) {
   return tools.filter((tool) => tool.category === category && tool.slug !== toolSlug).slice(0, limit);
 }
+
+// Hand-picked highlight tools for the homepage hierarchy.
+export const featuredToolSlugs = [
+  "image-compressor",
+  "pdf-merger",
+  "background-remover",
+  "video-compressor",
+] as const;
+
+export const popularToolSlugs = [
+  "image-compressor",
+  "pdf-merger",
+  "background-remover",
+  "video-compressor",
+  "image-resizer",
+  "json-formatter",
+  "qr-code-generator",
+  "password-generator",
+  "pdf-splitter",
+  "word-counter",
+  "image-to-pdf",
+  "hash-calculator",
+] as const;
+
+function bySlugs(slugs: readonly string[]) {
+  return slugs
+    .map((slug) => tools.find((tool) => tool.slug === slug))
+    .filter((tool): tool is ToolDefinition => Boolean(tool));
+}
+
+export function getFeaturedTools() {
+  return bySlugs(featuredToolSlugs);
+}
+
+export function getPopularTools() {
+  return bySlugs(popularToolSlugs);
+}

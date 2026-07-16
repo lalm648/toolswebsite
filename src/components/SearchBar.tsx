@@ -9,6 +9,7 @@ type SearchBarProps = {
   onChange?: (value: string) => void;
   placeholder?: string;
   analyticsSource?: string;
+  size?: "default" | "lg";
 };
 
 export default function SearchBar({
@@ -16,7 +17,9 @@ export default function SearchBar({
   onChange,
   placeholder = "Search tools like JPG to PNG, Word Counter, JSON Formatter",
   analyticsSource,
+  size = "default",
 }: SearchBarProps) {
+  const large = size === "lg";
   const inputLabel = "Search tools";
   const lastTrackedQueryRef = useRef("");
 
@@ -32,17 +35,17 @@ export default function SearchBar({
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className={large ? "mx-auto max-w-[720px]" : "mx-auto max-w-2xl"}>
       <label className="relative block text-start">
         <span className="sr-only">{inputLabel}</span>
-        <span className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-[var(--accent-500)]">
+        <span className={`pointer-events-none absolute inset-y-0 flex items-center text-[var(--accent-500)] ${large ? "left-5" : "left-5"}`}>
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
-            className="h-5 w-5"
+            className={large ? "h-6 w-6" : "h-5 w-5"}
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.8"
+            strokeWidth="1.9"
           >
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-3.5-3.5" />
@@ -60,7 +63,7 @@ export default function SearchBar({
           }}
           placeholder={placeholder}
           aria-label={inputLabel}
-          className="pl-14 pr-6"
+          className={large ? "h-14 rounded-2xl pl-14 pr-6 text-base shadow-[var(--shadow-lift)]" : "pl-14 pr-6"}
         />
       </label>
     </div>

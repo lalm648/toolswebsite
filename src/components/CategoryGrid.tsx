@@ -12,7 +12,7 @@ type CategoryGridProps = {
 const iconProps = {
   "aria-hidden": "true",
   viewBox: "0 0 24 24",
-  className: "h-6 w-6",
+  className: "h-full w-full",
   fill: "none",
   stroke: "currentColor",
   strokeWidth: "1.8",
@@ -85,15 +85,15 @@ const categoryIcons: Record<ToolCategorySlug, ReactNode> = {
 };
 
 const categoryTileStyles: Record<ToolCategorySlug, string> = {
-  image: "bg-sky-50 text-sky-600 ring-1 ring-sky-100",
-  video: "bg-violet-50 text-violet-600 ring-1 ring-violet-100",
-  audio: "bg-fuchsia-50 text-fuchsia-600 ring-1 ring-fuchsia-100",
-  document: "bg-orange-50 text-orange-600 ring-1 ring-orange-100",
-  text: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
-  developer: "bg-teal-50 text-teal-600 ring-1 ring-teal-100",
-  security: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
-  network: "bg-cyan-50 text-cyan-600 ring-1 ring-cyan-100",
-  seo: "bg-pink-50 text-pink-600 ring-1 ring-pink-100",
+  image: "bg-blue-500/12 text-blue-500 ring-1 ring-blue-500/20 group-hover:bg-blue-500/20",
+  video: "bg-violet-500/12 text-violet-500 ring-1 ring-violet-500/20 group-hover:bg-violet-500/20",
+  audio: "bg-pink-500/12 text-pink-500 ring-1 ring-pink-500/20 group-hover:bg-pink-500/20",
+  document: "bg-orange-500/12 text-orange-500 ring-1 ring-orange-500/20 group-hover:bg-orange-500/20",
+  text: "bg-amber-500/12 text-amber-500 ring-1 ring-amber-500/20 group-hover:bg-amber-500/20",
+  developer: "bg-cyan-500/12 text-cyan-500 ring-1 ring-cyan-500/20 group-hover:bg-cyan-500/20",
+  security: "bg-green-500/12 text-green-500 ring-1 ring-green-500/20 group-hover:bg-green-500/20",
+  network: "bg-teal-500/12 text-teal-500 ring-1 ring-teal-500/20 group-hover:bg-teal-500/20",
+  seo: "bg-fuchsia-500/12 text-fuchsia-500 ring-1 ring-fuchsia-500/20 group-hover:bg-fuchsia-500/20",
 };
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {
@@ -106,19 +106,21 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
           onClick={() => {
             trackCategoryOpen(category.slug);
           }}
-          className="group flex flex-col rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+          className="group flex items-start gap-4 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-[3px] hover:border-[var(--outline-strong)] hover:bg-[var(--surface-card-hover)] hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
         >
           <span
-            className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${categoryTileStyles[category.slug]}`}
+            className={`inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl p-3.5 transition-all duration-200 group-hover:scale-105 ${categoryTileStyles[category.slug]}`}
           >
             {categoryIcons[category.slug]}
           </span>
-          <h2 className="mt-4 text-lg font-bold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
-            {category.title}
-          </h2>
-          <p className="mt-1.5 text-sm leading-6 text-[var(--muted-foreground)]">
-            {category.description}
-          </p>
+          <div className="min-w-0">
+            <h2 className="text-[17px] font-bold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
+              {category.title}
+            </h2>
+            <p className="mt-1 line-clamp-2 text-sm leading-6 text-[var(--muted-foreground)]">
+              {category.description}
+            </p>
+          </div>
         </Link>
       ))}
     </div>

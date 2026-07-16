@@ -1,4 +1,5 @@
 import type { ToolCategorySlug } from "@/lib/data/tools";
+import { extendedToolSeoContent } from "@/lib/seo/extended-content";
 
 export type SeoFaqItem = {
   question: string;
@@ -192,6 +193,7 @@ export const categorySeoContent: Record<ToolCategorySlug, CategorySeoContent> = 
 };
 
 export const toolSeoContent: Record<string, ToolSeoContent> = {
+  ...extendedToolSeoContent,
   "jpg-to-png": {
     intro: [
       "JPG to PNG is useful when you need a clean export for design handoff, layered editing, or workflows where a PNG file is easier to reuse. It is especially practical for screenshots, logos placed on simple backgrounds, and assets moving into design tools.",
