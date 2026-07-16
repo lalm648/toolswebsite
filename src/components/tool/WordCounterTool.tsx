@@ -7,9 +7,33 @@ import { Textarea } from "@/components/ui/textarea";
 
 const STANDARD_LINE_LENGTH = 80;
 
+const graphemeSegmenter =
+  typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
+    : null;
+
+function countCharacters(text: string) {
+  // Count user-perceived characters (graphemes) so emoji and accented/astral
+  // characters count as one, not as multiple UTF-16 code units.
+  if (!text) {
+    return 0;
+  }
+
+  if (graphemeSegmenter) {
+    return Array.from(graphemeSegmenter.segment(text)).length;
+  }
+
+  return [...text].length;
+}
+
 function countWords(text: string) {
   const matches = text.trim().match(/\S+/g);
   return matches ? matches.length : 0;
+}
+
+function countSentences(text: string) {
+  const matches = text.trim().match(/[^.!?]+[.!?]+(\s|$)/g);
+  return matches ? matches.length : text.trim() ? 1 : 0;
 }
 
 function countStandardLines(text: string) {
@@ -27,9 +51,10 @@ function countParagraphs(text: string) {
     return 0;
   }
 
+  // Paragraphs are blocks separated by one or more blank lines.
   return text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
     .filter(Boolean).length;
 }
 
@@ -38,11 +63,11 @@ export default function WordCounterTool() {
 
   const stats = useMemo(() => {
     const words = countWords(text);
-    const charactersWithSpaces = text.length;
-    const charactersNoSpaces = text.replace(/\s/g, "").length;
-    const typedLines = text ? text.split(/\r?\n/).length : 0;
+    const charactersWithSpaces = countCharacters(text);
+    const charactersNoSpaces = countCharacters(text.replace(/\s/g, ""));
+    const lines = text ? text.split(/\r?\n/).length : 0;
     const standardLines = countStandardLines(text);
-    const lines = Math.max(typedLines, standardLines);
+    const sentences = countSentences(text);
     const paragraphs = countParagraphs(text);
     const readingMinutes = words ? Math.max(1, Math.ceil(words / 200)) : 0;
 
@@ -50,9 +75,9 @@ export default function WordCounterTool() {
       words,
       charactersWithSpaces,
       charactersNoSpaces,
-      typedLines,
-      standardLines,
       lines,
+      standardLines,
+      sentences,
       paragraphs,
       readingMinutes,
     };
@@ -88,9 +113,9 @@ export default function WordCounterTool() {
             ["Words", stats.words],
             ["Characters", stats.charactersWithSpaces],
             ["No spaces", stats.charactersNoSpaces],
+            ["Sentences", stats.sentences],
             ["Lines", stats.lines],
             ["Paragraphs", stats.paragraphs],
-            ["Typed lines", stats.typedLines],
             [`Std. lines (${STANDARD_LINE_LENGTH})`, stats.standardLines],
             ["Reading time", stats.readingMinutes ? `${stats.readingMinutes} min` : "0 min"],
           ].map(([label, value]) => (

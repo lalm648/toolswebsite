@@ -3,7 +3,9 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import ContentSection from "@/components/seo/ContentSection";
 import RelatedTools from "@/components/tool/RelatedTools";
+import AdSlot from "@/components/monetization/AdSlot";
 import { Badge } from "@/components/ui/badge";
+import { siteFlags } from "@/lib/site-flags";
 import { getCategoryBySlug, getRelatedTools, getToolByTitle } from "@/lib/data/tools";
 import { toolSeoContent } from "@/lib/seo/content";
 import { siteUrl } from "@/lib/seo/metadata";
@@ -100,7 +102,7 @@ export default function ToolShell({
 
         <div className="mx-auto max-w-3xl text-center">
           {category ? (
-            <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500">
+            <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center justify-center gap-2 text-sm text-[var(--muted-foreground)]">
               <Link href="/" className="hover:text-[var(--accent-700)]">
                 Home
               </Link>
@@ -116,12 +118,16 @@ export default function ToolShell({
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-4xl">
             {title}
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg">
             {description}
           </p>
         </div>
 
         {children}
+
+        {siteFlags.showAdSlots ? (
+          <AdSlot placement="tool-in-content" className="mx-auto w-full max-w-3xl" />
+        ) : null}
 
         {seoContent ? (
           <ContentSection

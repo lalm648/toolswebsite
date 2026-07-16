@@ -1,4 +1,13 @@
-export type ToolCategorySlug = "image" | "text" | "developer" | "seo";
+export type ToolCategorySlug =
+  | "image"
+  | "video"
+  | "audio"
+  | "document"
+  | "text"
+  | "developer"
+  | "security"
+  | "network"
+  | "seo";
 
 export type CategoryDefinition = {
   slug: ToolCategorySlug;
@@ -19,6 +28,30 @@ export const categories: CategoryDefinition[] = [
     badge: "Popular category",
   },
   {
+    slug: "video",
+    title: "Video Tools",
+    description: "Compress, trim, convert, mute, and extract media with local browser processing.",
+    href: "/tools/video",
+    eyebrow: "Media workflows",
+    badge: "Creator toolkit",
+  },
+  {
+    slug: "audio",
+    title: "Audio Tools",
+    description: "Record, convert, join, normalize, and analyze audio without a desktop editor.",
+    href: "/tools/audio",
+    eyebrow: "Sound workflows",
+    badge: "Audio studio",
+  },
+  {
+    slug: "document",
+    title: "Document & PDF Tools",
+    description: "Merge, split, extract, render, and package documents directly in the browser.",
+    href: "/tools/document",
+    eyebrow: "Document workflows",
+    badge: "Office essentials",
+  },
+  {
     slug: "text",
     title: "Text Tools",
     description: "Count, clean, and transform text for writing and editing workflows.",
@@ -33,6 +66,22 @@ export const categories: CategoryDefinition[] = [
     href: "/tools/developer",
     eyebrow: "Engineering utilities",
     badge: "Developer ready",
+  },
+  {
+    slug: "security",
+    title: "Security & Generators",
+    description: "Generate secure passwords, identifiers, hashes, QR codes, and barcodes.",
+    href: "/tools/security",
+    eyebrow: "Privacy utilities",
+    badge: "Secure by design",
+  },
+  {
+    slug: "network",
+    title: "Web & Network Tools",
+    description: "Inspect public websites, DNS records, links, domains, ports, and response times.",
+    href: "/tools/network",
+    eyebrow: "Network diagnostics",
+    badge: "Web operations",
   },
   {
     slug: "seo",
@@ -51,26 +100,7 @@ export type ToolDefinition = {
   href: string;
   category: ToolCategorySlug;
   meta: string;
-  icon:
-    | "jpg-to-png"
-    | "png-to-jpg"
-    | "jpg-to-webp"
-    | "jpg-to-avif"
-    | "png-to-webp"
-    | "png-to-avif"
-    | "image-compressor"
-    | "image-resizer"
-    | "rotate-image"
-    | "crop-image"
-    | "word-counter"
-    | "case-converter"
-    | "remove-extra-spaces"
-    | "remove-empty-lines"
-    | "remove-duplicate-lines"
-    | "remove-line-breaks"
-    | "json-formatter"
-    | "base64-encoder"
-    | "meta-tag-generator";
+  icon: string;
 };
 
 export const tools: ToolDefinition[] = [
@@ -245,6 +275,438 @@ export const tools: ToolDefinition[] = [
     meta: "SEO utility",
     icon: "meta-tag-generator",
   },
+  {
+    slug: "bulk-image-resizer",
+    title: "Bulk Image Resizer",
+    description: "Resize batches of images to web-ready dimensions and download every result together.",
+    href: "/tools/image/bulk-image-resizer",
+    category: "image",
+    meta: "Batch image processing",
+    icon: "image-resizer",
+  },
+  {
+    slug: "format-converter",
+    title: "Image Format Converter",
+    description: "Convert batches of PNG, JPEG, and WebP files into efficient web formats.",
+    href: "/tools/image/format-converter",
+    category: "image",
+    meta: "Batch conversion",
+    icon: "jpg-to-webp",
+  },
+  {
+    slug: "background-remover",
+    title: "Background Remover",
+    description: "Remove a consistent image background locally with adjustable color tolerance.",
+    href: "/tools/image/background-remover",
+    category: "image",
+    meta: "Local image isolation",
+    icon: "crop-image",
+  },
+  {
+    slug: "watermarker",
+    title: "Image Watermarker",
+    description: "Apply positioned text watermarks to one or many images without uploading them.",
+    href: "/tools/image/watermarker",
+    category: "image",
+    meta: "Batch branding",
+    icon: "meta-tag-generator",
+  },
+  {
+    slug: "metadata-stripper",
+    title: "Metadata Stripper",
+    description: "Re-encode images to remove EXIF location, camera, and timestamp metadata.",
+    href: "/tools/image/metadata-stripper",
+    category: "image",
+    meta: "Privacy utility",
+    icon: "image-compressor",
+  },
+  {
+    slug: "smart-image-cropper",
+    title: "Smart Image Cropper",
+    description: "Create centered, feature-aware crops for common social and content aspect ratios.",
+    href: "/tools/image/smart-image-cropper",
+    category: "image",
+    meta: "Smart cropping",
+    icon: "crop-image",
+  },
+  {
+    slug: "color-palette-extractor",
+    title: "Color Palette Extractor",
+    description: "Analyze an image locally and return its dominant colors as reusable hex codes.",
+    href: "/tools/image/color-palette-extractor",
+    category: "image",
+    meta: "Color analysis",
+    icon: "image-compressor",
+  },
+  {
+    slug: "gif-maker",
+    title: "GIF Maker",
+    description: "Compile ordered image frames into a downloadable animated GIF.",
+    href: "/tools/image/gif-maker",
+    category: "image",
+    meta: "Animation",
+    icon: "rotate-image",
+  },
+  {
+    slug: "meme-generator",
+    title: "Meme Generator",
+    description: "Add wrapped, high-contrast top and bottom captions to any image.",
+    href: "/tools/image/meme-generator",
+    category: "image",
+    meta: "Creative utility",
+    icon: "case-converter",
+  },
+  {
+    slug: "favicon-generator",
+    title: "Favicon Generator",
+    description: "Generate browser and app icon sizes from one square master image.",
+    href: "/tools/image/favicon-generator",
+    category: "image",
+    meta: "Website assets",
+    icon: "image-resizer",
+  },
+  {
+    slug: "video-compressor",
+    title: "Video Compressor",
+    description: "Reduce video bitrate and dimensions for email, chat, and web delivery.",
+    href: "/tools/video/video-compressor",
+    category: "video",
+    meta: "Video optimization",
+    icon: "video",
+  },
+  {
+    slug: "audio-extractor",
+    title: "Audio Extractor",
+    description: "Extract an MP3 or WAV audio track from a video file.",
+    href: "/tools/video/audio-extractor",
+    category: "video",
+    meta: "Media extraction",
+    icon: "audio",
+  },
+  {
+    slug: "video-format-transpiler",
+    title: "Video Format Transpiler",
+    description: "Convert MOV, MKV, WebM, and other containers into web-friendly MP4.",
+    href: "/tools/video/video-format-transpiler",
+    category: "video",
+    meta: "Video conversion",
+    icon: "video",
+  },
+  {
+    slug: "thumbnail-grabber",
+    title: "Video Thumbnail Grabber",
+    description: "Capture a high-resolution image from an exact video timestamp.",
+    href: "/tools/video/thumbnail-grabber",
+    category: "video",
+    meta: "Frame extraction",
+    icon: "image",
+  },
+  {
+    slug: "video-clipper",
+    title: "Video Clipper",
+    description: "Trim exact start and end points from a video clip.",
+    href: "/tools/video/video-clipper",
+    category: "video",
+    meta: "Video editing",
+    icon: "crop-image",
+  },
+  {
+    slug: "video-muter",
+    title: "Video Muter",
+    description: "Remove every audio track from a video and export a silent copy.",
+    href: "/tools/video/video-muter",
+    category: "video",
+    meta: "Audio removal",
+    icon: "audio",
+  },
+  {
+    slug: "video-speed-adjuster",
+    title: "Video Speed Adjuster",
+    description: "Create fast-motion or slow-motion video with synchronized playback timing.",
+    href: "/tools/video/video-speed-adjuster",
+    category: "video",
+    meta: "Playback editing",
+    icon: "rotate-image",
+  },
+  {
+    slug: "subtitles-burner",
+    title: "Subtitles Burner",
+    description: "Permanently render SRT captions onto a video stream.",
+    href: "/tools/video/subtitles-burner",
+    category: "video",
+    meta: "Caption rendering",
+    icon: "text",
+  },
+  {
+    slug: "audio-format-switcher",
+    title: "Audio Format Switcher",
+    description: "Convert WAV, FLAC, MP3, and OGG files into a delivery-ready format.",
+    href: "/tools/audio/audio-format-switcher",
+    category: "audio",
+    meta: "Audio conversion",
+    icon: "audio",
+  },
+  {
+    slug: "audio-joiner",
+    title: "Audio Joiner",
+    description: "Combine multiple ordered audio tracks into one continuous file.",
+    href: "/tools/audio/audio-joiner",
+    category: "audio",
+    meta: "Audio editing",
+    icon: "audio",
+  },
+  {
+    slug: "voice-recorder",
+    title: "Voice Recorder & Saver",
+    description: "Capture a microphone stream and save the recording as an audio file.",
+    href: "/tools/audio/voice-recorder",
+    category: "audio",
+    meta: "Recording",
+    icon: "audio",
+  },
+  {
+    slug: "bpm-detector",
+    title: "BPM / Tempo Detector",
+    description: "Estimate the tempo of an audio track from its energy peaks.",
+    href: "/tools/audio/bpm-detector",
+    category: "audio",
+    meta: "Audio analysis",
+    icon: "audio",
+  },
+  {
+    slug: "volume-normalizer",
+    title: "Volume Normalizer",
+    description: "Analyze and normalize an audio file to a consistent peak level.",
+    href: "/tools/audio/volume-normalizer",
+    category: "audio",
+    meta: "Audio mastering",
+    icon: "audio",
+  },
+  {
+    slug: "pdf-merger",
+    title: "PDF Merger",
+    description: "Combine multiple PDF documents into one ordered file.",
+    href: "/tools/document/pdf-merger",
+    category: "document",
+    meta: "PDF organization",
+    icon: "document",
+  },
+  {
+    slug: "pdf-splitter",
+    title: "PDF Splitter",
+    description: "Export selected pages or every page as separate PDF documents.",
+    href: "/tools/document/pdf-splitter",
+    category: "document",
+    meta: "PDF organization",
+    icon: "document",
+  },
+  {
+    slug: "image-to-pdf",
+    title: "Image to PDF Builder",
+    description: "Package an ordered set of scanned images into a clean multi-page PDF.",
+    href: "/tools/document/image-to-pdf",
+    category: "document",
+    meta: "PDF creation",
+    icon: "document",
+  },
+  {
+    slug: "pdf-text-extractor",
+    title: "PDF Text Extractor",
+    description: "Read the text layer from a PDF and export it as plain text.",
+    href: "/tools/document/pdf-text-extractor",
+    category: "document",
+    meta: "Text extraction",
+    icon: "text",
+  },
+  {
+    slug: "file-word-counter",
+    title: "File Word Counter",
+    description: "Analyze text and Markdown files for words, characters, sentences, and paragraphs.",
+    href: "/tools/document/file-word-counter",
+    category: "document",
+    meta: "Document analysis",
+    icon: "word-counter",
+  },
+  {
+    slug: "markdown-to-html",
+    title: "Markdown to HTML Renderer",
+    description: "Turn Markdown source into structured, previewable HTML.",
+    href: "/tools/document/markdown-to-html",
+    category: "document",
+    meta: "Document conversion",
+    icon: "text",
+  },
+  {
+    slug: "epub-to-pdf",
+    title: "EPUB to PDF Converter",
+    description: "Extract EPUB chapters and package readable text into a printable PDF.",
+    href: "/tools/document/epub-to-pdf",
+    category: "document",
+    meta: "eBook conversion",
+    icon: "document",
+  },
+  {
+    slug: "csv-to-json",
+    title: "CSV to JSON Migrator",
+    description: "Convert spreadsheet-style CSV rows into structured JSON objects.",
+    href: "/tools/developer/csv-to-json",
+    category: "developer",
+    meta: "Data conversion",
+    icon: "json-formatter",
+  },
+  {
+    slug: "sql-schema-visualizer",
+    title: "SQL Schema Visualizer",
+    description: "Parse CREATE TABLE statements into a readable relationship-oriented schema chart.",
+    href: "/tools/developer/sql-schema-visualizer",
+    category: "developer",
+    meta: "Database utility",
+    icon: "json-formatter",
+  },
+  {
+    slug: "code-minifier",
+    title: "Code Minifier",
+    description: "Minify JavaScript or CSS by removing comments and unnecessary whitespace.",
+    href: "/tools/developer/code-minifier",
+    category: "developer",
+    meta: "Code optimization",
+    icon: "case-converter",
+  },
+  {
+    slug: "regex-tester",
+    title: "Regex Tester Engine",
+    description: "Test regular-expression patterns against input and inspect every match.",
+    href: "/tools/developer/regex-tester",
+    category: "developer",
+    meta: "Developer testing",
+    icon: "json-formatter",
+  },
+  {
+    slug: "diff-checker",
+    title: "Diff Checker",
+    description: "Compare two text or code blocks and highlight line-level differences.",
+    href: "/tools/developer/diff-checker",
+    category: "developer",
+    meta: "Code comparison",
+    icon: "remove-duplicate-lines",
+  },
+  {
+    slug: "password-generator",
+    title: "Password Generator",
+    description: "Create cryptographically random passwords with configurable character rules.",
+    href: "/tools/security/password-generator",
+    category: "security",
+    meta: "Security generator",
+    icon: "security",
+  },
+  {
+    slug: "qr-code-generator",
+    title: "QR Code Blueprint Maker",
+    description: "Encode URLs or text into a downloadable QR code graphic.",
+    href: "/tools/security/qr-code-generator",
+    category: "security",
+    meta: "QR generator",
+    icon: "qr",
+  },
+  {
+    slug: "barcode-generator",
+    title: "Barcode Generator",
+    description: "Render product numbers as downloadable industrial barcode graphics.",
+    href: "/tools/security/barcode-generator",
+    category: "security",
+    meta: "Barcode generator",
+    icon: "qr",
+  },
+  {
+    slug: "uuid-generator",
+    title: "UUID/GUID Provisioner",
+    description: "Generate one or many cryptographically random UUID v4 identifiers.",
+    href: "/tools/security/uuid-generator",
+    category: "security",
+    meta: "Identifier generator",
+    icon: "security",
+  },
+  {
+    slug: "url-shortener",
+    title: "URL Shortener Registry",
+    description: "Create and manage short local redirect codes for long links.",
+    href: "/tools/security/url-shortener",
+    category: "security",
+    meta: "Link utility",
+    icon: "meta-tag-generator",
+  },
+  {
+    slug: "hash-calculator",
+    title: "Hash Calculator",
+    description: "Calculate SHA-1, SHA-256, SHA-384, or SHA-512 fingerprints for text and files.",
+    href: "/tools/security/hash-calculator",
+    category: "security",
+    meta: "Integrity utility",
+    icon: "security",
+  },
+  {
+    slug: "html-content-scraper",
+    title: "HTML Content Scraper",
+    description: "Fetch a public page and extract its clean headings and paragraph text.",
+    href: "/tools/network/html-content-scraper",
+    category: "network",
+    meta: "Web content inspection",
+    icon: "network",
+  },
+  {
+    slug: "broken-link-checker",
+    title: "Broken Link Checker",
+    description: "Inspect links on a public page and flag unreachable or failing destinations.",
+    href: "/tools/network/broken-link-checker",
+    category: "network",
+    meta: "Website QA",
+    icon: "network",
+  },
+  {
+    slug: "sitemap-builder",
+    title: "Sitemap Builder",
+    description: "Crawl a public website and compile discovered internal pages into XML.",
+    href: "/tools/network/sitemap-builder",
+    category: "network",
+    meta: "SEO crawling",
+    icon: "network",
+  },
+  {
+    slug: "dns-inspector",
+    title: "DNS Records Inspector",
+    description: "Query public A, AAAA, MX, TXT, CNAME, and NS records for a domain.",
+    href: "/tools/network/dns-inspector",
+    category: "network",
+    meta: "DNS diagnostics",
+    icon: "network",
+  },
+  {
+    slug: "port-scanner",
+    title: "Port Scanner",
+    description: "Test a constrained list of common TCP ports on an authorized public host.",
+    href: "/tools/network/port-scanner",
+    category: "network",
+    meta: "Authorized diagnostics",
+    icon: "network",
+  },
+  {
+    slug: "ping-monitor",
+    title: "Ping Monitor",
+    description: "Measure repeated HTTP response latency and availability for a public URL.",
+    href: "/tools/network/ping-monitor",
+    category: "network",
+    meta: "Availability monitoring",
+    icon: "network",
+  },
+  {
+    slug: "whois-lookup",
+    title: "Whois Lookup Dashboard",
+    description: "Query public RDAP registries for domain registration and status information.",
+    href: "/tools/network/whois-lookup",
+    category: "network",
+    meta: "Domain intelligence",
+    icon: "network",
+  },
 ];
 
 export function getCategoryBySlug(slug: ToolCategorySlug) {
@@ -257,6 +719,10 @@ export function getToolsByCategory(slug: ToolCategorySlug) {
 
 export function getToolByTitle(title: string) {
   return tools.find((tool) => tool.title === title);
+}
+
+export function getToolBySlug(slug: string, category?: ToolCategorySlug) {
+  return tools.find((tool) => tool.slug === slug && (!category || tool.category === category));
 }
 
 export function getRelatedTools(toolSlug: string, category: ToolCategorySlug, limit = 3) {

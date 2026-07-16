@@ -152,9 +152,14 @@ export default function CropImageTool() {
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
       if (cropped?.url) URL.revokeObjectURL(cropped.url);
     };
-  }, [previewUrl, cropped]);
+  }, [cropped]);
 
   useEffect(() => {
     function updatePreviewGeometry() {
@@ -904,7 +909,7 @@ export default function CropImageTool() {
                   <div
                     className={`relative mt-4 aspect-square overflow-hidden rounded-xl ${
                       imagePreviewBackgroundClassName[
-                        cropped.mimeType === "png" || cropped.mimeType === "image/webp" ? "checkerboard" : "white"
+                        cropped.mimeType === "image/png" || cropped.mimeType === "image/webp" ? "checkerboard" : "white"
                       ]
                     }`}
                   >

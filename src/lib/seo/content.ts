@@ -43,6 +43,54 @@ export const categorySeoContent: Record<ToolCategorySlug, CategorySeoContent> = 
     ],
     keywords: ["image tools", "browser image editor", "image converter", "image compressor", "resize image online"],
   },
+  video: {
+    intro: [
+      "The video section brings common compression, conversion, trimming, caption, and extraction tasks into a focused browser workflow.",
+      "Media processing uses a local WebAssembly engine, so source files remain on the device while the browser creates the requested output."
+    ],
+    highlights: [
+      "Compress and convert video for web, email, and messaging delivery.",
+      "Trim clips, remove audio, capture frames, and adjust playback speed.",
+      "Extract soundtracks or permanently render SRT captions onto video."
+    ],
+    faq: [
+      { question: "Do videos upload to a server?", answer: "No. Supported video operations run locally in the browser with a WebAssembly media engine." },
+      { question: "Why can a large video take time to process?", answer: "Video encoding is computationally intensive. Processing time depends on file length, resolution, codec, and the device running the browser." }
+    ],
+    keywords: ["video tools", "video compressor", "trim video", "video converter", "extract audio"],
+  },
+  audio: {
+    intro: [
+      "The audio section covers conversion, joining, recording, tempo detection, and volume normalization without requiring a desktop audio editor.",
+      "Files are decoded and processed locally wherever the browser supports the required media format."
+    ],
+    highlights: [
+      "Convert and combine common audio formats.",
+      "Record microphone audio directly from a supported browser.",
+      "Estimate tempo and normalize inconsistent peak levels."
+    ],
+    faq: [
+      { question: "Is microphone permission required?", answer: "Only the Voice Recorder asks for microphone access, and the browser will always request permission first." },
+      { question: "Which audio formats work?", answer: "Format support varies by browser, while the local media engine expands support for formats such as MP3, WAV, FLAC, and OGG." }
+    ],
+    keywords: ["audio tools", "audio converter", "voice recorder", "bpm detector", "volume normalizer"],
+  },
+  document: {
+    intro: [
+      "The document section handles practical PDF, Markdown, EPUB, image packaging, extraction, and file-analysis tasks locally in the browser.",
+      "The tools are designed for quick document preparation without sending private files to a remote conversion service."
+    ],
+    highlights: [
+      "Merge, split, build, and extract content from PDF documents.",
+      "Render Markdown into clean HTML with a live preview.",
+      "Analyze text files and create printable output from images or EPUB content."
+    ],
+    faq: [
+      { question: "Are PDF files uploaded?", answer: "No. PDF manipulation and text extraction run locally in the browser." },
+      { question: "Will every EPUB preserve its exact layout?", answer: "EPUB layouts vary. The converter focuses on extracting readable chapter content into a printable document rather than reproducing every publisher-specific style." }
+    ],
+    keywords: ["pdf tools", "merge pdf", "split pdf", "image to pdf", "pdf text extractor"],
+  },
   text: {
     intro: [
       "The text section focuses on cleanup, formatting, and analysis tasks that content teams, writers, editors, and operations staff repeat constantly. These are the small utilities that remove friction from everyday writing workflows.",
@@ -86,6 +134,38 @@ export const categorySeoContent: Record<ToolCategorySlug, CategorySeoContent> = 
       }
     ],
     keywords: ["developer tools", "json formatter", "base64 encoder", "browser dev utilities", "payload tools"],
+  },
+  security: {
+    intro: [
+      "The security and generator section creates passwords, identifiers, hashes, QR codes, and barcodes directly in the browser.",
+      "Random values use the browser cryptography API, while local registries remain stored only on the current device."
+    ],
+    highlights: [
+      "Generate cryptographically random passwords and UUIDs.",
+      "Calculate file fingerprints without uploading source data.",
+      "Create downloadable QR codes and barcodes for everyday workflows."
+    ],
+    faq: [
+      { question: "Are generated passwords sent anywhere?", answer: "No. Password generation uses the local browser cryptography API and does not transmit the result." },
+      { question: "Is the URL shortener public?", answer: "The built-in registry is intentionally local to the current browser. A shared public shortener requires a configured database and deployment service." }
+    ],
+    keywords: ["password generator", "uuid generator", "hash calculator", "qr code generator", "barcode generator"],
+  },
+  network: {
+    intro: [
+      "The web and network section provides controlled diagnostics for public hosts and websites, including DNS, RDAP, links, sitemaps, ports, and response timing.",
+      "Network requests are validated and constrained to public destinations to reduce server-side request forgery and local-network probing risk."
+    ],
+    highlights: [
+      "Inspect public DNS and domain registration records.",
+      "Find broken links and build a crawl-based XML sitemap.",
+      "Measure HTTP latency and test a restricted set of common ports on authorized hosts."
+    ],
+    faq: [
+      { question: "Can these tools scan private networks?", answer: "No. Private, loopback, link-local, and reserved destinations are blocked." },
+      { question: "Should I scan a host I do not control?", answer: "Use diagnostic and port tools only on systems you own or are explicitly authorized to test." }
+    ],
+    keywords: ["network tools", "dns lookup", "broken link checker", "sitemap builder", "whois lookup"],
   },
   seo: {
     intro: [

@@ -11,6 +11,7 @@ import FAQSection from "@/components/tool/FAQSection";
 import ToolsSection from "@/components/tool/ToolsSection";
 import type { CategoryDefinition, ToolDefinition } from "@/lib/data/tools";
 import { categorySeoContent } from "@/lib/seo/content";
+import { siteUrl } from "@/lib/seo/metadata";
 import { siteFlags } from "@/lib/site-flags";
 
 type CategoryBrowserProps = {
@@ -21,6 +22,34 @@ type CategoryBrowserProps = {
 export default function CategoryBrowser({ category, tools }: CategoryBrowserProps) {
   const [query, setQuery] = useState("");
   const seoContent = categorySeoContent[category.slug];
+  const categoryUrl = `${siteUrl}${category.href}`;
+  const categoryJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: category.title,
+      description: category.description,
+      url: categoryUrl,
+      mainEntity: {
+        "@type": "ItemList",
+        numberOfItems: tools.length,
+        itemListElement: tools.map((tool, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: tool.title,
+          url: `${siteUrl}${tool.href}`,
+        })),
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+        { "@type": "ListItem", position: 2, name: category.title, item: categoryUrl },
+      ],
+    },
+  ];
 
   const filteredTools = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -38,6 +67,10 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
 
   return (
     <div className="space-y-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(categoryJsonLd).replace(/</g, "\\u003c") }}
+      />
       <CategoryHero category={category} value={query} onChange={setQuery} />
 
       <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-7">

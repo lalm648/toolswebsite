@@ -1,16 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import CopyButton from "@/components/tool/CopyButton";
 import ToolResult from "@/components/tool/ToolResult";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { downloadTextFile } from "@/lib/download";
 
 type TextTransformToolProps = {
   title: string;
   description: string;
   outputTitle: string;
   transform: (value: string) => string;
+  downloadFileName?: string;
 };
 
 export default function TextTransformTool({
@@ -18,10 +21,13 @@ export default function TextTransformTool({
   description,
   outputTitle,
   transform,
+  downloadFileName = "cleaned-text.txt",
 }: TextTransformToolProps) {
   const [text, setText] = useState("");
 
   const output = useMemo(() => transform(text), [text, transform]);
+  const characterCount = text.length;
+  const lineCount = text ? text.split(/\r\n|\r|\n/).length : 0;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
@@ -41,12 +47,24 @@ export default function TextTransformTool({
           placeholder="Paste text here..."
           className="mt-5 min-h-[360px]"
         />
+        <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+          {characterCount.toLocaleString()} characters · {lineCount.toLocaleString()} lines
+        </p>
       </div>
 
       <ToolResult title={outputTitle}>
         <Textarea readOnly value={output} placeholder="Processed text will appear here..." className="min-h-[360px]" />
-        <div className="mt-4 flex gap-3">
-          <Button size="sm" variant="secondary" onClick={() => setText(output)}>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <CopyButton value={output} label="Copy result" disabled={!output} />
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => downloadTextFile(output, downloadFileName)}
+            disabled={!output}
+          >
+            Download .txt
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setText(output)} disabled={!output}>
             Use output
           </Button>
         </div>

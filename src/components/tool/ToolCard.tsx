@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ToolDefinition } from "@/lib/data/tools";
 import { trackToolOpen } from "@/lib/analytics";
@@ -13,7 +13,7 @@ type ToolCardProps = {
 const iconProps = {
   "aria-hidden": "true",
   viewBox: "0 0 24 24",
-  className: "h-5 w-5",
+  className: "h-6 w-6",
   fill: "none",
   stroke: "currentColor",
   strokeWidth: "1.8",
@@ -22,17 +22,18 @@ const iconProps = {
 } as const;
 
 const categoryAccentStyles: Record<ToolDefinition["category"], string> = {
-  image:
-    "bg-[linear-gradient(180deg,rgba(96,165,250,0.16),rgba(59,130,246,0.06))] text-sky-700 ring-1 ring-sky-200/70 group-hover:bg-sky-600 group-hover:text-white group-hover:ring-sky-600/30",
-  text:
-    "bg-[linear-gradient(180deg,rgba(251,191,36,0.18),rgba(245,158,11,0.07))] text-amber-700 ring-1 ring-amber-200/80 group-hover:bg-amber-500 group-hover:text-white group-hover:ring-amber-500/30",
-  developer:
-    "bg-[linear-gradient(180deg,rgba(45,212,191,0.18),rgba(20,184,166,0.07))] text-teal-700 ring-1 ring-teal-200/80 group-hover:bg-teal-600 group-hover:text-white group-hover:ring-teal-600/30",
-  seo:
-    "bg-[linear-gradient(180deg,rgba(244,114,182,0.18),rgba(236,72,153,0.07))] text-pink-700 ring-1 ring-pink-200/80 group-hover:bg-pink-600 group-hover:text-white group-hover:ring-pink-600/30",
+  image: "bg-sky-50 text-sky-600 ring-1 ring-sky-100 group-hover:bg-sky-600 group-hover:text-white",
+  video: "bg-violet-50 text-violet-600 ring-1 ring-violet-100 group-hover:bg-violet-600 group-hover:text-white",
+  audio: "bg-fuchsia-50 text-fuchsia-600 ring-1 ring-fuchsia-100 group-hover:bg-fuchsia-600 group-hover:text-white",
+  document: "bg-orange-50 text-orange-600 ring-1 ring-orange-100 group-hover:bg-orange-600 group-hover:text-white",
+  text: "bg-amber-50 text-amber-600 ring-1 ring-amber-100 group-hover:bg-amber-500 group-hover:text-white",
+  developer: "bg-teal-50 text-teal-600 ring-1 ring-teal-100 group-hover:bg-teal-600 group-hover:text-white",
+  security: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 group-hover:bg-emerald-600 group-hover:text-white",
+  network: "bg-cyan-50 text-cyan-600 ring-1 ring-cyan-100 group-hover:bg-cyan-600 group-hover:text-white",
+  seo: "bg-pink-50 text-pink-600 ring-1 ring-pink-100 group-hover:bg-pink-600 group-hover:text-white",
 };
 
-const iconMap = {
+const iconMap: Record<string, ReactNode> = {
   "jpg-to-png": (
     <svg {...iconProps}>
       <rect x="4.5" y="5.5" width="6.5" height="8" rx="1.8" />
@@ -208,6 +209,18 @@ const iconMap = {
   ),
 };
 
+const categoryIconMap: Record<ToolDefinition["category"], ReactNode> = {
+  image: <svg {...iconProps}><rect x="4" y="5" width="16" height="14" rx="2.5" /><path d="m5 17 4.5-4.5L14 17m-1-2 2.5-2.5L20 17" /></svg>,
+  video: <svg {...iconProps}><rect x="4" y="6" width="12" height="12" rx="2.5" /><path d="m16 10 4-2v8l-4-2" /></svg>,
+  audio: <svg {...iconProps}><path d="M9 18V7l9-2v11" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="15.5" cy="16" r="2.5" /></svg>,
+  document: <svg {...iconProps}><path d="M7 3.5h7l4 4V20H7Z" /><path d="M14 3.5V8h4M10 12h5M10 15h5" /></svg>,
+  text: <svg {...iconProps}><path d="M6 6h12M12 6v12M9.5 18h5" /></svg>,
+  developer: <svg {...iconProps}><path d="m8 8-4 4 4 4m8-4 4 4-4 4m-2.5-10-3 12" /></svg>,
+  security: <svg {...iconProps}><path d="M12 3.5 19 6v5.5c0 4.2-2.8 7.5-7 9-4.2-1.5-7-4.8-7-9V6Z" /><path d="m9.2 12 1.8 1.8 3.8-4" /></svg>,
+  network: <svg {...iconProps}><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.1 3.3 8.5s-1.1 6.2-3.3 8.5C9.8 18.2 8.7 15.4 8.7 12S9.8 5.8 12 3.5Z" /></svg>,
+  seo: <svg {...iconProps}><circle cx="11" cy="11" r="6" /><path d="m20 20-4.3-4.3" /></svg>,
+};
+
 export default function ToolCard({ tool }: ToolCardProps) {
   return (
     <Link
@@ -219,24 +232,15 @@ export default function ToolCard({ tool }: ToolCardProps) {
     >
       <Card className="h-full bg-[var(--surface-card)] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-[var(--outline-strong)] group-hover:shadow-[var(--shadow-lift)]">
         <CardContent className="p-5">
-          <div className="flex items-start justify-between gap-4">
-            <span
-              className={`inline-flex h-11 w-11 items-center justify-center rounded-[0.95rem] shadow-[0_10px_20px_-16px_rgba(15,23,42,0.28)] transition-all duration-200 group-hover:scale-[1.03] ${categoryAccentStyles[tool.category]}`}
-            >
-              {iconMap[tool.icon]}
-            </span>
-            <Badge variant="secondary" className="normal-case tracking-normal text-[11px] font-medium">
-              {tool.meta}
-            </Badge>
-          </div>
-          <h3 className="mt-5 text-lg font-semibold tracking-tight text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
+          <span
+            className={`inline-flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-200 ${categoryAccentStyles[tool.category]}`}
+          >
+            {iconMap[tool.icon] ?? categoryIconMap[tool.category]}
+          </span>
+          <h3 className="mt-4 text-base font-bold tracking-tight text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
             {tool.title}
           </h3>
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--muted-foreground)]">{tool.description}</p>
-          <div className="mt-5 flex items-center gap-2 text-sm font-medium text-[var(--ink-900)]">
-            <span>Open tool</span>
-            <span className="group-hover:translate-x-0.5 group-hover:text-[var(--brand-500)]">→</span>
-          </div>
+          <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-[var(--muted-foreground)]">{tool.description}</p>
         </CardContent>
       </Card>
     </Link>

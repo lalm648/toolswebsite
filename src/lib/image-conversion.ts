@@ -56,14 +56,25 @@ export async function exportCanvasWithStrategy(
   canvas: HTMLCanvasElement,
   { outputMimeType, outputQuality, qualityCandidates, targetMaxSizeRatio, originalSize }: ExportStrategyOptions
 ) {
+  // When a browser cannot encode the requested type, canvas.toBlob silently falls
+  // back to image/png and returns a non-null blob. Reject that so callers can show
+  // an "unsupported format" message instead of shipping a mislabeled file.
+  const encodeAt = async (quality?: number) => {
+    const blob = await toBlobFromCanvas(canvas, outputMimeType, quality);
+    if (blob && blob.type !== outputMimeType) {
+      return null;
+    }
+    return blob;
+  };
+
   if (!qualityCandidates?.length) {
-    return toBlobFromCanvas(canvas, outputMimeType, outputQuality);
+    return encodeAt(outputQuality);
   }
 
   let smallestBlob: Blob | null = null;
 
   for (const quality of qualityCandidates) {
-    const blob = await toBlobFromCanvas(canvas, outputMimeType, quality);
+    const blob = await encodeAt(quality);
 
     if (!blob) {
       continue;

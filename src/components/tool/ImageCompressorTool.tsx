@@ -98,9 +98,14 @@ export default function ImageCompressorTool() {
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
       if (converted?.url) URL.revokeObjectURL(converted.url);
     };
-  }, [previewUrl, converted]);
+  }, [converted]);
 
   function handleSelect(selectedFile: File | null) {
     if (!selectedFile) return;
@@ -482,7 +487,7 @@ export default function ImageCompressorTool() {
                     fill
                     unoptimized
                     sizes="(min-width: 640px) 50vw, 100vw"
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </div>
               </div>
@@ -501,7 +506,7 @@ export default function ImageCompressorTool() {
                       fill
                       unoptimized
                       sizes="(min-width: 640px) 50vw, 100vw"
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </div>
                 ) : (

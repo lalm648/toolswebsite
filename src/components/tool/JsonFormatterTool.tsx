@@ -1,10 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import CopyButton from "@/components/tool/CopyButton";
 import ToolResult from "@/components/tool/ToolResult";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
+import { downloadTextFile } from "@/lib/download";
+
+function describeJsonError(error: unknown) {
+  const detail = error instanceof Error ? error.message : "";
+  return detail
+    ? `Invalid JSON: ${detail}`
+    : "Invalid JSON. Check commas, quotes, and brackets.";
+}
 
 export default function JsonFormatterTool() {
   const [input, setInput] = useState("");
@@ -22,9 +31,9 @@ export default function JsonFormatterTool() {
         input_length: input.length,
         output_length: nextOutput.length,
       });
-    } catch {
+    } catch (caught) {
       setOutput("");
-      setError("Invalid JSON. Check commas, quotes, and brackets.");
+      setError(describeJsonError(caught));
       trackToolFailure("json-formatter", "format", "invalid_json", {
         input_length: input.length,
       });
@@ -42,9 +51,9 @@ export default function JsonFormatterTool() {
         input_length: input.length,
         output_length: nextOutput.length,
       });
-    } catch {
+    } catch (caught) {
       setOutput("");
-      setError("Invalid JSON. Check commas, quotes, and brackets.");
+      setError(describeJsonError(caught));
       trackToolFailure("json-formatter", "minify", "invalid_json", {
         input_length: input.length,
       });
@@ -75,6 +84,17 @@ export default function JsonFormatterTool() {
 
       <ToolResult title="Formatted output">
         <Textarea readOnly value={output} placeholder="Formatted JSON will appear here..." className="min-h-[360px] font-mono text-sm" />
+        <div className="mt-4 flex flex-wrap gap-3">
+          <CopyButton value={output} label="Copy JSON" disabled={!output} />
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => downloadTextFile(output, "formatted.json", "application/json")}
+            disabled={!output}
+          >
+            Download .json
+          </Button>
+        </div>
       </ToolResult>
     </div>
   );

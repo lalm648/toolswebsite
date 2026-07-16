@@ -1,17 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import CopyButton from "@/components/tool/CopyButton";
 import ToolResult from "@/components/tool/ToolResult";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 
 function encodeBase64(value: string) {
-  return btoa(unescape(encodeURIComponent(value)));
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
 }
 
 function decodeBase64(value: string) {
-  return decodeURIComponent(escape(atob(value)));
+  // Accept URL-safe Base64, stray whitespace/newlines, and missing padding.
+  let normalized = value.trim().replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  const remainder = normalized.length % 4;
+  if (remainder) {
+    normalized += "=".repeat(4 - remainder);
+  }
+
+  const binary = atob(normalized);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 export default function Base64EncoderTool() {
@@ -81,6 +96,9 @@ export default function Base64EncoderTool() {
 
       <ToolResult title="Output">
         <Textarea readOnly value={output} placeholder="Encoded or decoded output will appear here..." className="min-h-90" />
+        <div className="mt-4 flex flex-wrap gap-3">
+          <CopyButton value={output} label="Copy output" disabled={!output} />
+        </div>
       </ToolResult>
     </div>
   );

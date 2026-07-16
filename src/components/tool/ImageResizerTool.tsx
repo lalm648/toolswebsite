@@ -82,9 +82,14 @@ export default function ImageResizerTool() {
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
       if (resized?.url) URL.revokeObjectURL(resized.url);
     };
-  }, [previewUrl, resized]);
+  }, [resized]);
 
   function getHeightFromWidth(widthValue: string) {
     if (!originalDimensions || !widthValue) {
@@ -182,14 +187,24 @@ export default function ImageResizerTool() {
   async function resizeImage() {
     if (!file || !previewUrl || !originalDimensions) return;
 
-    const targetWidth = Number(widthInput);
-    const targetHeight = Number(heightInput);
+    const targetWidth = Math.round(Number(widthInput));
+    const targetHeight = Math.round(Number(heightInput));
+    const MAX_DIMENSION = 12000;
 
-    if (!targetWidth || !targetHeight) {
+    if (!targetWidth || !targetHeight || targetWidth < 1 || targetHeight < 1) {
       setError("Enter a valid width and height before resizing.");
       trackToolFailure("image-resizer", "resize", "invalid_dimensions", {
         width: targetWidth || undefined,
         height: targetHeight || undefined,
+      });
+      return;
+    }
+
+    if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+      setError(`Width and height must be ${MAX_DIMENSION.toLocaleString()} px or less.`);
+      trackToolFailure("image-resizer", "resize", "dimensions_too_large", {
+        width: targetWidth,
+        height: targetHeight,
       });
       return;
     }
@@ -454,7 +469,7 @@ export default function ImageResizerTool() {
                     fill
                     unoptimized
                     sizes="(min-width: 640px) 50vw, 100vw"
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </div>
               </div>
@@ -473,7 +488,7 @@ export default function ImageResizerTool() {
                       fill
                       unoptimized
                       sizes="(min-width: 640px) 50vw, 100vw"
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </div>
                 ) : (

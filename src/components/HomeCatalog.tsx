@@ -44,22 +44,36 @@ export default function HomeCatalog() {
 
   return (
     <>
-      <Card className="rounded-[2rem] bg-[var(--surface-hero)] shadow-[var(--shadow-lift)]">
-        <CardContent className="px-6 py-12 text-center sm:px-10">
-          <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-6xl">
-            Fast browser tools for image, text, and developer work
+      <Card className="rounded-3xl bg-[var(--surface-hero)]">
+        <CardContent className="px-6 py-12 text-center sm:px-10 sm:py-14">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-3.5 py-1.5 text-xs font-semibold text-[var(--muted-foreground)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-500)]" />
+            {tools.length} free tools · nothing uploaded to a server
+          </span>
+          <h1 className="mt-5 text-4xl font-bold tracking-tight text-[var(--ink-900)] sm:text-5xl">
+            Every tool you need for image, text &amp; developer work
           </h1>
-          <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-[var(--muted-foreground)] sm:text-xl">
-            Convert images, clean text, format JSON, and generate SEO tags without sending your files
-            or content to a server.
+          <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted-foreground)]">
+            Convert images, clean text, format JSON, and generate SEO tags — all running privately in
+            your browser.
           </p>
           <div className="mt-8">
             <SearchBar
               value={query}
               onChange={setQuery}
-              placeholder="Search tools or categories like JPG to PNG, text, SEO, or JSON Formatter"
+              placeholder="Search tools like JPG to WebP, word counter, or JSON formatter"
               analyticsSource="home_catalog"
             />
+          </div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[var(--muted-foreground)]">
+            {["100% in-browser", "No sign-up", "Free forever", "No file limits"].map((chip) => (
+              <span key={chip} className="inline-flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[var(--accent-500)]" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                {chip}
+              </span>
+            ))}
           </div>
         </CardContent>
       </Card>

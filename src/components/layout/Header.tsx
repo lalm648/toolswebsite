@@ -27,11 +27,14 @@ export default function Header() {
     <header className="sticky top-0 z-40 border-b border-[var(--outline-soft)] bg-[var(--header-bg)] backdrop-blur-xl">
       <Container className="py-3">
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="flex min-w-0 items-center gap-3 text-xl font-semibold tracking-tight text-[var(--ink-900)]">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-[linear-gradient(135deg,var(--accent-500),var(--brand-500))] text-sm font-semibold text-white shadow-[var(--shadow-soft)]">
-              TW
+          <Link href="/" className="flex min-w-0 items-center gap-2.5 text-xl font-semibold tracking-tight text-[var(--ink-900)]">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.75rem] bg-[var(--accent-500)] text-white shadow-[var(--shadow-soft)]">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14.7 6.3a4 4 0 0 1 0 5.6l-2.1 2.1-1.4-1.4 2.1-2.1a2 2 0 0 0-2.8-2.8L8.4 9.8 7 8.4l2.1-2.1a4 4 0 0 1 5.6 0Z" />
+                <path d="M12.9 11.1l1.4 1.4-2.1 2.1a4 4 0 0 1-5.6-5.6l2.1-2.1" />
+              </svg>
             </span>
-            <span className="truncate text-base sm:text-lg">ToolsWebsite</span>
+            <span className="truncate text-base font-bold sm:text-lg">ToolsWebsite</span>
           </Link>
 
           <div className="hidden items-center gap-3 md:flex">

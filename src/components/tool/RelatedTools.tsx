@@ -9,13 +9,13 @@ export default function RelatedTools({ tools }: RelatedToolsProps) {
   return (
     <section className="space-y-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--muted-foreground)]">
           Related tools
         </p>
-        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink-900)]">
           Continue with similar workflows
         </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted-foreground)]">
           Explore nearby tools in the same category to handle the next step in your workflow without starting over.
         </p>
       </div>

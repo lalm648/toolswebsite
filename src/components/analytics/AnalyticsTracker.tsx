@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import AnalyticsScripts from "@/components/analytics/AnalyticsScripts";
 import { trackEvent, trackPageView } from "@/lib/analytics";
 import { useConsentState } from "@/lib/consent";
 
@@ -58,5 +59,5 @@ export default function AnalyticsTracker() {
     };
   }, [hasConsent]);
 
-  return null;
+  return <AnalyticsScripts />;
 }

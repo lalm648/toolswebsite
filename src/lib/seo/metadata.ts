@@ -69,6 +69,14 @@ export function buildMetadata(title: string, description: string, options?: Meta
       url,
       siteName: "ToolsWebsite",
       locale: "en_US",
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: "ToolsWebsite — private browser tools for everyday work",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -76,6 +84,7 @@ export function buildMetadata(title: string, description: string, options?: Meta
       description,
       site: twitterHandle,
       creator: twitterHandle,
+      images: ["/opengraph-image"],
     },
   };
 }

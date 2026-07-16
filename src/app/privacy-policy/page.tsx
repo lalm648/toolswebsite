@@ -12,8 +12,8 @@ export default function PrivacyPolicyPage() {
     <section className="py-16 sm:py-20">
       <Container className="max-w-4xl space-y-8">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Privacy Policy</h1>
-          <p className="mt-6 text-lg leading-8 text-slate-600">
+          <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-5xl">Privacy Policy</h1>
+          <p className="mt-6 text-lg leading-8 text-[var(--muted-foreground)]">
             ToolsWebsite is designed to keep as much processing as possible inside your browser. This
             policy explains what data may still be collected when you browse the site or opt into analytics.
           </p>

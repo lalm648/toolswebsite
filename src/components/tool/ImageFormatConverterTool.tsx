@@ -97,9 +97,14 @@ export default function ImageFormatConverterTool({
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
       if (converted?.url) URL.revokeObjectURL(converted.url);
     };
-  }, [previewUrl, converted]);
+  }, [converted]);
 
   function handleSelect(selectedFile: File | null) {
     if (!selectedFile) return;
@@ -204,13 +209,26 @@ export default function ImageFormatConverterTool({
             )
           : outputQualityCandidates;
 
-      const blob = await exportCanvasWithStrategy(canvas, {
-        outputMimeType,
-        outputQuality: selectedQuality,
-        qualityCandidates: selectedQualityCandidates,
-        targetMaxSizeRatio,
-        originalSize: file.size,
-      });
+      let blob: Blob | null;
+
+      if (outputMimeType === "image/avif") {
+        // AVIF can only be produced through the WASM encoder; canvas.toBlob cannot.
+        try {
+          const { encodeCanvasToAvif } = await import("@/lib/avif-encoder");
+          const avifQuality = qualityControl ? qualityPercent : Math.round((outputQuality ?? 0.62) * 100);
+          blob = await encodeCanvasToAvif(canvas, avifQuality);
+        } catch {
+          blob = null;
+        }
+      } else {
+        blob = await exportCanvasWithStrategy(canvas, {
+          outputMimeType,
+          outputQuality: selectedQuality,
+          qualityCandidates: selectedQualityCandidates,
+          targetMaxSizeRatio,
+          originalSize: file.size,
+        });
+      }
 
       if (!blob) {
         setError(
@@ -373,7 +391,7 @@ export default function ImageFormatConverterTool({
                     fill
                     unoptimized
                     sizes="(min-width: 640px) 50vw, 100vw"
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </div>
                 {originalDimensions ? (
@@ -395,7 +413,7 @@ export default function ImageFormatConverterTool({
                       fill
                       unoptimized
                       sizes="(min-width: 640px) 50vw, 100vw"
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </div>
                 ) : (

@@ -33,6 +33,19 @@ export function setConsentState(state: Exclude<ConsentState, "unset">) {
   );
 }
 
+export function resetConsentState() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(CONSENT_STORAGE_KEY);
+  window.dispatchEvent(
+    new CustomEvent("toolswebsite:consent-change", {
+      detail: { state: "unset" },
+    })
+  );
+}
+
 export function hasTrackingConsent() {
   return getConsentState() === "accepted";
 }

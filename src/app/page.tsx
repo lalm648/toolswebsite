@@ -5,11 +5,55 @@ import WaitlistBlock from "@/components/lead/WaitlistBlock";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import CTABlock from "@/components/tool/CTABlock";
 import FAQSection from "@/components/tool/FAQSection";
+import { categories, tools } from "@/lib/data/tools";
+import { siteUrl } from "@/lib/seo/metadata";
 import { siteFlags } from "@/lib/site-flags";
 
 export default function Home() {
+  const homeJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "ToolsWebsite",
+      url: siteUrl,
+      description: "Free browser-based tools for images, text, SEO, and developer workflows.",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "ToolsWebsite categories",
+      numberOfItems: categories.length,
+      itemListElement: categories.map((category, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: category.title,
+        url: `${siteUrl}${category.href}`,
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Free online browser tools",
+      url: siteUrl,
+      mainEntity: {
+        "@type": "ItemList",
+        numberOfItems: tools.length,
+        itemListElement: tools.map((tool, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: tool.title,
+          url: `${siteUrl}${tool.href}`,
+        })),
+      },
+    },
+  ];
+
   return (
     <section className="py-16 sm:py-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd).replace(/</g, "\\u003c") }}
+      />
       <Container className="space-y-14">
         <HomeCatalog />
 

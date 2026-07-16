@@ -12,8 +12,8 @@ export default function TermsPage() {
     <section className="py-16 sm:py-20">
       <Container className="max-w-4xl space-y-8">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Terms</h1>
-          <p className="mt-6 text-lg leading-8 text-slate-600">
+          <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-5xl">Terms</h1>
+          <p className="mt-6 text-lg leading-8 text-[var(--muted-foreground)]">
             These terms describe the basic conditions for using ToolsWebsite and its browser-based utilities.
           </p>
         </div>

@@ -14,10 +14,10 @@ type CTABlockProps = {
 
 export default function CTABlock({ title, description, href, label }: CTABlockProps) {
   return (
-    <Card className="bg-[var(--surface-cta)]">
-      <CardContent className="px-8 py-10 text-[var(--ink-900)]">
+    <Card className="border-white/10 bg-[var(--surface-cta)]">
+      <CardContent className="px-8 py-10 text-white">
         <h2 className="text-3xl font-semibold tracking-tight">{title}</h2>
-        <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--muted-foreground)]">{description}</p>
+        <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">{description}</p>
         <Button asChild className="mt-6">
           <Link
             href={href}
