@@ -6,8 +6,12 @@ import RelatedTools from "@/components/tool/RelatedTools";
 import AdSlot from "@/components/monetization/AdSlot";
 import { Badge } from "@/components/ui/badge";
 import { siteFlags } from "@/lib/site-flags";
-import { getCategoryBySlug, getRelatedTools, getToolByTitle } from "@/lib/data/tools";
-import { toolSeoContent } from "@/lib/seo/content";
+import {
+  getCategoryBySlug,
+  getRelatedTools,
+  getToolByTitle,
+} from "@/lib/data/tools";
+import { categorySeoContent, toolSeoContent } from "@/lib/seo/content";
 import { siteUrl } from "@/lib/seo/metadata";
 
 type ToolShellProps = {
@@ -26,6 +30,22 @@ export default function ToolShell({
   const tool = getToolByTitle(title);
   const category = tool ? getCategoryBySlug(tool.category) : null;
   const seoContent = tool ? toolSeoContent[tool.slug] : null;
+  const resolvedSeoContent =
+    seoContent ??
+    (tool && category
+      ? {
+          intro: [tool.description, categorySeoContent[category.slug].intro[0]],
+          highlights: categorySeoContent[category.slug].highlights,
+          useCases: [
+            `Complete a focused ${tool.title.toLowerCase()} task without installing desktop software.`,
+            "Review the result before saving or copying it into the next workflow.",
+            category.slug === "network"
+              ? "Run controlled diagnostics against authorized public destinations."
+              : "Keep source files and content within the current browser session.",
+          ],
+          faq: categorySeoContent[category.slug].faq,
+        }
+      : null);
   const relatedTools = tool ? getRelatedTools(tool.slug, tool.category) : [];
   const canonicalUrl = tool ? `${siteUrl}${tool.href}` : siteUrl;
   const breadcrumbJsonLd =
@@ -72,21 +92,20 @@ export default function ToolShell({
           },
         }
       : null;
-  const faqJsonLd =
-    seoContent?.faq?.length
-      ? {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: seoContent.faq.map((item) => ({
-            "@type": "Question",
-            name: item.question,
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: item.answer,
-            },
-          })),
-        }
-      : null;
+  const faqJsonLd = resolvedSeoContent?.faq?.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: resolvedSeoContent.faq.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer,
+          },
+        })),
+      }
+    : null;
 
   return (
     <section className="py-10 sm:py-14">
@@ -95,19 +114,27 @@ export default function ToolShell({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify([breadcrumbJsonLd, toolJsonLd, faqJsonLd].filter(Boolean)),
+              __html: JSON.stringify(
+                [breadcrumbJsonLd, toolJsonLd, faqJsonLd].filter(Boolean),
+              ),
             }}
           />
         ) : null}
 
         <div className="mx-auto max-w-3xl text-center">
           {category ? (
-            <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center justify-center gap-2 text-sm text-[var(--muted-foreground)]">
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-4 flex flex-wrap items-center justify-center gap-2 text-sm text-[var(--muted-foreground)]"
+            >
               <Link href="/" className="hover:text-[var(--accent-700)]">
                 Home
               </Link>
               <span>/</span>
-              <Link href={category.href} className="hover:text-[var(--accent-700)]">
+              <Link
+                href={category.href}
+                className="hover:text-[var(--accent-700)]"
+              >
                 {category.title}
               </Link>
               <span>/</span>
@@ -126,17 +153,20 @@ export default function ToolShell({
         {children}
 
         {siteFlags.showAdSlots ? (
-          <AdSlot placement="tool-in-content" className="mx-auto w-full max-w-3xl" />
+          <AdSlot
+            placement="tool-in-content"
+            className="mx-auto w-full max-w-3xl"
+          />
         ) : null}
 
-        {seoContent ? (
+        {resolvedSeoContent ? (
           <ContentSection
             eyebrow={eyebrow}
             title={`About ${title}`}
-            intro={seoContent.intro}
-            highlights={seoContent.highlights}
-            useCases={seoContent.useCases}
-            faq={seoContent.faq}
+            intro={resolvedSeoContent.intro}
+            highlights={resolvedSeoContent.highlights}
+            useCases={resolvedSeoContent.useCases}
+            faq={resolvedSeoContent.faq}
           />
         ) : null}
 

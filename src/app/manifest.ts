@@ -4,7 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "ToolsWebsite",
     short_name: "Tools",
-    description: "Private browser tools for image, text, developer, and SEO workflows.",
+    description:
+      "Browser tools for media, documents, code, security, SEO, and web workflows.",
     start_url: "/",
     display: "standalone",
     background_color: "#f5f7fb",

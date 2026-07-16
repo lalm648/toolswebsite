@@ -7,7 +7,6 @@ import RevealOnScroll from "@/components/RevealOnScroll";
 import ContentSection from "@/components/seo/ContentSection";
 import CTABlock from "@/components/tool/CTABlock";
 import CategoryHero from "@/components/tool/CategoryHero";
-import FAQSection from "@/components/tool/FAQSection";
 import ToolsSection from "@/components/tool/ToolsSection";
 import type { CategoryDefinition, ToolDefinition } from "@/lib/data/tools";
 import { categorySeoContent } from "@/lib/seo/content";
@@ -19,7 +18,10 @@ type CategoryBrowserProps = {
   tools: ToolDefinition[];
 };
 
-export default function CategoryBrowser({ category, tools }: CategoryBrowserProps) {
+export default function CategoryBrowser({
+  category,
+  tools,
+}: CategoryBrowserProps) {
   const [query, setQuery] = useState("");
   const seoContent = categorySeoContent[category.slug];
   const categoryUrl = `${siteUrl}${category.href}`;
@@ -46,7 +48,12 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-        { "@type": "ListItem", position: 2, name: category.title, item: categoryUrl },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: category.title,
+          item: categoryUrl,
+        },
       ],
     },
   ];
@@ -60,8 +67,8 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
 
     return tools.filter((tool) =>
       [tool.title, tool.description, tool.meta].some((value) =>
-        value.toLowerCase().includes(normalized)
-      )
+        value.toLowerCase().includes(normalized),
+      ),
     );
   }, [query, tools]);
 
@@ -69,14 +76,16 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
     <div className="space-y-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(categoryJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(categoryJsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       <CategoryHero category={category} value={query} onChange={setQuery} />
 
       <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-7">
         <ToolsSection
           title="Choose the workflow you need"
-          description="Start with conversion, compression, or resizing. Each card leads into a dedicated tool page, and the layout is designed to scale cleanly as more utilities are added."
+          description={`Browse ${category.title.toLowerCase()} by task. Every card opens a focused utility with clear local-processing and download controls.`}
           tools={filteredTools}
           query={query}
         />
@@ -91,21 +100,6 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
           faq={seoContent.faq}
         />
       ) : null}
-
-      <div className="rounded-[1.75rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-7">
-        <FAQSection
-          items={[
-            {
-              question: "Will these tools work directly in the browser?",
-              answer: "Yes. The main workflows in this section are designed to run in the browser so simple tasks stay fast and easier to use.",
-            },
-            {
-              question: "Which tool should I start with?",
-              answer: `Start with the task you need right now. This ${category.title.toLowerCase()} section is organized so you can move from browsing into a focused tool page quickly.`,
-            },
-          ]}
-        />
-      </div>
 
       {siteFlags.showNewsletterSignup || siteFlags.showWaitlistBlock ? (
         <div className="grid gap-5 xl:grid-cols-2">
@@ -128,8 +122,8 @@ export default function CategoryBrowser({ category, tools }: CategoryBrowserProp
       ) : null}
 
       <CTABlock
-        title="The category foundation is ready for real tool flows"
-        description="Next we can implement each image tool one by one without redesigning the overall browsing experience."
+        title={`Start working with ${category.title.toLowerCase()}`}
+        description="Choose a focused utility, process your content, and download the result with no account required."
         href={filteredTools[0]?.href ?? category.href}
         label={filteredTools.length ? "Open first tool" : "Browse all tools"}
       />

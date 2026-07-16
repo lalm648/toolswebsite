@@ -9,8 +9,8 @@ import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata(
   "ToolsWebsite",
-  "Free browser-based tools for images, text, SEO, and developer workflows.",
-  { path: "/" }
+  "Free browser-based tools for media, documents, code, security, SEO, and web workflows.",
+  { path: "/" },
 );
 
 export default function RootLayout({

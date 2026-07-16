@@ -9,7 +9,11 @@ type CategoryHeroProps = {
   onChange: (value: string) => void;
 };
 
-export default function CategoryHero({ category, value, onChange }: CategoryHeroProps) {
+export default function CategoryHero({
+  category,
+  value,
+  onChange,
+}: CategoryHeroProps) {
   return (
     <Card className="rounded-[2rem] bg-[var(--surface-hero)]">
       <CardContent className="px-6 py-12 sm:px-10 sm:py-16">
@@ -28,7 +32,7 @@ export default function CategoryHero({ category, value, onChange }: CategoryHero
             <SearchBar
               value={value}
               onChange={onChange}
-              placeholder={`Search ${category.title.toLowerCase()} like JPG to PNG or Image Resizer`}
+              placeholder={`Search ${category.title.toLowerCase()} by name or workflow`}
               analyticsSource={`category_${category.slug}`}
             />
           </div>

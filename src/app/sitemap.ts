@@ -1,13 +1,9 @@
 import type { MetadataRoute } from "next";
-import { tools } from "@/lib/data/tools";
+import { categories, tools } from "@/lib/data/tools";
 import { siteUrl } from "@/lib/seo/metadata";
 
 const staticRoutes = [
   { path: "/", priority: 1, changeFrequency: "weekly" },
-  { path: "/tools/image", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/tools/text", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/tools/developer", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/tools/seo", priority: 0.9, changeFrequency: "weekly" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly" },
   { path: "/privacy-policy", priority: 0.3, changeFrequency: "yearly" },
@@ -23,6 +19,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified,
       changeFrequency: route.changeFrequency,
       priority: route.priority,
+    })),
+    ...categories.map((category) => ({
+      url: `${siteUrl}${category.href}`,
+      lastModified,
+      changeFrequency: "weekly" as const,
+      priority: 0.9,
     })),
     ...tools.map((tool) => ({
       url: `${siteUrl}${tool.href}`,

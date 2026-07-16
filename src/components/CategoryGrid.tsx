@@ -98,7 +98,7 @@ const categoryTileStyles: Record<ToolCategorySlug, string> = {
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {categories.map((category) => (
         <Link
           key={category.slug}
@@ -108,13 +108,17 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
           }}
           className="group flex flex-col rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
         >
-          <span className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${categoryTileStyles[category.slug]}`}>
+          <span
+            className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${categoryTileStyles[category.slug]}`}
+          >
             {categoryIcons[category.slug]}
           </span>
           <h2 className="mt-4 text-lg font-bold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
             {category.title}
           </h2>
-          <p className="mt-1.5 text-sm leading-6 text-[var(--muted-foreground)]">{category.description}</p>
+          <p className="mt-1.5 text-sm leading-6 text-[var(--muted-foreground)]">
+            {category.description}
+          </p>
         </Link>
       ))}
     </div>
