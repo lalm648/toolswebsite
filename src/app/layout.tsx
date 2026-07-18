@@ -8,9 +8,9 @@ import Footer from "@/components/layout/Footer";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata(
-  "ToolsWebsite",
-  "Free browser-based tools for media, documents, code, security, SEO, and web workflows.",
-  { path: "/" },
+  "Free Online Tools for Images, PDF, Video & More | ToolsWebsite",
+  "Use free online tools for images, PDF, video, audio, text, code, security, SEO, and web checks. Fast browser workflows with no sign-up required.",
+  { path: "/", category: "Free online tools" },
 );
 
 export default function RootLayout({

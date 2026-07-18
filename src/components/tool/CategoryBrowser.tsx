@@ -12,6 +12,7 @@ import type { CategoryDefinition, ToolDefinition } from "@/lib/data/tools";
 import { categorySeoContent } from "@/lib/seo/content";
 import { siteUrl } from "@/lib/seo/metadata";
 import { siteFlags } from "@/lib/site-flags";
+import { getCategoryInternalLinks, trustedResources } from "@/lib/seo/links";
 
 type CategoryBrowserProps = {
   category: CategoryDefinition;
@@ -56,6 +57,17 @@ export default function CategoryBrowser({
         },
       ],
     },
+    ...(seoContent?.faq?.length
+      ? [{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: seoContent.faq.map((item) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: { "@type": "Answer", text: item.answer },
+          })),
+        }]
+      : []),
   ];
 
   const filteredTools = useMemo(() => {
@@ -97,6 +109,8 @@ export default function CategoryBrowser({
           title={`About ${category.title}`}
           intro={seoContent.intro}
           highlights={seoContent.highlights}
+          internalLinks={getCategoryInternalLinks(category.slug)}
+          externalLinks={trustedResources[category.slug]}
           faq={seoContent.faq}
         />
       ) : null}

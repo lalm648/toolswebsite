@@ -9,8 +9,20 @@ type MetadataOptions = {
   type?: "website" | "article";
 };
 
+function truncateAtWord(value: string, maxLength = 158) {
+  if (value.length <= maxLength) return value;
+  const shortened = value.slice(0, maxLength - 1);
+  const lastSpace = shortened.lastIndexOf(" ");
+  return `${shortened.slice(0, lastSpace > 100 ? lastSpace : maxLength - 1).trim()}…`;
+}
+
 function getSiteUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    process.env.URL?.trim() ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()}`
+      : "");
 
   if (!configuredUrl) {
     return "http://localhost:3000";
@@ -31,6 +43,7 @@ export const isProductionIndexable =
 
 export function buildMetadata(title: string, description: string, options?: MetadataOptions): Metadata {
   const url = options?.path ? `${siteUrl}${options.path}` : siteUrl;
+  const socialImage = `${siteUrl}/api/og?title=${encodeURIComponent(title)}&category=${encodeURIComponent(options?.category ?? "Free browser tools")}`;
 
   return {
     title,
@@ -38,6 +51,10 @@ export function buildMetadata(title: string, description: string, options?: Meta
     metadataBase: new URL(siteUrl),
     alternates: {
       canonical: url,
+      languages: {
+        en: url,
+        "x-default": url,
+      },
     },
     robots: {
       index: isProductionIndexable,
@@ -71,10 +88,10 @@ export function buildMetadata(title: string, description: string, options?: Meta
       locale: "en_US",
       images: [
         {
-          url: "/opengraph-image",
+          url: socialImage,
           width: 1200,
           height: 630,
-          alt: "ToolsWebsite — private browser tools for everyday work",
+          alt: `${title} — ToolsWebsite`,
         },
       ],
     },
@@ -84,7 +101,7 @@ export function buildMetadata(title: string, description: string, options?: Meta
       description,
       site: twitterHandle,
       creator: twitterHandle,
-      images: ["/opengraph-image"],
+      images: [socialImage],
     },
   };
 }
@@ -98,7 +115,10 @@ export function buildToolMetadata(slug: string): Metadata {
 
   const seoContent = toolSeoContent[slug];
 
-  return buildMetadata(`${tool.title} | ToolsWebsite`, tool.description, {
+  const title = `Free ${tool.title} Online | ToolsWebsite`;
+  const description = truncateAtWord(`${tool.description.replace(/\.$/, "")}. Free to use with no sign-up required and a clear browser-first workflow.`);
+
+  return buildMetadata(title, description, {
     path: tool.href,
     category: getCategoryBySlug(tool.category)?.title,
     keywords: seoContent?.keywords ?? [tool.title, tool.meta, `${tool.title} online`],
@@ -112,7 +132,7 @@ export function buildCategoryMetadata(slug: Parameters<typeof getCategoryBySlug>
     return buildMetadata("ToolsWebsite", "Free browser-based tools for images, text, SEO, and developer workflows.");
   }
 
-  return buildMetadata(`${category.title} | ToolsWebsite`, category.description, {
+  return buildMetadata(`Free Online ${category.title} | ToolsWebsite`, `${category.description} Explore ${tools.filter((tool) => tool.category === slug).length} focused tools with no sign-up required.`, {
     path: category.href,
     category: category.title,
     keywords: categorySeoContent[slug]?.keywords ?? [category.title, `${category.title} online`, "browser tools"],

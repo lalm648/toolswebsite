@@ -8,6 +8,26 @@ import FAQSection from "@/components/tool/FAQSection";
 import { categories, tools } from "@/lib/data/tools";
 import { siteUrl } from "@/lib/seo/metadata";
 import { siteFlags } from "@/lib/site-flags";
+import HomeSeoContent from "@/components/seo/HomeSeoContent";
+
+const homeFaq = [
+  {
+    question: "Are the online tools free to use?",
+    answer: `Yes. The core library includes ${tools.length} free browser tools with no account required.`,
+  },
+  {
+    question: "Do my files upload to a server?",
+    answer: "Image, media, document, text, and developer workflows run locally when browser technology supports the operation. Public website and network diagnostics use protected server requests because browsers cannot perform those checks directly.",
+  },
+  {
+    question: "Do I need to sign up to use the tools?",
+    answer: "No. The core browser tools are available without creating an account, which keeps simple tasks fast and accessible.",
+  },
+  {
+    question: "Can I use these tools on a phone or tablet?",
+    answer: "The interface is responsive and works in modern mobile browsers. Very large media files may process faster on a desktop device with more memory and processing power.",
+  },
+];
 
 export default function Home() {
   const homeJsonLd = [
@@ -17,6 +37,21 @@ export default function Home() {
       name: "ToolsWebsite",
       url: siteUrl,
       description: "Free browser-based tools for images, text, SEO, and developer workflows.",
+      inLanguage: "en",
+      publisher: {
+        "@type": "Organization",
+        name: "ToolsWebsite",
+        url: siteUrl,
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: homeFaq.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
     },
     {
       "@context": "https://schema.org",
@@ -57,22 +92,9 @@ export default function Home() {
       <Container className="space-y-14">
         <HomeCatalog />
 
-        <FAQSection
-          items={[
-            {
-              question: "What is complete now?",
-              answer: "You can already use browser-based tools for common image, text, developer, and SEO tasks.",
-            },
-            {
-              question: "What comes next?",
-              answer: "The next improvements are deeper tool coverage, more edge-case handling, and stronger QA.",
-            },
-            {
-              question: "Do I need to sign up to use the tools?",
-              answer: "No. The core browser tools are available without creating an account, which keeps simple tasks fast and accessible."
-            },
-          ]}
-        />
+        <HomeSeoContent />
+
+        <FAQSection items={homeFaq} />
 
         {siteFlags.showNewsletterSignup || siteFlags.showWaitlistBlock ? (
           <div id="premium" className="grid scroll-mt-24 gap-5 xl:grid-cols-2">

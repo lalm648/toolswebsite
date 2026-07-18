@@ -13,6 +13,12 @@ import {
 } from "@/lib/data/tools";
 import { categorySeoContent, toolSeoContent } from "@/lib/seo/content";
 import { siteUrl } from "@/lib/seo/metadata";
+import {
+  getContextualInternalLinks,
+  getToolSteps,
+  getToolTips,
+  trustedResources,
+} from "@/lib/seo/links";
 
 type ToolShellProps = {
   eyebrow: string;
@@ -47,6 +53,7 @@ export default function ToolShell({
         }
       : null);
   const relatedTools = tool ? getRelatedTools(tool.slug, tool.category) : [];
+  const steps = tool ? getToolSteps(tool) : [];
   const canonicalUrl = tool ? `${siteUrl}${tool.href}` : siteUrl;
   const breadcrumbJsonLd =
     tool && category
@@ -79,12 +86,15 @@ export default function ToolShell({
     tool && category
       ? {
           "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
+          "@type": "WebApplication",
           name: tool.title,
-          applicationCategory: `${category.title} Application`,
-          operatingSystem: "Web",
+          applicationCategory: "UtilitiesApplication",
+          operatingSystem: "Any operating system with a modern web browser",
+          browserRequirements: "Requires JavaScript and a modern browser",
           description,
           url: canonicalUrl,
+          isAccessibleForFree: true,
+          featureList: resolvedSeoContent?.highlights,
           offers: {
             "@type": "Offer",
             price: "0",
@@ -106,6 +116,21 @@ export default function ToolShell({
         })),
       }
     : null;
+  const howToJsonLd = tool && steps.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: `How to use ${tool.title}`,
+        description: tool.description,
+        step: steps.map((step, index) => ({
+          "@type": "HowToStep",
+          position: index + 1,
+          name: step.name,
+          text: step.text,
+          url: `${canonicalUrl}#step-${index + 1}`,
+        })),
+      }
+    : null;
 
   return (
     <section className="py-10 sm:py-14">
@@ -115,8 +140,8 @@ export default function ToolShell({
             type="application/ld+json"
             dangerouslySetInnerHTML={{
               __html: JSON.stringify(
-                [breadcrumbJsonLd, toolJsonLd, faqJsonLd].filter(Boolean),
-              ),
+                [breadcrumbJsonLd, toolJsonLd, howToJsonLd, faqJsonLd].filter(Boolean),
+              ).replace(/</g, "\\u003c"),
             }}
           />
         ) : null}
@@ -166,6 +191,10 @@ export default function ToolShell({
             intro={resolvedSeoContent.intro}
             highlights={resolvedSeoContent.highlights}
             useCases={resolvedSeoContent.useCases}
+            steps={steps}
+            tips={tool ? getToolTips(tool) : []}
+            internalLinks={tool ? getContextualInternalLinks(tool) : []}
+            externalLinks={tool ? trustedResources[tool.category] : []}
             faq={resolvedSeoContent.faq}
           />
         ) : null}
