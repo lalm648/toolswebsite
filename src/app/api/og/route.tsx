@@ -1,7 +1,10 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
-export const runtime = "edge";
+// ImageResponse pulls in more than Vercel's 1 MB Edge Function allowance on
+// the current plan. The Node.js runtime supports the same route while using
+// the standard serverless-function bundle limit.
+export const runtime = "nodejs";
 
 function truncate(value: string, maxLength: number) {
   return value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}…` : value;
