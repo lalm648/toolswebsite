@@ -16,10 +16,10 @@ export default function FAQSection({ items, intro }: FAQSectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="mx-auto w-full max-w-[860px]">
+    <section className="mx-auto w-full max-w-[940px]" aria-labelledby="faq-heading">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--accent-700)]">FAQ</p>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--ink-900)] sm:text-3xl">
+        <h2 id="faq-heading" className="mt-2 text-2xl font-bold tracking-tight text-[var(--ink-900)] sm:text-3xl">
           Common questions
         </h2>
         <p className="mt-2 text-sm leading-7 text-[var(--muted-foreground)]">
@@ -27,25 +27,27 @@ export default function FAQSection({ items, intro }: FAQSectionProps) {
         </p>
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 overflow-hidden rounded-[var(--radius-lg)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
         {items.map((item, index) => {
           const open = openIndex === index;
+          const triggerId = `faq-trigger-${index}`;
+          const panelId = `faq-panel-${index}`;
           return (
             <div
               key={item.question}
-              className={`overflow-hidden rounded-[var(--radius-md)] border bg-[var(--surface-card)] transition-colors ${
-                open ? "border-[var(--outline-strong)]" : "border-[var(--outline-soft)]"
-              }`}
+              className={`overflow-hidden transition-colors ${index < items.length - 1 ? "border-b border-[var(--outline-soft)]" : ""} ${open ? "bg-[var(--surface-panel)]" : ""}`}
             >
               <button
+                id={triggerId}
                 type="button"
                 onClick={() => setOpenIndex(open ? null : index)}
                 aria-expanded={open}
-                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+                aria-controls={panelId}
+                className="flex min-h-14 w-full items-center justify-between gap-4 px-5 py-4 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-[var(--ring-soft)] sm:px-6"
               >
-                <span className="text-[15px] font-semibold text-[var(--ink-900)]">{item.question}</span>
+                <span className={`text-[15px] text-[var(--ink-900)] ${open ? "font-bold" : "font-semibold"}`}>{item.question}</span>
                 <span
-                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[var(--outline-soft)] text-[var(--accent-700)] transition-transform duration-200 ${
+                  className={`grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--surface-raised)] text-[var(--accent-700)] shadow-[var(--shadow-soft)] transition-transform duration-200 ${
                     open ? "rotate-45" : ""
                   }`}
                   aria-hidden="true"
@@ -56,12 +58,16 @@ export default function FAQSection({ items, intro }: FAQSectionProps) {
                 </span>
               </button>
               <div
+                id={panelId}
+                role="region"
+                aria-labelledby={triggerId}
+                aria-hidden={!open}
                 className={`grid transition-all duration-200 ease-out ${
                   open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
                 }`}
               >
                 <div className="overflow-hidden">
-                  <p className="px-5 pb-5 text-sm leading-7 text-[var(--muted-foreground)]">{item.answer}</p>
+                  <p className="px-5 pb-5 text-sm leading-7 text-[var(--muted-foreground)] sm:px-6 sm:pb-6">{item.answer}</p>
                 </div>
               </div>
             </div>

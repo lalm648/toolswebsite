@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { CategoryDefinition, ToolCategorySlug } from "@/lib/data/tools";
+import { tools, type CategoryDefinition, type ToolCategorySlug } from "@/lib/data/tools";
 import { trackCategoryOpen } from "@/lib/analytics";
 
 type CategoryGridProps = {
@@ -85,7 +85,7 @@ const categoryIcons: Record<ToolCategorySlug, ReactNode> = {
 };
 
 const categoryTileStyles: Record<ToolCategorySlug, string> = {
-  image: "bg-blue-500/12 text-blue-500 ring-1 ring-blue-500/20 group-hover:bg-blue-500/20",
+  image: "bg-emerald-500/12 text-emerald-600 ring-1 ring-emerald-500/20 group-hover:bg-emerald-500/20",
   video: "bg-violet-500/12 text-violet-500 ring-1 ring-violet-500/20 group-hover:bg-violet-500/20",
   audio: "bg-pink-500/12 text-pink-500 ring-1 ring-pink-500/20 group-hover:bg-pink-500/20",
   document: "bg-orange-500/12 text-orange-500 ring-1 ring-orange-500/20 group-hover:bg-orange-500/20",
@@ -96,33 +96,52 @@ const categoryTileStyles: Record<ToolCategorySlug, string> = {
   seo: "bg-fuchsia-500/12 text-fuchsia-500 ring-1 ring-fuchsia-500/20 group-hover:bg-fuchsia-500/20",
 };
 
+const categorySurfaceStyles: Record<ToolCategorySlug, string> = {
+  image: "bg-emerald-500/[0.055] hover:bg-emerald-500/[0.09]",
+  video: "bg-violet-500/[0.055] hover:bg-violet-500/[0.09]",
+  audio: "bg-pink-500/[0.055] hover:bg-pink-500/[0.09]",
+  document: "bg-orange-500/[0.055] hover:bg-orange-500/[0.09]",
+  text: "bg-amber-500/[0.055] hover:bg-amber-500/[0.09]",
+  developer: "bg-cyan-500/[0.055] hover:bg-cyan-500/[0.09]",
+  security: "bg-green-500/[0.055] hover:bg-green-500/[0.09]",
+  network: "bg-teal-500/[0.055] hover:bg-teal-500/[0.09]",
+  seo: "bg-fuchsia-500/[0.055] hover:bg-fuchsia-500/[0.09]",
+};
+
 export default function CategoryGrid({ categories }: CategoryGridProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {categories.map((category) => (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {categories.map((category) => {
+        const toolCount = tools.filter((tool) => tool.category === category.slug).length;
+        return (
         <Link
           key={category.slug}
           href={category.href}
           onClick={() => {
             trackCategoryOpen(category.slug);
           }}
-          className="group flex items-start gap-4 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-[3px] hover:border-[var(--outline-strong)] hover:bg-[var(--surface-card-hover)] hover:shadow-[var(--shadow-lift)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+          className={`group flex min-h-40 items-start gap-3.5 rounded-[var(--radius-md)] border border-transparent p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--outline-soft)] hover:shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)] ${categorySurfaceStyles[category.slug]}`}
         >
           <span
-            className={`inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl p-3.5 transition-all duration-200 group-hover:scale-105 ${categoryTileStyles[category.slug]}`}
+            className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl p-2.5 transition-all duration-200 group-hover:scale-105 ${categoryTileStyles[category.slug]}`}
           >
             {categoryIcons[category.slug]}
           </span>
-          <div className="min-w-0">
-            <h2 className="text-[17px] font-bold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
+          <div className="flex min-h-32 min-w-0 flex-1 flex-col">
+            <h3 className="text-[16px] font-bold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
               {category.title}
-            </h2>
-            <p className="mt-1 line-clamp-2 text-sm leading-6 text-[var(--muted-foreground)]">
+            </h3>
+            <p className="mt-1 line-clamp-2 text-[13px] leading-5 text-[var(--muted-foreground)]">
               {category.description}
             </p>
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-3 text-xs font-bold text-[var(--ink-900)]">
+              {toolCount} {toolCount === 1 ? "tool" : "tools"}
+              <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
+            </span>
           </div>
         </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

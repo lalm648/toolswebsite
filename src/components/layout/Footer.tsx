@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Container from "@/components/Container";
 import CookieSettingsButton from "@/components/layout/CookieSettingsButton";
 
@@ -29,6 +30,7 @@ const columns = [
       { href: "/contact", label: "Contact" },
       { href: "/privacy-policy", label: "Privacy Policy" },
       { href: "/terms", label: "Terms" },
+      { href: "/sitemap.xml", label: "Sitemap" },
     ],
   },
 ];
@@ -47,30 +49,30 @@ const trustSignals = [
 
 export default function Footer() {
   return (
-    <footer className="mt-16 bg-[var(--footer-bg)] text-slate-300">
-      <Container className="py-14">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <footer className="mt-12 bg-[var(--footer-bg)] text-slate-300">
+      <div className="border-b border-white/10">
+        <Container className="grid gap-3 py-4 sm:grid-cols-3">
+          {trustSignals.map((signal) => (
+            <div key={signal.label} className="flex items-center gap-2.5">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-[var(--accent-300)]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              <p className="text-xs text-slate-400"><span className="font-semibold text-white">{signal.label}</span><span className="hidden lg:inline"> · {signal.detail}</span></p>
+            </div>
+          ))}
+        </Container>
+      </div>
+      <Container className="py-9">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="max-w-xs">
             <Link
               href="/"
               className="flex items-center gap-2.5 text-lg font-bold text-white"
             >
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-500)] text-white">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M14.7 6.3a4 4 0 0 1 0 5.6l-2.1 2.1-1.4-1.4 2.1-2.1a2 2 0 0 0-2.8-2.8L8.4 9.8 7 8.4l2.1-2.1a4 4 0 0 1 5.6 0Z" />
-                  <path d="M12.9 11.1l1.4 1.4-2.1 2.1a4 4 0 0 1-5.6-5.6l2.1-2.1" />
-                </svg>
+              <span className="inline-flex h-9 w-9 items-center justify-center">
+                <Image src="/webutilia-logo.png" width={36} height={36} alt="" className="h-9 w-9 object-contain" />
               </span>
-              ToolsWebsite
+              Webutilia
             </Link>
             <p className="mt-4 text-sm leading-6 text-slate-400">
               Practical browser tools for media, documents, code, security, and
@@ -83,7 +85,7 @@ export default function Footer() {
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
                 {column.title}
               </p>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-3 space-y-2">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
@@ -99,33 +101,8 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 grid gap-4 border-t border-white/10 pt-8 sm:grid-cols-3">
-          {trustSignals.map((signal) => (
-            <div key={signal.label} className="flex items-start gap-3">
-              <svg
-                viewBox="0 0 24 24"
-                className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent-500)]"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-              <div>
-                <p className="text-sm font-semibold text-white">
-                  {signal.label}
-                </p>
-                <p className="text-xs text-slate-400">{signal.detail}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 ToolsWebsite. All rights reserved.</p>
+        <div className="mt-7 flex flex-col gap-3 border-t border-white/10 pt-5 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 Webutilia. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-4">
             <Link href="/privacy-policy" className="hover:text-white">
               Privacy

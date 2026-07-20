@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { getCategoryBySlug, tools } from "@/lib/data/tools";
-import { categorySeoContent, toolSeoContent } from "@/lib/seo/content";
 
 type MetadataOptions = {
   path?: string;
-  keywords?: string[];
   category?: string;
   type?: "website" | "article";
 };
@@ -25,7 +23,7 @@ function getSiteUrl() {
       : "");
 
   if (!configuredUrl) {
-    return "http://localhost:3000";
+    return "https://www.webutilia.com";
   }
 
   return configuredUrl.endsWith("/") ? configuredUrl.slice(0, -1) : configuredUrl;
@@ -33,7 +31,7 @@ function getSiteUrl() {
 
 export const siteUrl = getSiteUrl();
 const twitterHandle = process.env.NEXT_PUBLIC_TWITTER_HANDLE?.trim() || undefined;
-const authorName = "ToolsWebsite";
+const authorName = "Webutilia";
 const netlifyContext = process.env.CONTEXT?.trim();
 const vercelEnv = process.env.VERCEL_ENV?.trim();
 
@@ -68,11 +66,18 @@ export function buildMetadata(title: string, description: string, options?: Meta
       },
     },
     category: options?.category,
-    keywords: options?.keywords,
     authors: [{ name: authorName }],
     creator: authorName,
     publisher: authorName,
-    applicationName: "ToolsWebsite",
+    applicationName: "Webutilia",
+    icons: {
+      icon: [
+        { url: "/icon.png", type: "image/png", sizes: "512x512" },
+        { url: "/webutilia-logo.png", type: "image/png", sizes: "1254x1254" },
+      ],
+      apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+      shortcut: ["/icon.png"],
+    },
     referrer: "origin-when-cross-origin",
     formatDetection: {
       email: false,
@@ -84,14 +89,14 @@ export function buildMetadata(title: string, description: string, options?: Meta
       description,
       type: options?.type ?? "website",
       url,
-      siteName: "ToolsWebsite",
+      siteName: "Webutilia",
       locale: "en_US",
       images: [
         {
           url: socialImage,
           width: 1200,
           height: 630,
-          alt: `${title} — ToolsWebsite`,
+          alt: `${title} — Webutilia`,
         },
       ],
     },
@@ -110,18 +115,15 @@ export function buildToolMetadata(slug: string): Metadata {
   const tool = tools.find((item) => item.slug === slug);
 
   if (!tool) {
-    return buildMetadata("ToolsWebsite", "Free browser-based tools for images, text, SEO, and developer workflows.");
+    return buildMetadata("Webutilia", "Free browser-based tools for images, text, SEO, and developer workflows.");
   }
 
-  const seoContent = toolSeoContent[slug];
-
-  const title = `Free ${tool.title} Online | ToolsWebsite`;
-  const description = truncateAtWord(`${tool.description.replace(/\.$/, "")}. Free to use with no sign-up required and a clear browser-first workflow.`);
+  const title = `${tool.title} Online – Free Tool | Webutilia`;
+  const description = truncateAtWord(`${tool.description.replace(/\.$/, "")}. Use it free on Webutilia, review the result, and download or copy it without creating an account.`);
 
   return buildMetadata(title, description, {
     path: tool.href,
     category: getCategoryBySlug(tool.category)?.title,
-    keywords: seoContent?.keywords ?? [tool.title, tool.meta, `${tool.title} online`],
   });
 }
 
@@ -129,12 +131,11 @@ export function buildCategoryMetadata(slug: Parameters<typeof getCategoryBySlug>
   const category = getCategoryBySlug(slug);
 
   if (!category) {
-    return buildMetadata("ToolsWebsite", "Free browser-based tools for images, text, SEO, and developer workflows.");
+    return buildMetadata("Webutilia", "Free browser-based tools for images, text, SEO, and developer workflows.");
   }
 
-  return buildMetadata(`Free Online ${category.title} | ToolsWebsite`, `${category.description} Explore ${tools.filter((tool) => tool.category === slug).length} focused tools with no sign-up required.`, {
+  return buildMetadata(`${category.title} – Free Online Tools | Webutilia`, `${category.description} Choose from ${tools.filter((tool) => tool.category === slug).length} focused Webutilia tools with clear inputs, result previews, and no sign-up.`, {
     path: category.href,
     category: category.title,
-    keywords: categorySeoContent[slug]?.keywords ?? [category.title, `${category.title} online`, "browser tools"],
   });
 }

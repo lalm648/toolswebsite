@@ -28,6 +28,10 @@ export default function TextTransformTool({
   const output = useMemo(() => transform(text), [text, transform]);
   const characterCount = text.length;
   const lineCount = text ? text.split(/\r\n|\r|\n/).length : 0;
+  const wordCount = text.trim() ? (text.trim().match(/\S+/g)?.length ?? 0) : 0;
+  const outputCharacterCount = output.length;
+  const outputLineCount = output ? output.split(/\r\n|\r|\n/).length : 0;
+  const outputWordCount = output.trim() ? (output.trim().match(/\S+/g)?.length ?? 0) : 0;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
@@ -48,12 +52,15 @@ export default function TextTransformTool({
           className="mt-5 min-h-[360px]"
         />
         <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-          {characterCount.toLocaleString()} characters · {lineCount.toLocaleString()} lines
+          {wordCount.toLocaleString()} words · {characterCount.toLocaleString()} characters · {lineCount.toLocaleString()} lines
         </p>
       </div>
 
       <ToolResult title={outputTitle}>
         <Textarea readOnly value={output} placeholder="Processed text will appear here..." className="min-h-[360px]" />
+        <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+          {outputWordCount.toLocaleString()} words · {outputCharacterCount.toLocaleString()} characters · {outputLineCount.toLocaleString()} lines
+        </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <CopyButton value={output} label="Copy result" disabled={!output} />
           <Button
@@ -66,6 +73,9 @@ export default function TextTransformTool({
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setText(output)} disabled={!output}>
             Use output
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setText("")} disabled={!text}>
+            Clear
           </Button>
         </div>
       </ToolResult>

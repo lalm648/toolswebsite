@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import CopyButton from "@/components/tool/CopyButton";
+import { PrivacyNotice, ProcessingProgress, WorkbenchError } from "@/components/tool/WorkbenchStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { downloadTextFile } from "@/lib/download";
@@ -15,7 +16,10 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const requestRef = useRef<AbortController | null>(null);
   async function run() {
+    const controller = new AbortController();
+    requestRef.current = controller;
     setBusy(true);
     setError("");
     setOutput("");
@@ -24,6 +28,7 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ action: slug, input, authorized }),
+        signal: controller.signal,
       });
       const data = await response.json();
       if (!response.ok)
@@ -37,17 +42,29 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
       );
     } catch (caught) {
       setError(
-        caught instanceof Error
+        caught instanceof DOMException && caught.name === "AbortError"
+          ? "Diagnostic canceled."
+          : caught instanceof Error
           ? caught.message
           : "The network request failed.",
       );
     } finally {
+      requestRef.current = null;
       setBusy(false);
     }
   }
+  function cancelRequest() {
+    requestRef.current?.abort();
+  }
+  function resetWorkbench() {
+    cancelRequest();
+    setOutput("");
+    setError("");
+    setAuthorized(false);
+  }
   return (
     <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">
           Public destination
         </h2>
@@ -56,6 +73,7 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
           <Input
             className="mt-2"
             value={input}
+            maxLength={2048}
             onChange={(event) => setInput(event.target.value)}
           />
         </label>
@@ -73,27 +91,20 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
             </span>
           </label>
         ) : null}
-        <Button
-          className="mt-5 w-full"
-          disabled={
-            busy || !input.trim() || (slug === "port-scanner" && !authorized)
-          }
-          onClick={() => void run()}
-        >
-          {busy ? "Running controlled checks…" : "Run diagnostic"}
-        </Button>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <Button className="w-full sm:flex-1" disabled={busy || !input.trim() || (slug === "port-scanner" && !authorized)} onClick={() => void run()}>Run diagnostic</Button>
+          {output || error ? <Button type="button" variant="secondary" onClick={resetWorkbench}>Reset</Button> : null}
+        </div>
+        <ProcessingProgress active={busy} label="Running controlled checks" onCancel={cancelRequest} />
         <p className="mt-3 text-xs leading-5 text-[var(--muted-foreground)]">
           Private, loopback, link-local, and reserved IP ranges are blocked.
           Crawls and responses use strict page, size, redirect, and timeout
           limits.
         </p>
-        {error ? (
-          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        ) : null}
+        <PrivacyNotice serverRequired />
+        <WorkbenchError message={error} />
       </section>
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Result
@@ -119,7 +130,7 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
             ) : null}
           </div>
         </div>
-        <pre className="mt-4 min-h-80 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6">
+        <pre aria-live="polite" className="mt-4 min-h-80 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6">
           {output || "Controlled diagnostic output will appear here."}
         </pre>
       </section>

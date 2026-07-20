@@ -26,7 +26,7 @@ const iconProps = {
 // Theme-adaptive translucent tints: readable on both the light and dark navy
 // card surfaces, and filling with solid color on hover.
 const categoryAccentStyles: Record<ToolDefinition["category"], string> = {
-  image: "bg-blue-500/12 text-blue-500 ring-1 ring-blue-500/20 group-hover:bg-blue-500 group-hover:text-white group-hover:ring-blue-500/40",
+  image: "bg-emerald-500/12 text-emerald-600 ring-1 ring-emerald-500/20 group-hover:bg-emerald-600 group-hover:text-white group-hover:ring-emerald-500/40",
   video: "bg-violet-500/12 text-violet-500 ring-1 ring-violet-500/20 group-hover:bg-violet-500 group-hover:text-white group-hover:ring-violet-500/40",
   audio: "bg-pink-500/12 text-pink-500 ring-1 ring-pink-500/20 group-hover:bg-pink-500 group-hover:text-white group-hover:ring-pink-500/40",
   document: "bg-orange-500/12 text-orange-500 ring-1 ring-orange-500/20 group-hover:bg-orange-500 group-hover:text-white group-hover:ring-orange-500/40",
@@ -225,6 +225,18 @@ const categoryIconMap: Record<ToolDefinition["category"], ReactNode> = {
   seo: <svg {...iconProps}><circle cx="11" cy="11" r="6" /><path d="m20 20-4.3-4.3" /></svg>,
 };
 
+const categoryLabels: Record<ToolDefinition["category"], string> = {
+  image: "Image",
+  video: "Video",
+  audio: "Audio",
+  document: "PDF & document",
+  text: "Text",
+  developer: "Developer",
+  security: "Security",
+  network: "Network",
+  seo: "SEO",
+};
+
 export default function ToolCard({ tool, variant = "standard", badge }: ToolCardProps) {
   const featured = variant === "featured";
   const icon = iconMap[tool.icon] ?? categoryIconMap[tool.category];
@@ -235,10 +247,11 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
       onClick={() => {
         trackToolOpen(tool.slug, tool.category);
       }}
-      className="group block rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+      aria-label={`Open ${tool.title}, ${categoryLabels[tool.category]} tool`}
+      className="group block h-full rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
     >
-      <Card className="h-full bg-[var(--surface-card)] transition-all duration-200 group-hover:-translate-y-[3px] group-hover:border-[var(--outline-strong)] group-hover:bg-[var(--surface-card-hover)] group-hover:shadow-[var(--shadow-lift)]">
-        <CardContent className={featured ? "p-6" : "p-5"}>
+      <Card className="h-full border-0 bg-[var(--surface-card)] shadow-[var(--shadow-soft)] transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-lift)]">
+        <CardContent className={`flex h-full flex-col ${featured ? "min-h-52 p-5" : "min-h-44 p-4.5"}`}>
           <div className="flex items-start justify-between gap-3">
             <span
               className={`inline-flex items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-105 ${
@@ -253,9 +266,12 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
               </span>
             ) : null}
           </div>
+          <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+            {categoryLabels[tool.category]}
+          </p>
           <h3
             className={`font-bold tracking-tight text-[var(--ink-900)] group-hover:text-[var(--accent-700)] ${
-              featured ? "mt-5 text-lg" : "mt-4 text-[15px]"
+              featured ? "mt-1.5 text-lg" : "mt-1.5 text-[15px]"
             }`}
           >
             {tool.title}
@@ -267,6 +283,10 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
           >
             {tool.description}
           </p>
+          <span className="mt-auto inline-flex items-center justify-between pt-4 text-xs font-bold text-[var(--accent-700)]">
+            Open tool
+            <span className="text-base transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          </span>
         </CardContent>
       </Card>
     </Link>

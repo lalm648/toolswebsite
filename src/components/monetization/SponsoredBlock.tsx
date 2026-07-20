@@ -25,7 +25,7 @@ export default function SponsoredBlock({
   }
 
   return (
-    <section className="overflow-hidden rounded-[1.55rem] border border-[var(--outline-soft)] bg-[linear-gradient(145deg,rgba(255,255,255,0.98),rgba(243,247,255,0.98)_52%,rgba(252,241,248,0.96))] shadow-[var(--shadow-lift)]">
+    <section className="overflow-hidden rounded-[1.55rem] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--outline-soft)] bg-[rgba(255,255,255,0.58)] px-5 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">{eyebrow}</p>
@@ -68,7 +68,7 @@ export default function SponsoredBlock({
           </div>
 
           <div className="rounded-[1.25rem] border border-[var(--outline-soft)] bg-[rgba(255,255,255,0.8)] p-4 shadow-[var(--shadow-soft)] backdrop-blur-sm">
-            <div className="rounded-[1rem] border border-[var(--outline-soft)] bg-[linear-gradient(180deg,rgba(236,242,255,0.92),rgba(255,244,250,0.9))] p-4">
+            <div className="rounded-[1rem] bg-[var(--surface-panel)] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Recommended next step</p>
               <p className="mt-2 text-sm font-semibold text-[var(--ink-900)]">Keep the commercial message aligned with the user’s current task.</p>
               <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">

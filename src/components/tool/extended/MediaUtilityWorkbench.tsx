@@ -1,12 +1,25 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- Generated blob URLs are local processing previews. */
+
 import { useEffect, useRef, useState } from "react";
+import AudioPreview from "@/components/tool/AudioPreview";
+import FileDropzone from "@/components/tool/FileDropzone";
+import { PrivacyNotice, ProcessingProgress, WorkbenchError } from "@/components/tool/WorkbenchStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatBytes } from "@/lib/image-conversion";
 
 type MediaUtilityWorkbenchProps = { slug: string };
 type MediaResult = { url: string; name: string; size: number; type: string };
+type MediaDetails = {
+  duration: number;
+  width: number;
+  height: number;
+  size: number;
+  format: string;
+  fileCount: number;
+};
 
 function extension(fileName: string) {
   return (
@@ -25,6 +38,52 @@ function download(result: MediaResult) {
   anchor.href = result.url;
   anchor.download = result.name;
   anchor.click();
+}
+
+function audioMime(format: string) {
+  if (format === "wav") return "audio/wav";
+  if (format === "ogg") return "audio/ogg";
+  if (format === "flac") return "audio/flac";
+  if (format === "m4a") return "audio/mp4";
+  if (format === "aac") return "audio/aac";
+  if (format === "webm") return "audio/webm";
+  return "audio/mpeg";
+}
+
+function audioEncodingArgs(
+  format: string,
+  bitrate: number,
+  sampleRate: number,
+  channels: number,
+) {
+  const layout = ["-ar", String(sampleRate), "-ac", String(channels)];
+  if (format === "wav") return ["-c:a", "pcm_s16le", ...layout];
+  if (format === "flac") return ["-c:a", "flac", ...layout];
+  if (format === "ogg") return ["-c:a", "libvorbis", "-b:a", `${bitrate}k`, ...layout];
+  if (format === "webm") return ["-c:a", "libopus", "-b:a", `${bitrate}k`, ...layout];
+  if (format === "m4a" || format === "aac") return ["-c:a", "aac", "-b:a", `${bitrate}k`, ...layout];
+  return ["-c:a", "libmp3lame", "-b:a", `${bitrate}k`, ...layout];
+}
+
+function estimatedAudioSize(
+  duration: number,
+  format: string,
+  bitrate: number,
+  sampleRate: number,
+  channels: number,
+) {
+  if (!duration) return 0;
+  if (format === "wav") return duration * sampleRate * channels * 2 + 44;
+  if (format === "flac") return duration * sampleRate * channels * 2 * 0.58;
+  return (duration * bitrate * 1000) / 8;
+}
+
+function sizeChangeLabel(original: number, output: number) {
+  if (!original || !output) return "";
+  const change = ((original - output) / original) * 100;
+  return change >= 0
+    ? `${change.toFixed(1)}% smaller`
+    : `${Math.abs(change).toFixed(1)}% larger`;
 }
 
 function encodeWav(channelData: Float32Array[], sampleRate: number) {
@@ -131,10 +190,18 @@ export default function MediaUtilityWorkbench({
   const [speed, setSpeed] = useState(1);
   const [targetSize, setTargetSize] = useState(25);
   const [analysis, setAnalysis] = useState("");
+  const [mediaInfo, setMediaInfo] = useState("");
+  const [mediaDetails, setMediaDetails] = useState<MediaDetails | null>(null);
+  const [sourceUrls, setSourceUrls] = useState<string[]>([]);
+  const [bitrate, setBitrate] = useState(192);
+  const [sampleRate, setSampleRate] = useState(44100);
+  const [channels, setChannels] = useState(2);
+  const [targetPeakDb, setTargetPeakDb] = useState(-1);
   const ffmpegRef = useRef<import("@ffmpeg/ffmpeg").FFmpeg | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recording, setRecording] = useState(false);
+  const canceledRef = useRef(false);
   useEffect(() => {
     return () => {
       ffmpegRef.current?.terminate();
@@ -146,6 +213,9 @@ export default function MediaUtilityWorkbench({
       if (result?.url) URL.revokeObjectURL(result.url);
     };
   }, [result]);
+  useEffect(() => {
+    return () => sourceUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [sourceUrls]);
   function setBlob(blob: Blob, name: string) {
     if (result?.url) URL.revokeObjectURL(result.url);
     setResult({
@@ -154,6 +224,62 @@ export default function MediaUtilityWorkbench({
       size: blob.size,
       type: blob.type,
     });
+  }
+  function clearResult() {
+    if (result?.url) URL.revokeObjectURL(result.url);
+    setResult(null);
+  }
+  async function selectFiles(next: File[]) {
+    clearResult();
+    setFiles(next);
+    const nextUrls = next.map((file) => URL.createObjectURL(file));
+    setSourceUrls(nextUrls);
+    setAnalysis("");
+    setProgress(0);
+    if (!next.length) {
+      setMediaInfo("");
+      setMediaDetails(null);
+      return;
+    }
+    try {
+      const items = await Promise.all(next.map(async (file, index) => {
+        const element = document.createElement(file.type.startsWith("audio/") ? "audio" : "video");
+        element.preload = "metadata";
+        element.src = nextUrls[index];
+        await new Promise<void>((resolve, reject) => {
+          element.onloadedmetadata = () => resolve();
+          element.onerror = () => reject(new Error(`Metadata could not be read for ${file.name}.`));
+        });
+        return {
+          duration: Number.isFinite(element.duration) ? element.duration : 0,
+          width: "videoWidth" in element ? element.videoWidth : 0,
+          height: "videoHeight" in element ? element.videoHeight : 0,
+        };
+      }));
+      const first = items[0];
+      const duration = multiple
+        ? items.reduce((sum, item) => sum + item.duration, 0)
+        : first.duration;
+      if (first.duration > 0) setEnd(Number(first.duration.toFixed(2)));
+      const size = next.reduce((sum, file) => sum + file.size, 0);
+      const details = {
+        duration,
+        width: first.width,
+        height: first.height,
+        size,
+        format: extension(next[0].name),
+        fileCount: next.length,
+      };
+      setMediaDetails(details);
+      const dimensions = first.width ? ` · ${first.width}×${first.height}` : "";
+      const count = multiple ? `${next.length} tracks · ` : "";
+      setMediaInfo(`${count}${duration ? `${duration.toFixed(2)} seconds` : "Duration unavailable"}${dimensions} · ${formatBytes(size)}`);
+    } catch (caught) {
+      const size = next.reduce((sum, file) => sum + file.size, 0);
+      setMediaDetails({ duration: 0, width: 0, height: 0, size, format: extension(next[0].name), fileCount: next.length });
+      setMediaInfo(formatBytes(size));
+      setError(caught instanceof Error ? caught.message : "Media metadata could not be read.");
+    }
   }
   async function getFfmpeg() {
     if (ffmpegRef.current?.loaded) return ffmpegRef.current;
@@ -170,13 +296,21 @@ export default function MediaUtilityWorkbench({
     return ffmpeg;
   }
   async function processMedia() {
+    const virtualFiles: string[] = [];
+    let cleanupEngine: import("@ffmpeg/ffmpeg").FFmpeg | null = null;
+    canceledRef.current = false;
     setBusy(true);
     setError("");
     setAnalysis("");
     setProgress(0);
     try {
+      if (!files.length) throw new Error("Choose a media file first.");
+      if (slug === "video-clipper" && (start < 0 || end <= start)) {
+        throw new Error("The end time must be later than the start time.");
+      }
       if (slug === "bpm-detector") {
         const bpm = await analyzeBpm(files[0]);
+        if (canceledRef.current) throw new Error("Processing canceled.");
         setAnalysis(
           `Estimated tempo: ${bpm} BPM\n\nThis is an energy-peak estimate. Tracks with syncopation, long intros, or changing tempo may need manual verification.`,
         );
@@ -199,7 +333,8 @@ export default function MediaUtilityWorkbench({
             }),
           );
           if (!peak) throw new Error("This audio file appears to be silent.");
-          const gain = 0.95 / peak;
+          const targetPeak = 10 ** (targetPeakDb / 20);
+          const gain = targetPeak / peak;
           const normalized = channels.map((data) =>
             Float32Array.from(data, (sample) => sample * gain),
           );
@@ -210,7 +345,7 @@ export default function MediaUtilityWorkbench({
             `${files[0].name.replace(/\.[^.]+$/, "")}-normalized.wav`,
           );
           setAnalysis(
-            `Applied gain: ${gain.toFixed(3)}×\nOriginal peak: ${(20 * Math.log10(peak)).toFixed(1)} dBFS\nOutput peak: -0.4 dBFS`,
+            `Applied gain: ${gain.toFixed(3)}×\nOriginal peak: ${(20 * Math.log10(peak)).toFixed(1)} dBFS\nOutput peak: ${targetPeakDb.toFixed(1)} dBFS`,
           );
         } finally {
           void context.close();
@@ -254,11 +389,15 @@ export default function MediaUtilityWorkbench({
         return;
       }
       const ffmpeg = await getFfmpeg();
+      cleanupEngine = ffmpeg;
+      if (canceledRef.current) throw new Error("Processing canceled.");
       const { fetchFile } = await import("@ffmpeg/util");
       const inputNames: string[] = [];
       for (let index = 0; index < files.length; index += 1) {
+        if (canceledRef.current) throw new Error("Processing canceled.");
         const name = `input-${index}.${extension(files[index].name)}`;
         inputNames.push(name);
+        virtualFiles.push(name);
         await ffmpeg.writeFile(name, await fetchFile(files[index]));
       }
       let args: string[] = [],
@@ -293,14 +432,12 @@ export default function MediaUtilityWorkbench({
         ];
       } else if (slug === "audio-extractor") {
         outputName = `audio.${format}`;
-        mime = format === "wav" ? "audio/wav" : "audio/mpeg";
+        mime = audioMime(format);
         args = [
           "-i",
           inputNames[0],
           "-vn",
-          ...(format === "wav"
-            ? ["-c:a", "pcm_s16le"]
-            : ["-c:a", "libmp3lame", "-b:a", "192k"]),
+          ...audioEncodingArgs(format, bitrate, sampleRate, channels),
           outputName,
         ];
       } else if (slug === "video-format-transpiler") {
@@ -338,7 +475,20 @@ export default function MediaUtilityWorkbench({
           outputName,
         ];
       } else if (slug === "video-muter") {
-        args = ["-i", inputNames[0], "-c:v", "copy", "-an", outputName];
+        args = [
+          "-i",
+          inputNames[0],
+          "-c:v",
+          "libx264",
+          "-preset",
+          "veryfast",
+          "-crf",
+          "23",
+          "-an",
+          "-movflags",
+          "+faststart",
+          outputName,
+        ];
       } else if (slug === "video-speed-adjuster") {
         const audioFilters =
           speed < 0.5
@@ -364,6 +514,7 @@ export default function MediaUtilityWorkbench({
       } else if (slug === "subtitles-burner") {
         if (!subtitle) throw new Error("Choose an SRT subtitle file.");
         await ffmpeg.writeFile("captions.srt", await fetchFile(subtitle));
+        virtualFiles.push("captions.srt");
         args = [
           "-i",
           inputNames[0],
@@ -377,41 +528,54 @@ export default function MediaUtilityWorkbench({
         ];
       } else if (slug === "audio-format-switcher") {
         outputName = `output.${format}`;
-        mime =
-          format === "wav"
-            ? "audio/wav"
-            : format === "ogg"
-              ? "audio/ogg"
-              : "audio/mpeg";
+        mime = audioMime(format);
         args = [
           "-i",
           inputNames[0],
-          ...(format === "wav"
-            ? ["-c:a", "pcm_s16le"]
-            : format === "ogg"
-              ? ["-c:a", "libvorbis", "-q:a", "5"]
-              : ["-c:a", "libmp3lame", "-b:a", "192k"]),
+          ...audioEncodingArgs(format, bitrate, sampleRate, channels),
           outputName,
         ];
       } else if (slug === "audio-joiner") {
-        outputName = "joined.mp3";
-        mime = "audio/mpeg";
+        outputName = `joined.${format}`;
+        mime = audioMime(format);
         const inputs = inputNames.flatMap((name) => ["-i", name]);
-        const streams = inputNames.map((_, index) => `[${index}:a]`).join("");
+        const channelLayout = channels === 1 ? "mono" : "stereo";
+        const normalizedStreams = inputNames
+          .map(
+            (_, index) =>
+              `[${index}:a]aresample=${sampleRate},aformat=sample_fmts=fltp:channel_layouts=${channelLayout}[a${index}]`,
+          )
+          .join(";");
+        const streams = inputNames.map((_, index) => `[a${index}]`).join("");
         args = [
           ...inputs,
           "-filter_complex",
-          `${streams}concat=n=${inputNames.length}:v=0:a=1[a]`,
+          `${normalizedStreams};${streams}concat=n=${inputNames.length}:v=0:a=1[a]`,
           "-map",
           "[a]",
-          "-c:a",
-          "libmp3lame",
-          "-b:a",
-          "192k",
+          ...audioEncodingArgs(format, bitrate, sampleRate, channels),
           outputName,
         ];
       }
-      const code = await ffmpeg.exec(args, 10 * 60 * 1000);
+      virtualFiles.push(outputName);
+      let code = await ffmpeg.exec(args, 10 * 60 * 1000);
+      if (code !== 0 && slug === "video-speed-adjuster") {
+        try {
+          await ffmpeg.deleteFile(outputName);
+        } catch {}
+        code = await ffmpeg.exec([
+          "-i",
+          inputNames[0],
+          "-filter:v",
+          `setpts=${1 / speed}*PTS`,
+          "-an",
+          "-c:v",
+          "libx264",
+          "-preset",
+          "veryfast",
+          outputName,
+        ], 10 * 60 * 1000);
+      }
       if (code !== 0)
         throw new Error(`The media engine stopped with code ${code}.`);
       const data = await ffmpeg.readFile(outputName);
@@ -419,19 +583,48 @@ export default function MediaUtilityWorkbench({
         throw new Error("The media engine returned invalid output.");
       setBlob(
         new Blob([new Uint8Array(data).buffer], { type: mime }),
-        replaceExtension(files[0].name, outputName.split(".").pop() ?? "bin"),
+        slug === "audio-joiner"
+          ? `joined-${files.length}-tracks.${format}`
+          : replaceExtension(files[0].name, outputName.split(".").pop() ?? "bin"),
       );
-      for (const name of [...inputNames, outputName, "captions.srt"])
-        try {
-          await ffmpeg.deleteFile(name);
-        } catch {}
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Media processing failed.",
+        canceledRef.current
+          ? "Processing canceled. You can adjust the settings and try again."
+          : caught instanceof Error
+            ? caught.message
+            : "Media processing failed.",
       );
     } finally {
+      if (cleanupEngine?.loaded) {
+        for (const name of new Set(virtualFiles)) {
+          try {
+            await cleanupEngine.deleteFile(name);
+          } catch {}
+        }
+      }
       setBusy(false);
     }
+  }
+  function cancelProcessing() {
+    canceledRef.current = true;
+    ffmpegRef.current?.terminate();
+    ffmpegRef.current = null;
+    setBusy(false);
+    setProgress(0);
+    setError("Processing canceled. You can adjust the settings and try again.");
+  }
+  function resetWorkbench() {
+    if (busy) cancelProcessing();
+    clearResult();
+    setFiles([]);
+    setSourceUrls([]);
+    setSubtitle(null);
+    setAnalysis("");
+    setMediaInfo("");
+    setMediaDetails(null);
+    setError("");
+    setProgress(0);
   }
   async function toggleRecording() {
     if (recording) {
@@ -460,11 +653,34 @@ export default function MediaUtilityWorkbench({
       setError("Microphone permission was not granted.");
     }
   }
+  function moveTrack(index: number, offset: number) {
+    const target = index + offset;
+    if (target < 0 || target >= files.length) return;
+    const next = [...files];
+    [next[index], next[target]] = [next[target], next[index]];
+    void selectFiles(next);
+  }
   const isAudio =
     slug.startsWith("audio-") ||
     slug === "bpm-detector" ||
     slug === "volume-normalizer";
   const multiple = slug === "audio-joiner";
+  const configurableAudio = ["audio-extractor", "audio-format-switcher", "audio-joiner"].includes(slug);
+  const estimatedSize = mediaDetails
+    ? estimatedAudioSize(mediaDetails.duration, format, bitrate, sampleRate, channels)
+    : 0;
+  const processLabel =
+    slug === "bpm-detector"
+      ? "Detect BPM"
+      : slug === "volume-normalizer"
+        ? "Normalize audio"
+        : slug === "audio-joiner"
+          ? "Join tracks"
+          : slug === "audio-format-switcher"
+            ? "Convert audio"
+            : slug === "audio-extractor"
+              ? "Extract audio"
+              : "Process media";
   if (slug === "voice-recorder")
     return (
       <section className="mx-auto max-w-2xl rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 text-center shadow-[var(--shadow-soft)]">
@@ -481,6 +697,16 @@ export default function MediaUtilityWorkbench({
           {recording ? "Stop and save" : "Start recording"}
         </Button>
         {result ? (
+          <div className="mx-auto mt-5 max-w-lg text-left">
+            <AudioPreview
+              src={result.url}
+              title={result.name}
+              tone="result"
+              metadata={{ size: result.size, format: extension(result.name) }}
+            />
+          </div>
+        ) : null}
+        {result ? (
           <Button
             variant="secondary"
             className="mt-3 sm:ml-3"
@@ -489,39 +715,116 @@ export default function MediaUtilityWorkbench({
             Download recording
           </Button>
         ) : null}
-        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+        {result ? <Button variant="ghost" className="mt-3 sm:ml-3" onClick={resetWorkbench}>Reset</Button> : null}
+        <PrivacyNotice />
+        <WorkbenchError message={error} />
       </section>
     );
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">
           Media source
         </h2>
-        <Input
-          className="mt-4"
-          type="file"
-          accept={isAudio ? "audio/*" : "video/*"}
+        <FileDropzone
+          accept={isAudio ? "audio/*,.flac,.m4a,.aac,.ogg,.wav,.mp3" : "video/*,.mkv,.mov,.webm,.mp4,.m4v,.avi"}
+          files={files}
           multiple={multiple}
-          onChange={(event) =>
-            setFiles(Array.from(event.target.files ?? []).slice(0, 20))
-          }
+          maxFiles={multiple ? 20 : 1}
+          maxFileSize={1024 * 1024 * 1024}
+          maxTotalSize={1.5 * 1024 * 1024 * 1024}
+          disabled={busy}
+          label={multiple ? "Choose audio tracks" : `Choose ${isAudio ? "audio" : "video"}`}
+          hint={isAudio ? "MP3, WAV, AAC, M4A, OGG, FLAC, or WebM audio" : "MP4, WebM, MOV, MKV, M4V, or AVI"}
+          onError={setError}
+          onFiles={(next) => void selectFiles(next)}
         />
-        {slug === "audio-extractor" || slug === "audio-format-switcher" ? (
-          <label className="mt-4 block text-sm font-medium">
-            Output format
-            <select
-              className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
-              value={format}
-              onChange={(event) => setFormat(event.target.value)}
-            >
-              {(slug === "audio-extractor"
-                ? ["mp3", "wav"]
-                : ["mp3", "ogg", "wav"]
-              ).map((value) => (
-                <option key={value}>{value.toUpperCase()}</option>
+        {mediaInfo ? <p className="mt-2 text-xs text-[var(--muted-foreground)]">{mediaInfo}</p> : null}
+        {isAudio && files.length && sourceUrls[0] ? (
+          <div className="mt-4">
+            <AudioPreview
+              src={sourceUrls[0]}
+              title={multiple ? `First track · ${files[0].name}` : files[0].name}
+              metadata={{
+                size: files[0].size,
+                format: extension(files[0].name),
+                duration: multiple ? undefined : mediaDetails?.duration,
+                bitrateKbps:
+                  !multiple && mediaDetails?.duration
+                    ? Math.round((files[0].size * 8) / mediaDetails.duration / 1000)
+                    : undefined,
+              }}
+            />
+          </div>
+        ) : null}
+        {multiple && files.length ? (
+          <div className="mt-4 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Join order</p>
+              <span className="text-xs text-[var(--muted-foreground)]">{files.length} tracks</span>
+            </div>
+            <ol className="space-y-2">
+              {files.map((file, index) => (
+                <li key={`${file.name}-${file.lastModified}-${index}`} className="flex min-h-11 items-center gap-2 rounded-xl bg-[var(--surface-raised)] px-3 py-2">
+                  <span className="w-5 shrink-0 text-xs font-bold tabular-nums text-[var(--accent-700)]">{index + 1}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-[var(--ink-900)]">{file.name}</span>
+                  <button type="button" className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--outline-soft)] disabled:opacity-30" disabled={index === 0 || busy} onClick={() => moveTrack(index, -1)} aria-label={`Move ${file.name} earlier`}>↑</button>
+                  <button type="button" className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--outline-soft)] disabled:opacity-30" disabled={index === files.length - 1 || busy} onClick={() => moveTrack(index, 1)} aria-label={`Move ${file.name} later`}>↓</button>
+                </li>
               ))}
-            </select>
+            </ol>
+          </div>
+        ) : null}
+        {configurableAudio ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="text-sm font-medium">
+              Output format
+              <select
+                className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
+                value={format}
+                onChange={(event) => setFormat(event.target.value)}
+              >
+                {["mp3", "m4a", "aac", "ogg", "webm", "wav", "flac"].map((value) => (
+                  <option key={value} value={value}>{value.toUpperCase()}</option>
+                ))}
+              </select>
+            </label>
+            {!['wav', 'flac'].includes(format) ? (
+              <label className="text-sm font-medium">
+                Audio bitrate
+                <select className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4" value={bitrate} onChange={(event) => setBitrate(Number(event.target.value))}>
+                  {[96, 128, 192, 256, 320].map((value) => <option key={value} value={value}>{value} kbps</option>)}
+                </select>
+              </label>
+            ) : null}
+            <label className="text-sm font-medium">
+              Sample rate
+              <select className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4" value={sampleRate} onChange={(event) => setSampleRate(Number(event.target.value))}>
+                <option value={32000}>32 kHz</option>
+                <option value={44100}>44.1 kHz</option>
+                <option value={48000}>48 kHz</option>
+              </select>
+            </label>
+            <label className="text-sm font-medium">
+              Channels
+              <select className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4" value={channels} onChange={(event) => setChannels(Number(event.target.value))}>
+                <option value={1}>Mono</option>
+                <option value={2}>Stereo</option>
+              </select>
+            </label>
+            {estimatedSize ? (
+              <div className="rounded-2xl border border-[var(--accent-200)] bg-[var(--accent-50)] p-3 text-sm sm:col-span-2">
+                <p className="font-semibold text-[var(--accent-700)]">Estimated output · {formatBytes(estimatedSize)}</p>
+                <p className="mt-1 text-xs text-[var(--muted-foreground)]">Final size can vary with source complexity and encoder overhead.</p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {slug === "volume-normalizer" ? (
+          <label className="mt-4 block text-sm font-medium">
+            Target peak: {targetPeakDb.toFixed(1)} dBFS
+            <input className="mt-3 w-full accent-[var(--accent-500)]" type="range" min="-6" max="-0.1" step="0.1" value={targetPeakDb} onChange={(event) => setTargetPeakDb(Number(event.target.value))} />
+            <span className="mt-1 block text-xs font-normal text-[var(--muted-foreground)]">Keeps the loudest sample below clipping; −1 dBFS is a safe general target.</span>
           </label>
         ) : null}
         {slug === "video-compressor" ? (
@@ -613,26 +916,24 @@ export default function MediaUtilityWorkbench({
             />
           </label>
         ) : null}
-        <Button
-          className="mt-5 w-full"
-          disabled={busy || !files.length}
-          onClick={() => void processMedia()}
-        >
-          {busy
-            ? `Processing locally ${Math.round(progress * 100)}%…`
-            : "Process media"}
-        </Button>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <Button className="w-full sm:flex-1" disabled={busy || !files.length} onClick={() => void processMedia()}>{processLabel}</Button>
+          {files.length || result || analysis ? <Button type="button" variant="secondary" onClick={resetWorkbench}>Reset</Button> : null}
+        </div>
+        <ProcessingProgress
+          active={busy}
+          progress={["bpm-detector", "volume-normalizer", "thumbnail-grabber"].includes(slug) ? undefined : progress}
+          label="Processing locally"
+          onCancel={["bpm-detector", "volume-normalizer", "thumbnail-grabber"].includes(slug) ? undefined : cancelProcessing}
+        />
         <p className="mt-3 text-xs leading-5 text-[var(--muted-foreground)]">
           The first FFmpeg operation loads a 31 MB local WebAssembly engine.
           Large files require enough device memory to hold input and output.
         </p>
-        {error ? (
-          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        ) : null}
+        <PrivacyNotice />
+        <WorkbenchError message={error} />
       </section>
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Result
@@ -654,13 +955,84 @@ export default function MediaUtilityWorkbench({
               className={`w-full rounded-xl bg-black ${result.type.startsWith("video/") ? "" : "hidden"}`}
               src={result.url}
             />
-            {result.type.startsWith("audio/") ? (
-              <audio controls className="w-full" src={result.url} />
+            {result.type.startsWith("image/") ? (
+              <img src={result.url} alt={`Preview of ${result.name}`} className="max-h-96 w-full rounded-xl bg-white object-contain" />
             ) : null}
-            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+            {result.type.startsWith("audio/") ? (
+              <AudioPreview
+                src={result.url}
+                title={result.name}
+                tone="result"
+                metadata={{
+                  size: result.size,
+                  format: extension(result.name),
+                  duration: mediaDetails?.duration,
+                  bitrateKbps: ["wav", "flac"].includes(extension(result.name)) ? undefined : bitrate,
+                  sampleRate: slug === "volume-normalizer" ? undefined : sampleRate,
+                  channels: slug === "volume-normalizer" ? undefined : channels,
+                }}
+              />
+            ) : null}
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-200">
               <p className="font-semibold">{result.name}</p>
-              <p className="mt-1">{formatBytes(result.size)}</p>
+              <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
+                {mediaDetails ? (
+                  <div>
+                    <dt className="text-xs opacity-70">Original size</dt>
+                    <dd className="mt-0.5 font-semibold tabular-nums">{formatBytes(mediaDetails.size)}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt className="text-xs opacity-70">Output size</dt>
+                  <dd className="mt-0.5 font-semibold tabular-nums">{formatBytes(result.size)}</dd>
+                </div>
+                {mediaDetails ? (
+                  <div>
+                    <dt className="text-xs opacity-70">Size change</dt>
+                    <dd className="mt-0.5 font-semibold tabular-nums">{sizeChangeLabel(mediaDetails.size, result.size)}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt className="text-xs opacity-70">Output format</dt>
+                  <dd className="mt-0.5 font-semibold uppercase">{extension(result.name)}</dd>
+                </div>
+                {result.type.startsWith("video/") && mediaDetails?.duration ? (
+                  <div>
+                    <dt className="text-xs opacity-70">Output duration</dt>
+                    <dd className="mt-0.5 font-semibold tabular-nums">
+                      {(slug === "video-clipper"
+                        ? end - start
+                        : slug === "video-speed-adjuster"
+                          ? mediaDetails.duration / speed
+                          : mediaDetails.duration
+                      ).toFixed(2)} seconds
+                    </dd>
+                  </div>
+                ) : null}
+                {result.type.startsWith("video/") && mediaDetails?.width ? (
+                  <div>
+                    <dt className="text-xs opacity-70">Dimensions</dt>
+                    <dd className="mt-0.5 font-semibold tabular-nums">
+                      {slug === "video-compressor" && mediaDetails.width > 1280
+                        ? `${1280}×${Math.round(mediaDetails.height * (1280 / mediaDetails.width))}`
+                        : `${mediaDetails.width}×${mediaDetails.height}`}
+                    </dd>
+                  </div>
+                ) : null}
+                {result.type.startsWith("video/") ? (
+                  <div>
+                    <dt className="text-xs opacity-70">Output codec</dt>
+                    <dd className="mt-0.5 font-semibold">H.264{slug === "video-muter" ? " · no audio" : " · AAC"}</dd>
+                  </div>
+                ) : null}
+              </dl>
+              {mediaDetails && result.size > mediaDetails.size ? (
+                <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                  The output is larger than the source. Try a lower bitrate, smaller dimensions, or a more efficient format if file size is your goal.
+                </p>
+              ) : null}
             </div>
+            <Button variant="secondary" className="mt-3 w-full" onClick={resetWorkbench}>Process another file</Button>
           </div>
         ) : (
           <div className="mt-4 flex min-h-72 items-center justify-center rounded-xl border border-dashed border-[var(--outline-strong)] px-6 text-center text-sm text-[var(--muted-foreground)]">

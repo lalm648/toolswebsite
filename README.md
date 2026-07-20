@@ -2,7 +2,7 @@ This is a Next.js tools website with browser-first utilities for image, text, de
 
 ## Documentation
 
-- Analytics event model: [docs/analytics.md](/Users/lalmuhammad/Documents/toolswebsite/docs/analytics.md)
+- Analytics event model: [docs/analytics.md](docs/analytics.md)
 
 ## Getting Started
 
@@ -24,24 +24,25 @@ You can start editing the page by modifying files in `src/app` and `src/componen
 
 ## Environment Variables
 
-Create a local env file by copying [.env.example](/Users/lalmuhammad/Documents/toolswebsite/.env.example) to `.env.local`.
+Create a local env file by copying [.env.example](.env.example) to `.env.local`.
 
 ```bash
 cp .env.example .env.local
 ```
 
-For Netlify, use the same variable names from `.env.example` in:
-`Site configuration` -> `Environment variables`
+For Vercel, use the same variable names from `.env.example` in:
+`Project Settings` → `Environment Variables`
 
 Important:
-- `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_CONTACT_EMAIL` are public environment variables used in the frontend.
-- Example values are placeholders only. Configure the real values in your hosting platform (e.g. Netlify environment variables).
+- `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_CONTACT_EMAIL`, and `NEXT_PUBLIC_ADMIN_EMAIL` are public environment variables used in the frontend.
+- Provider URLs and identifiers shown below are examples. Configure real values in Vercel before enabling those integrations.
 
 These public variables are supported by the current app:
 
 ```bash
-NEXT_PUBLIC_SITE_URL=https://example.com
-NEXT_PUBLIC_CONTACT_EMAIL=contact@example.com
+NEXT_PUBLIC_SITE_URL=https://www.webutilia.com
+NEXT_PUBLIC_CONTACT_EMAIL=clickproqa@gmail.com
+NEXT_PUBLIC_ADMIN_EMAIL=clickproqa@gmail.com
 NEXT_PUBLIC_NEWSLETTER_PROVIDER=beehiiv
 NEXT_PUBLIC_NEWSLETTER_URL=https://your-newsletter-provider.example/subscribe
 NEXT_PUBLIC_NEWSLETTER_METHOD=post

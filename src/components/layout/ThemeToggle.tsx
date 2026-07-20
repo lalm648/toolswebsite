@@ -23,7 +23,7 @@ function applyTheme(theme: ResolvedTheme) {
   document.documentElement.dataset.theme = theme;
 }
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<ResolvedTheme>("light");
 
@@ -49,13 +49,13 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button type="button" variant="secondary" size="sm" className="min-w-24 gap-2" aria-label="Theme toggle">
+      <Button type="button" variant="secondary" size="sm" className={compact ? "h-11 w-11 p-0" : "min-w-24 gap-2"} aria-label="Theme toggle">
         <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center">
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="12" cy="12" r="4.5" />
           </svg>
         </span>
-        <span>Theme</span>
+        <span className={compact ? "sr-only" : ""}>Theme</span>
       </Button>
     );
   }
@@ -68,7 +68,7 @@ export default function ThemeToggle() {
       variant="secondary"
       size="sm"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="min-w-24 gap-2"
+      className={compact ? "h-11 w-11 p-0" : "min-w-24 gap-2"}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
       <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center">
@@ -90,7 +90,7 @@ export default function ThemeToggle() {
           )}
         </svg>
       </span>
-      <span suppressHydrationWarning>{isDark ? "Light" : "Dark"}</span>
+      <span className={compact ? "sr-only" : ""} suppressHydrationWarning>{isDark ? "Light" : "Dark"}</span>
     </Button>
   );
 }

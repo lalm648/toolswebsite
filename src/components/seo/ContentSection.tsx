@@ -13,6 +13,7 @@ type ContentSectionProps = {
   internalLinks?: SeoLink[];
   externalLinks?: SeoLink[];
   faq?: Array<{ question: string; answer: string }>;
+  compact?: boolean;
 };
 
 export default function ContentSection({
@@ -26,23 +27,24 @@ export default function ContentSection({
   internalLinks = [],
   externalLinks = [],
   faq = [],
+  compact = false,
 }: ContentSectionProps) {
   return (
-    <div className="space-y-8">
-      <section className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)] sm:p-7">
+    <div className={compact ? "space-y-6" : "space-y-8"}>
+      <section className={`rounded-[1.5rem] ${compact ? "bg-[var(--surface-panel)] p-5 sm:p-6" : "border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)] sm:p-7"}`}>
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent-700)]">{eyebrow}</p>
         <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-3xl">{title}</h2>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-[var(--muted-foreground)] sm:text-base">
+        <div className={`mt-4 text-sm text-[var(--muted-foreground)] sm:text-base ${compact ? "grid gap-3 leading-6 lg:grid-cols-2" : "space-y-4 leading-7"}`}>
           {intro.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className={`${compact ? "mt-5" : "mt-6"} grid gap-3 sm:grid-cols-3`}>
           {highlights.map((item) => (
             <div
               key={item}
-              className="rounded-[1.1rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--foreground)]"
+              className={`rounded-[1.1rem] bg-[var(--surface-raised)] text-sm leading-6 text-[var(--foreground)] ${compact ? "p-3 shadow-[var(--shadow-soft)]" : "border border-[var(--outline-soft)] p-4"}`}
             >
               {item}
             </div>
@@ -99,12 +101,12 @@ export default function ContentSection({
       {internalLinks.length || externalLinks.length ? (
         <section className="grid gap-5 lg:grid-cols-2" aria-label="Helpful links and references">
           {internalLinks.length ? (
-            <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 sm:p-7">
+            <div className={`rounded-[1.5rem] bg-[var(--surface-card)] ${compact ? "p-5 shadow-[var(--shadow-soft)]" : "border border-[var(--outline-soft)] p-6 sm:p-7"}`}>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent-700)]">Keep working</p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--ink-900)]">Related workflows</h2>
               <div className="mt-5 grid gap-3">
                 {internalLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="group rounded-[1rem] border border-[var(--outline-soft)] p-4 hover:border-[var(--accent-300)] hover:bg-[var(--accent-50)]">
+                  <Link key={link.href} href={link.href} className={`group rounded-[1rem] p-4 hover:bg-[var(--accent-50)] ${compact ? "bg-[var(--surface-panel)]" : "border border-[var(--outline-soft)] hover:border-[var(--accent-300)]"}`}>
                     <span className="font-semibold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">{link.label} <span aria-hidden="true">→</span></span>
                     <span className="mt-1 block text-sm leading-6 text-[var(--muted-foreground)]">{link.description}</span>
                   </Link>
@@ -114,13 +116,13 @@ export default function ContentSection({
           ) : null}
 
           {externalLinks.length ? (
-            <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 sm:p-7">
+            <div className={`rounded-[1.5rem] bg-[var(--surface-card)] ${compact ? "p-5 shadow-[var(--shadow-soft)]" : "border border-[var(--outline-soft)] p-6 sm:p-7"}`}>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent-700)]">Learn from primary sources</p>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--ink-900)]">Trusted references</h2>
               <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">Use these standards and official guides when you need deeper technical detail.</p>
               <div className="mt-5 grid gap-3">
                 {externalLinks.map((link) => (
-                  <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="group rounded-[1rem] border border-[var(--outline-soft)] p-4 hover:border-[var(--accent-300)] hover:bg-[var(--accent-50)]">
+                  <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className={`group rounded-[1rem] p-4 hover:bg-[var(--accent-50)] ${compact ? "bg-[var(--surface-panel)]" : "border border-[var(--outline-soft)] hover:border-[var(--accent-300)]"}`}>
                     <span className="font-semibold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">{link.label} <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></span>
                     <span className="mt-1 block text-sm leading-6 text-[var(--muted-foreground)]">{link.description}</span>
                   </a>

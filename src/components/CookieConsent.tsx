@@ -17,7 +17,7 @@ export default function CookieConsent() {
         <div className="space-y-2">
           <p className="text-sm font-semibold text-[var(--ink-900)]">Privacy and measurement</p>
           <p className="max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
-            ToolsWebsite uses privacy-conscious analytics to understand page views, searches, and tool
+            Webutilia uses privacy-conscious analytics to understand page views, searches, and tool
             usage. You can accept or decline non-essential tracking. See the{" "}
             <Link href="/privacy-policy" className="font-medium text-[var(--accent-700)] hover:text-[var(--brand-700)]">
               privacy policy

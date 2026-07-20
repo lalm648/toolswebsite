@@ -4,8 +4,9 @@ import ContactForm from "@/components/ContactForm";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata(
-  "Contact | ToolsWebsite",
-  "Contact ToolsWebsite to request a tool or share a workflow."
+  "Contact | Webutilia",
+  "Contact Webutilia to request a tool or share a workflow.",
+  { path: "/contact", category: "Contact" },
 );
 
 export default function ContactPage() {

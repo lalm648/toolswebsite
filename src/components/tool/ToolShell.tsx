@@ -60,6 +60,7 @@ export default function ToolShell({
       ? {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
+          "@id": `${canonicalUrl}#breadcrumb`,
           itemListElement: [
             {
               "@type": "ListItem",
@@ -82,23 +83,25 @@ export default function ToolShell({
           ],
         }
       : null;
-  const toolJsonLd =
+  const pageJsonLd =
     tool && category
       ? {
           "@context": "https://schema.org",
-          "@type": "WebApplication",
-          name: tool.title,
-          applicationCategory: "UtilitiesApplication",
-          operatingSystem: "Any operating system with a modern web browser",
-          browserRequirements: "Requires JavaScript and a modern browser",
-          description,
+          "@type": "WebPage",
+          "@id": `${canonicalUrl}#webpage`,
           url: canonicalUrl,
-          isAccessibleForFree: true,
-          featureList: resolvedSeoContent?.highlights,
-          offers: {
-            "@type": "Offer",
-            price: "0",
-            priceCurrency: "USD",
+          name: tool.title,
+          description,
+          inLanguage: "en",
+          isPartOf: { "@id": `${siteUrl}/#website` },
+          publisher: {
+            "@id": `${siteUrl}/#organization`,
+          },
+          breadcrumb: { "@id": `${canonicalUrl}#breadcrumb` },
+          about: {
+            "@type": "Thing",
+            name: tool.title,
+            description: tool.description,
           },
         }
       : null;
@@ -106,6 +109,7 @@ export default function ToolShell({
     ? {
         "@context": "https://schema.org",
         "@type": "FAQPage",
+        "@id": `${canonicalUrl}#faq`,
         mainEntity: resolvedSeoContent.faq.map((item) => ({
           "@type": "Question",
           name: item.question,
@@ -120,6 +124,7 @@ export default function ToolShell({
     ? {
         "@context": "https://schema.org",
         "@type": "HowTo",
+        "@id": `${canonicalUrl}#howto`,
         name: `How to use ${tool.title}`,
         description: tool.description,
         step: steps.map((step, index) => ({
@@ -140,7 +145,7 @@ export default function ToolShell({
             type="application/ld+json"
             dangerouslySetInnerHTML={{
               __html: JSON.stringify(
-                [breadcrumbJsonLd, toolJsonLd, howToJsonLd, faqJsonLd].filter(Boolean),
+                [pageJsonLd, breadcrumbJsonLd, howToJsonLd, faqJsonLd].filter(Boolean),
               ).replace(/</g, "\\u003c"),
             }}
           />
@@ -187,7 +192,7 @@ export default function ToolShell({
         {resolvedSeoContent ? (
           <ContentSection
             eyebrow={eyebrow}
-            title={`About ${title}`}
+            title={`What does ${title} do?`}
             intro={resolvedSeoContent.intro}
             highlights={resolvedSeoContent.highlights}
             useCases={resolvedSeoContent.useCases}

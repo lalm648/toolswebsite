@@ -12,6 +12,7 @@ type LeadConfig = {
   target: "_blank" | "_self";
   hiddenFields: Array<{ name: string; value: string }>;
   hasProvider: boolean;
+  hasFallback: boolean;
 };
 
 type ScopedLeadEnv = {
@@ -24,7 +25,10 @@ type ScopedLeadEnv = {
   hiddenFields: Array<{ name: string; value: string }>;
 };
 
-const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "contact@example.com";
+const configuredContactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "";
+const contactEmail = configuredContactEmail || "clickproqa@gmail.com";
+const administratorEmail =
+  process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim() || "clickproqa@gmail.com";
 
 function normalizeProvider(value: string | undefined): ProviderKind | "" {
   const normalized = value?.trim().toLowerCase();
@@ -142,14 +146,19 @@ export function getLeadConfig(type: LeadType): LeadConfig {
     target: env.target,
     hiddenFields: env.hiddenFields,
     hasProvider: Boolean(env.action),
+    hasFallback: type === "waitlist" ? Boolean(administratorEmail) : Boolean(configuredContactEmail),
   };
 }
 
 export function getLeadFallbackHref(type: LeadType, email: string, source: string) {
   const subject = type === "newsletter" ? "Newsletter signup request" : "Waitlist request";
   const bodyLabel = type === "newsletter" ? "newsletter list" : "waitlist";
+  const recipient = type === "waitlist" ? administratorEmail : contactEmail;
+  const approvalNote = type === "waitlist"
+    ? "\n\nAdministrator action requested: review this user and, if approved, grant full Webutilia early access."
+    : "";
 
-  return `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
-    `Please add this email to the ToolsWebsite ${bodyLabel}:\n\n${email || "[email address]"}\n\nSource: ${source}`
+  return `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+    `Please add this email to the Webutilia ${bodyLabel}:\n\n${email || "[email address]"}\n\nSource: ${source}${approvalNote}`
   )}`;
 }

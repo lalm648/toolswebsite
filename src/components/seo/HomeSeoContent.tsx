@@ -33,59 +33,53 @@ const workflows = [
 
 export default function HomeSeoContent() {
   return (
-    <section className="overflow-hidden rounded-[1.75rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
-      <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="p-6 sm:p-9 lg:p-10">
+    <section className="border-y border-[var(--outline-soft)] py-8 sm:py-10">
+      <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+        <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent-700)]">One browser workspace</p>
-          <h2 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight text-[var(--ink-900)] sm:text-4xl">Free online tools for faster, private everyday work</h2>
-          <div className="mt-5 max-w-2xl space-y-4 text-sm leading-7 text-[var(--muted-foreground)] sm:text-base">
-            <p>ToolsWebsite brings {tools.length} focused utilities into one searchable library for images, PDF documents, video, audio, text, development, security, SEO, and public web diagnostics. Each page is designed around one clear task, so you can reach the right control quickly and understand what will happen before you run it.</p>
-            <p>File-based workflows are built to run locally where browser technology allows it. That reduces unnecessary uploads and makes quick edits easier on desktop and mobile. Network checks clearly identify the cases that require a protected server request to reach a public destination.</p>
+          <h2 className="mt-3 max-w-2xl text-2xl font-bold tracking-tight text-[var(--ink-900)] sm:text-3xl">Free online tools for faster, private everyday work</h2>
+          <div className="mt-4 max-w-2xl space-y-4 text-sm leading-7 text-[var(--muted-foreground)] sm:text-base">
+            <p>Webutilia brings {tools.length} focused utilities into one searchable library for images, PDF documents, video, audio, text, development, security, SEO, and public web diagnostics. Each page is designed around one clear task, so you can reach the right control quickly and understand what will happen before you run it.</p>
           </div>
 
-          <div className="mt-7 flex flex-wrap gap-2">
+          <details className="mt-4 text-sm text-[var(--muted-foreground)]">
+            <summary className="cursor-pointer font-semibold text-[var(--accent-700)] focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]">Learn how processing works</summary>
+            <p className="mt-3 max-w-2xl leading-7">File-based workflows are built to run locally where browser technology allows it. That reduces unnecessary uploads and makes quick edits easier on desktop and mobile. Network checks clearly identify the cases that require a protected server request to reach a public destination.</p>
+          </details>
+
+          <nav aria-label="Tool categories" className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
             {categories.map((category) => (
-              <Link key={category.href} href={category.href} className="rounded-full border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-3.5 py-2 text-sm font-semibold text-[var(--foreground)] hover:border-[var(--accent-300)] hover:text-[var(--accent-700)]">
+              <Link key={category.href} href={category.href} className="text-sm font-semibold text-[var(--foreground)] underline decoration-[var(--outline-strong)] underline-offset-4 hover:text-[var(--accent-700)]">
                 {category.title}
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
 
-        <div className="relative min-h-72 overflow-hidden border-t border-[var(--outline-soft)] bg-[linear-gradient(145deg,var(--accent-50),var(--surface-panel)_55%,var(--brand-50))] p-8 lg:border-l lg:border-t-0" aria-label="Browser tool workflow illustration" role="img">
-          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border-[24px] border-[var(--accent-100)] opacity-70" />
-          <div className="relative mx-auto flex h-full max-w-md items-center justify-center">
-            <div className="w-full rounded-[1.4rem] border border-[var(--outline-strong)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-lift)]">
-              <div className="flex items-center gap-2 border-b border-[var(--outline-soft)] pb-4">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                <span className="ml-3 h-7 flex-1 rounded-full bg-[var(--surface-panel)]" />
-              </div>
-              <div className="mt-5 grid grid-cols-[auto_1fr] items-center gap-4">
-                <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-500)] text-xl font-black text-white">T</span>
-                <div><div className="h-3 w-3/4 rounded-full bg-[var(--ink-900)]" /><div className="mt-2 h-2.5 w-full rounded-full bg-[var(--outline-strong)]" /></div>
-              </div>
-              <div className="mt-6 grid grid-cols-3 gap-3">
-                {["Choose", "Process", "Download"].map((label, index) => (
-                  <div key={label} className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 text-center">
-                    <span className="mx-auto inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-100)] text-xs font-bold text-[var(--accent-700)]">{index + 1}</span>
-                    <span className="mt-2 block text-xs font-semibold text-[var(--ink-900)]">{label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-5 flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800">
-                <span>Ready in your browser</span><span aria-hidden="true">✓</span>
+        <div className="divide-y divide-[var(--outline-soft)] border-y border-[var(--outline-soft)] lg:border-b-0 lg:border-t-0">
+          {[
+            ["01", "Choose one focused tool", "Clear formats, limits, and privacy boundaries before you begin."],
+            ["02", "Process with useful feedback", "Progress, validation, and local processing where the browser supports it."],
+            ["03", "Review and download", "Preview the result, save it, reset the workspace, and keep moving."],
+          ].map(([number, title, description]) => (
+            <div key={number} className="grid grid-cols-[auto_1fr] gap-4 py-5">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--accent-50)] text-xs font-bold text-[var(--accent-700)]">{number}</span>
+              <div>
+                <h3 className="font-bold text-[var(--ink-900)]">{title}</h3>
+                <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">{description}</p>
               </div>
             </div>
+          ))}
+          <div className="flex items-center justify-between gap-4 py-4 text-sm font-semibold text-[var(--accent-700)]">
+            <span>Ready in your browser</span><span aria-hidden="true">✓</span>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-px border-t border-[var(--outline-soft)] bg-[var(--outline-soft)] lg:grid-cols-3">
+      <div className="mt-8 grid gap-7 border-t border-[var(--outline-soft)] pt-7 lg:grid-cols-3">
         {workflows.map((workflow) => (
-          <article key={workflow.title} className="bg-[var(--surface-card)] p-6 sm:p-7">
-            <h3 className="text-lg font-bold text-[var(--ink-900)]">{workflow.title}</h3>
+          <article key={workflow.title}>
+            <h3 className="text-base font-bold text-[var(--ink-900)]">{workflow.title}</h3>
             <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">{workflow.description}</p>
             <ul className="mt-4 space-y-2">
               {workflow.links.map((link) => (

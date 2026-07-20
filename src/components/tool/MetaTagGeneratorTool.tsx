@@ -59,7 +59,7 @@ const presetConfigs: Record<PresetMode, PresetConfig> = {
     badge: "Site-wide SEO",
     type: "website",
     jsonLdType: "WebSite",
-    title: "ToolsWebsite | Browser-first online tools",
+    title: "Webutilia | Browser-first online tools",
     description:
       "Convert images, format JSON, count words, and use practical browser-first tools without sending files to a server.",
     robots: "index, follow, max-image-preview:large",
@@ -81,7 +81,7 @@ const presetConfigs: Record<PresetMode, PresetConfig> = {
     label: "Product",
     badge: "Commercial SEO",
     type: "product",
-    jsonLdType: "Product",
+    jsonLdType: "WebPage",
     title: "AI Image Toolkit | Fast browser-based editing",
     description: "Edit, compress, and convert images with a lightweight browser workflow designed for product teams and marketers.",
     robots: "index, follow, max-image-preview:large",
@@ -92,7 +92,7 @@ const presetConfigs: Record<PresetMode, PresetConfig> = {
     label: "Tool Page",
     badge: "Utility SEO",
     type: "website",
-    jsonLdType: "SoftwareApplication",
+    jsonLdType: "WebPage",
     title: "JPG to PNG Converter | Fast browser tool",
     description: "Convert JPG images to PNG directly in your browser with live preview, instant download, and no server upload.",
     robots: "index, follow, max-image-preview:large",
@@ -125,7 +125,6 @@ function buildMetaTags({
   twitterSite,
   twitterCreator,
   author,
-  keywords,
 }: MetaTagOptions) {
   const lines = [
     `<title>${escapeAttribute(title)}</title>`,
@@ -133,7 +132,6 @@ function buildMetaTags({
     canonicalUrl ? `<link rel="canonical" href="${escapeAttribute(canonicalUrl)}" />` : "",
     robots ? `<meta name="robots" content="${escapeAttribute(robots)}" />` : "",
     author ? `<meta name="author" content="${escapeAttribute(author)}" />` : "",
-    keywords ? `<meta name="keywords" content="${escapeAttribute(keywords)}" />` : "",
     `<meta property="og:title" content="${escapeAttribute(title)}" />`,
     `<meta property="og:description" content="${escapeAttribute(description)}" />`,
     `<meta property="og:type" content="${escapeAttribute(type)}" />`,
@@ -184,7 +182,11 @@ function buildJsonLd(mode: PresetMode, options: MetaTagOptions) {
     return JSON.stringify(
       {
         ...base,
-        brand: options.siteName ? { "@type": "Brand", name: options.siteName } : undefined,
+        about: {
+          "@type": "Thing",
+          name: options.title,
+          description: options.description,
+        },
       },
       null,
       2
@@ -195,12 +197,10 @@ function buildJsonLd(mode: PresetMode, options: MetaTagOptions) {
     return JSON.stringify(
       {
         ...base,
-        applicationCategory: "UtilityApplication",
-        operatingSystem: "Web",
-        offers: {
-          "@type": "Offer",
-          price: "0",
-          priceCurrency: "USD",
+        about: {
+          "@type": "Thing",
+          name: options.title,
+          description: options.description,
         },
       },
       null,
@@ -247,19 +247,19 @@ export default function MetaTagGeneratorTool() {
   const [preset, setPreset] = useState<PresetMode>("website");
   const [title, setTitle] = useState(presetConfigs.website.title);
   const [description, setDescription] = useState(presetConfigs.website.description);
-  const [canonicalUrl, setCanonicalUrl] = useState("https://toolswebsite.example");
-  const [imageUrl, setImageUrl] = useState("https://toolswebsite.example/og-image.png");
-  const [imageAlt, setImageAlt] = useState("ToolsWebsite preview card");
+  const [canonicalUrl, setCanonicalUrl] = useState("https://www.webutilia.com");
+  const [imageUrl, setImageUrl] = useState("https://www.webutilia.com/api/og?title=Webutilia");
+  const [imageAlt, setImageAlt] = useState("Webutilia preview card");
   const [imageWidth, setImageWidth] = useState("1200");
   const [imageHeight, setImageHeight] = useState("630");
-  const [siteName, setSiteName] = useState("ToolsWebsite");
+  const [siteName, setSiteName] = useState("Webutilia");
   const [type, setType] = useState(presetConfigs.website.type);
   const [locale, setLocale] = useState("en_US");
   const [robots, setRobots] = useState(presetConfigs.website.robots);
   const [twitterCard, setTwitterCard] = useState(presetConfigs.website.twitterCard);
-  const [twitterSite, setTwitterSite] = useState("@toolswebsite");
-  const [twitterCreator, setTwitterCreator] = useState("@toolswebsite");
-  const [author, setAuthor] = useState("ToolsWebsite");
+  const [twitterSite, setTwitterSite] = useState("");
+  const [twitterCreator, setTwitterCreator] = useState("");
+  const [author, setAuthor] = useState("Webutilia");
   const [keywords, setKeywords] = useState(presetConfigs.website.keywords);
   const [imageError, setImageError] = useState("");
   const [copyState, setCopyState] = useState<"" | "meta" | "jsonld">("");
@@ -381,9 +381,14 @@ export default function MetaTagGeneratorTool() {
     if (!imageWidth.trim() || !imageHeight.trim())
       items.push({ level: "info", message: "Image dimensions help social platforms render previews faster." });
     if (!twitterSite.trim()) items.push({ level: "info", message: "Twitter site handle is optional but useful for branded cards." });
+    if (preset === "tool" || preset === "product")
+      items.push({
+        level: "info",
+        message: "This preset uses WebPage schema to avoid incomplete rich-result claims. Add Product or SoftwareApplication markup only when the page contains every required, visible field, including genuine offer and review data where Google requires it.",
+      });
 
     return items;
-  }, [title, description, canonicalUrl, imageUrl, imageAlt, imageWidth, imageHeight, twitterSite]);
+  }, [title, description, canonicalUrl, imageUrl, imageAlt, imageWidth, imageHeight, twitterSite, preset]);
 
   async function copyToClipboard(value: string, kind: "meta" | "jsonld") {
     try {
@@ -515,8 +520,11 @@ export default function MetaTagGeneratorTool() {
             </div>
 
             <label className="text-sm font-medium text-[var(--ink-900)]">
-              Keywords
+              Topic phrases for content planning
               <Input value={keywords} onChange={(event) => setKeywords(event.target.value)} className="mt-2" />
+              <span className="mt-2 block text-xs leading-5 text-[var(--muted-foreground)]">
+                Use these to keep the page focused. They are not emitted as a meta keywords tag.
+              </span>
             </label>
           </div>
         </div>
@@ -634,7 +642,7 @@ export default function MetaTagGeneratorTool() {
         </ToolResult>
 
         <ToolResult title="Search preview">
-          <div className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,247,255,0.98))] p-5 text-left shadow-[var(--shadow-soft)]">
+          <div className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 text-left">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
@@ -651,7 +659,7 @@ export default function MetaTagGeneratorTool() {
 
         <ToolResult title="Social preview">
           <div className="overflow-hidden rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] text-left shadow-[var(--shadow-soft)]">
-            <div className="aspect-[1200/630] w-full bg-[linear-gradient(135deg,var(--accent-100),var(--brand-50))]">
+            <div className="aspect-[1200/630] w-full bg-[var(--surface-panel)]">
               {previewImageSource ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={previewImageSource} alt={imageAlt || "Social preview"} className="h-full w-full object-cover" />
@@ -661,7 +669,7 @@ export default function MetaTagGeneratorTool() {
                 </div>
               )}
             </div>
-            <div className="space-y-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,247,255,0.98))] p-4">
+            <div className="space-y-3 bg-[var(--surface-card)] p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
                   {siteName || "Site name"}
@@ -695,7 +703,7 @@ export default function MetaTagGeneratorTool() {
           <Textarea
             readOnly
             value={output}
-            className="min-h-[360px] border-[var(--outline-strong)] bg-[linear-gradient(180deg,rgba(248,250,255,0.98),rgba(239,244,255,0.98))] font-mono text-sm leading-6 text-[var(--foreground)]"
+            className="min-h-[360px] border-[var(--outline-strong)] bg-[var(--surface-panel)] font-mono text-sm leading-6 text-[var(--foreground)]"
           />
         </ToolResult>
 
@@ -709,7 +717,7 @@ export default function MetaTagGeneratorTool() {
           <Textarea
             readOnly
             value={`<script type="application/ld+json">\n${jsonLd}\n</script>`}
-            className="min-h-[320px] border-[var(--outline-strong)] bg-[linear-gradient(180deg,rgba(248,250,255,0.98),rgba(239,244,255,0.98))] font-mono text-sm leading-6 text-[var(--foreground)]"
+            className="min-h-[320px] border-[var(--outline-strong)] bg-[var(--surface-panel)] font-mono text-sm leading-6 text-[var(--foreground)]"
           />
         </ToolResult>
       </div>

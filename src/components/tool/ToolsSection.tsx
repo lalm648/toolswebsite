@@ -8,6 +8,7 @@ type ToolsSectionProps = {
   description: string;
   tools: ToolDefinition[];
   query: string;
+  compact?: boolean;
 };
 
 export default function ToolsSection({
@@ -15,16 +16,17 @@ export default function ToolsSection({
   description,
   tools,
   query,
+  compact = false,
 }: ToolsSectionProps) {
   return (
-    <section className="space-y-6">
+    <section className={compact ? "space-y-4" : "space-y-6"}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--muted-foreground)]">
             Ready to use
           </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--ink-900)]">{title}</h2>
-          <p className="mt-3 text-sm leading-7 text-[var(--muted-foreground)]">{description}</p>
+          <h2 className={`mt-2 font-semibold tracking-tight text-[var(--ink-900)] ${compact ? "text-2xl" : "text-3xl"}`}>{title}</h2>
+          <p className={`mt-2 text-sm text-[var(--muted-foreground)] ${compact ? "leading-6" : "leading-7"}`}>{description}</p>
         </div>
         <Badge variant="secondary" className="text-sm normal-case tracking-normal shadow-[var(--shadow-soft)]">
           {tools.length} tool{tools.length === 1 ? "" : "s"}

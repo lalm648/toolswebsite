@@ -1,6 +1,6 @@
 # Analytics Reference
 
-This project uses a lightweight client-side analytics layer in [src/lib/analytics.ts](/Users/lalmuhammad/Documents/toolswebsite/src/lib/analytics.ts).
+This project uses a lightweight client-side analytics layer in [src/lib/analytics.ts](../src/lib/analytics.ts).
 
 It currently fans out to:
 - `window.dataLayer`
@@ -8,7 +8,7 @@ It currently fans out to:
 - `window.plausible`
 - a custom browser event: `toolswebsite:analytics`
 
-All tracking is consent-aware through [src/lib/consent.ts](/Users/lalmuhammad/Documents/toolswebsite/src/lib/consent.ts).
+All tracking is consent-aware through [src/lib/consent.ts](../src/lib/consent.ts).
 
 ## Event Model
 

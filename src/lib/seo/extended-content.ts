@@ -16,7 +16,7 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
     ],
     useCases: ["Preparing product photos for a store", "Standardizing blog or gallery images", "Shrinking a folder of screenshots before sharing"],
     faq: [
-      { question: "Is there a file limit?", answer: "There is no fixed server limit because processing runs in your browser; practical limits depend on your device memory and the number and size of images." },
+      { question: "Is there a file limit?", answer: "Yes. You can add up to 50 JPEG, PNG, or WebP images, with a 40 MB per-file limit and a 300 MB total batch limit. Available device memory can still affect large batches." },
       { question: "Are aspect ratios preserved?", answer: "Yes, images are scaled to fit the target dimensions while keeping their original proportions." },
     ],
     keywords: ["bulk image resizer", "batch resize images", "resize multiple images", "mass image resize", "resize images online"],
@@ -57,17 +57,17 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
   },
   watermarker: {
     intro: [
-      "Adding a text watermark protects images and reinforces branding before you publish or share them. This tool places positioned text over one or many images at once.",
+      "Add a text watermark or transparent PNG logo to one image or a batch. Webutilia places the mark consistently in the lower-right corner and exports a new copy of each image.",
       "All branding is applied in the browser, so the images never leave your device.",
     ],
     highlights: [
       "Apply a text watermark to a single image or a whole batch.",
-      "Control watermark position for consistent placement.",
+      "Use consistent lower-right placement across every image in the batch.",
       "Keep files private with local, in-browser processing.",
     ],
     useCases: ["Branding photos before publishing", "Marking draft or sample images", "Protecting portfolio work"],
     faq: [
-      { question: "Can I watermark many images at once?", answer: "Yes, the same watermark text and position can be applied across a batch of images in one step." },
+      { question: "Can I watermark many images at once?", answer: "Yes. The same text or transparent PNG logo is applied in the lower-right corner across the batch." },
       { question: "Are the images uploaded?", answer: "No, watermarking is applied locally in your browser and files stay on your device." },
     ],
     keywords: ["image watermarker", "add watermark to image", "batch watermark", "text watermark online", "watermark photos"],
@@ -193,17 +193,17 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
   },
   "audio-extractor": {
     intro: [
-      "Sometimes you only need the sound from a video — a talk, a track, or a voice recording. This extractor pulls the audio track out of a video file and exports it as MP3 or WAV.",
+      "Extract the soundtrack from a video and save it as MP3, M4A, AAC, OGG, WebM audio, WAV, or FLAC. You can also set bitrate, sample rate, and mono or stereo output before processing.",
       "Extraction runs locally with a WebAssembly engine, so the video never leaves your device.",
     ],
     highlights: [
-      "Extract an MP3 or WAV audio track from a video.",
+      "Export MP3, M4A, AAC, OGG, WebM audio, WAV, or FLAC.",
       "Save just the sound without the picture.",
       "Process files locally without uploading them.",
     ],
     useCases: ["Saving audio from a recorded talk", "Extracting music from a video clip", "Pulling voice audio for a podcast edit"],
     faq: [
-      { question: "What audio formats can I export?", answer: "You can export common audio formats such as MP3 and WAV from the video's soundtrack." },
+      { question: "What audio formats can I export?", answer: "You can export MP3, M4A, AAC, OGG, WebM audio, WAV, or FLAC, subject to browser and codec support in the local media engine." },
       { question: "Does the original video change?", answer: "No, the video is left untouched; the tool produces a separate audio file." },
     ],
     keywords: ["audio extractor", "extract audio from video", "video to mp3", "get audio from video", "rip audio online"],

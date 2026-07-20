@@ -3,8 +3,9 @@ import Container from "@/components/Container";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata(
-  "Privacy Policy | ToolsWebsite",
-  "Read the privacy policy for ToolsWebsite."
+  "Privacy Policy | Webutilia",
+  "Read the privacy policy for Webutilia.",
+  { path: "/privacy-policy", category: "Privacy" },
 );
 
 export default function PrivacyPolicyPage() {
@@ -14,7 +15,7 @@ export default function PrivacyPolicyPage() {
         <div>
           <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-5xl">Privacy Policy</h1>
           <p className="mt-6 text-lg leading-8 text-[var(--muted-foreground)]">
-            ToolsWebsite is designed to keep as much processing as possible inside your browser. This
+            Webutilia is designed to keep as much processing as possible inside your browser. This
             policy explains what data may still be collected when you browse the site or opt into analytics.
           </p>
         </div>
@@ -23,7 +24,7 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">Browser-side processing</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
-              Most text and image transformations on ToolsWebsite run locally in your browser. In those
+              Most text and image transformations on Webutilia run locally in your browser. In those
               cases, the content you paste or the files you upload are not intentionally transmitted to our server.
             </p>
           </section>
@@ -31,7 +32,7 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">Analytics and consent</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
-              If you accept analytics, ToolsWebsite may collect privacy-conscious usage information such
+              If you accept analytics, Webutilia may collect privacy-conscious usage information such
               as page views, search interactions, tool opens, and CTA clicks. This helps us understand
               which pages are useful and where improvements are needed.
             </p>
@@ -49,7 +50,7 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">Third-party services</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
-              ToolsWebsite may later use third-party providers for analytics, advertising, newsletters,
+              Webutilia may later use third-party providers for analytics, advertising, newsletters,
               forms, or sponsorship inquiries. When those services are added, this policy should be
               updated to reflect the provider, the purpose, and the data involved.
             </p>

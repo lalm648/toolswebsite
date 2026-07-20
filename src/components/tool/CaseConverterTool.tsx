@@ -62,7 +62,10 @@ export default function CaseConverterTool() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
       <div className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
-        <h2 className="text-xl font-semibold text-[var(--ink-900)]">Source text</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold text-[var(--ink-900)]">Source text</h2>
+          <Button size="sm" variant="ghost" disabled={!text} onClick={() => setText("")}>Clear</Button>
+        </div>
         <p className="mt-2 text-sm text-[var(--muted-foreground)]">
           Paste text once and switch between common case formats instantly.
         </p>
@@ -72,6 +75,7 @@ export default function CaseConverterTool() {
           placeholder="Paste text here..."
           className="mt-5 min-h-[360px]"
         />
+        <p className="mt-2 text-xs text-[var(--muted-foreground)]">{(text.trim().match(/\S+/g)?.length ?? 0).toLocaleString()} words · {text.length.toLocaleString()} characters · {text ? text.split(/\r?\n/).length.toLocaleString() : 0} lines</p>
       </div>
 
       <ToolResult title="Converted text">

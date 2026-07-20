@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import CopyButton from "@/components/tool/CopyButton";
+import { PrivacyNotice, ProcessingProgress, WorkbenchError } from "@/components/tool/WorkbenchStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -61,13 +62,12 @@ function parseCsv(source: string) {
   if (headers.some((header) => !header))
     throw new Error("Every CSV column needs a header.");
 
-  return rows
-    .slice(1)
-    .map((values) =>
-      Object.fromEntries(
-        headers.map((header, index) => [header, values[index] ?? ""]),
-      ),
-    );
+  return rows.slice(1).map((values, rowIndex) => {
+    if (values.length > headers.length) {
+      throw new Error(`Row ${rowIndex + 2} has more values than the header row.`);
+    }
+    return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]));
+  });
 }
 
 function splitSqlColumns(body: string) {
@@ -199,6 +199,15 @@ function minifyCode(source: string) {
   return output.trim();
 }
 
+function minifyCss(source: string) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*([{}:;,>+~])\s*/g, "$1")
+    .replace(/;}/g, "}")
+    .trim();
+}
+
 async function runRegex(pattern: string, flags: string, source: string) {
   if (pattern.length > 500 || source.length > 100_000) {
     throw new Error(
@@ -247,6 +256,7 @@ export default function DataUtilityWorkbench({
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [codeType, setCodeType] = useState<"javascript" | "css">("javascript");
 
   async function processInput() {
     setBusy(true);
@@ -257,7 +267,7 @@ export default function DataUtilityWorkbench({
       } else if (slug === "sql-schema-visualizer") {
         setOutput(visualizeSql(input));
       } else if (slug === "code-minifier") {
-        setOutput(minifyCode(input));
+        setOutput(codeType === "css" ? minifyCss(input) : minifyCode(input));
       } else if (slug === "regex-tester") {
         const matches = await runRegex(pattern, flags, input);
         setOutput(
@@ -334,9 +344,16 @@ export default function DataUtilityWorkbench({
   };
   const current = labels[slug] ?? labels["code-minifier"];
 
+  function resetWorkbench() {
+    setInput(examples[slug] ?? "");
+    setSecondary(slug === "diff-checker" ? "const count = items.length;\nreturn count;" : "");
+    setOutput("");
+    setError("");
+  }
+
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         {slug === "regex-tester" ? (
           <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_100px]">
             <label className="text-sm font-semibold text-[var(--ink-900)]">
@@ -358,6 +375,15 @@ export default function DataUtilityWorkbench({
               />
             </label>
           </div>
+        ) : null}
+        {slug === "code-minifier" ? (
+          <label className="mb-4 block text-sm font-semibold text-[var(--ink-900)]">
+            Source language
+            <select className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4" value={codeType} onChange={(event) => setCodeType(event.target.value as "javascript" | "css")}>
+              <option value="javascript">JavaScript</option>
+              <option value="css">CSS</option>
+            </select>
+          </label>
         ) : null}
         <label className="text-sm font-semibold text-[var(--ink-900)]">
           {current.input}
@@ -381,21 +407,16 @@ export default function DataUtilityWorkbench({
             />
           </>
         ) : null}
-        <Button
-          className="mt-4 w-full sm:w-auto"
-          onClick={() => void processInput()}
-          disabled={busy || !input.trim()}
-        >
-          {busy ? "Processing…" : current.action}
-        </Button>
-        {error ? (
-          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        ) : null}
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <Button className="w-full sm:flex-1" onClick={() => void processInput()} disabled={busy || !input.trim()}>{current.action}</Button>
+          <Button type="button" variant="secondary" onClick={resetWorkbench}>Reset</Button>
+        </div>
+        <ProcessingProgress active={busy} label="Processing input" />
+        <PrivacyNotice />
+        <WorkbenchError message={error} />
       </section>
 
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Result
@@ -413,8 +434,18 @@ export default function DataUtilityWorkbench({
           </div>
         </div>
         <pre className="mt-4 min-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--foreground)]">
-          {output || "Your processed result will appear here."}
+          {slug === "diff-checker" && output
+            ? output.split("\n").map((line, index) => (
+                <span key={index} className={`block px-1 ${line.startsWith("+") ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200" : line.startsWith("-") ? "bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200" : ""}`}>{line || " "}</span>
+              ))
+            : output || "Your processed result will appear here."}
         </pre>
+        {output ? (
+          <p className="mt-2 text-xs tabular-nums text-[var(--muted-foreground)]">
+            {output.split(/\r?\n/).length.toLocaleString()} lines · {output.length.toLocaleString()} characters
+            {slug === "code-minifier" && input.length ? ` · ${Math.max(0, ((input.length - output.length) / input.length) * 100).toFixed(1)}% fewer characters` : ""}
+          </p>
+        ) : null}
       </section>
     </div>
   );

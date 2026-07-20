@@ -3,8 +3,9 @@ import Container from "@/components/Container";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata(
-  "Terms | ToolsWebsite",
-  "Read the terms for using ToolsWebsite."
+  "Terms | Webutilia",
+  "Read the terms for using Webutilia.",
+  { path: "/terms", category: "Terms" },
 );
 
 export default function TermsPage() {
@@ -14,7 +15,7 @@ export default function TermsPage() {
         <div>
           <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-5xl">Terms</h1>
           <p className="mt-6 text-lg leading-8 text-[var(--muted-foreground)]">
-            These terms describe the basic conditions for using ToolsWebsite and its browser-based utilities.
+            These terms describe the basic conditions for using Webutilia and its browser-based utilities.
           </p>
         </div>
 
@@ -22,7 +23,7 @@ export default function TermsPage() {
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">Use at your own discretion</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
-              ToolsWebsite is provided on an as-is basis. We aim for useful and reliable tools, but we
+              Webutilia is provided on an as-is basis. We aim for useful and reliable tools, but we
               cannot guarantee uninterrupted service, perfect output, or suitability for every workflow.
             </p>
           </section>
@@ -46,7 +47,7 @@ export default function TermsPage() {
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">Future monetization</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
-              ToolsWebsite may later include advertising, sponsorships, affiliate links, newsletter
+              Webutilia may later include advertising, sponsorships, affiliate links, newsletter
               forms, or premium offerings. When those features are introduced, the terms and privacy
               policy should be updated accordingly.
             </p>
@@ -55,7 +56,7 @@ export default function TermsPage() {
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">Liability limits</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
-              To the maximum extent allowed by law, ToolsWebsite is not liable for direct or indirect
+              To the maximum extent allowed by law, Webutilia is not liable for direct or indirect
               loss arising from reliance on the site, tool output, downtime, or third-party integrations.
             </p>
           </section>

@@ -15,10 +15,12 @@ type CTABlockProps = {
 export default function CTABlock({ title, description, href, label }: CTABlockProps) {
   return (
     <Card className="border-white/10 bg-[var(--surface-cta)]">
-      <CardContent className="px-8 py-10 text-white">
-        <h2 className="text-3xl font-semibold tracking-tight">{title}</h2>
-        <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">{description}</p>
-        <Button asChild className="mt-6">
+      <CardContent className="flex flex-col gap-5 px-6 py-7 text-white sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:py-8">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{description}</p>
+        </div>
+        <Button asChild className="shrink-0 self-start lg:self-auto">
           <Link
             href={href}
             onClick={() => {

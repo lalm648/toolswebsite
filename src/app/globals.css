@@ -6,23 +6,23 @@
   --foreground-strong: #0f172a;
   --muted-foreground: #64748b;
 
-  /* Secondary highlight (pink) — used sparingly for SEO category + accents */
-  --brand-50: #fdf2f8;
-  --brand-100: #fce7f3;
-  --brand-200: #fbcfe8;
-  --brand-300: #f9a8d4;
-  --brand-500: #ec4899;
-  --brand-600: #db2777;
-  --brand-700: #be185d;
+  /* Logo highlight — the lime edge is reserved for small accents. */
+  --brand-50: #f7fee7;
+  --brand-100: #ecfccb;
+  --brand-200: #d9f99d;
+  --brand-300: #bef264;
+  --brand-500: #84cc16;
+  --brand-600: #65a30d;
+  --brand-700: #4d7c0f;
 
-  /* Primary brand color — one confident blue */
-  --accent-50: #eff4ff;
-  --accent-100: #dbe6ff;
-  --accent-200: #bfd3ff;
-  --accent-300: #93b4fe;
-  --accent-500: #2563eb;
-  --accent-600: #1d4ed8;
-  --accent-700: #1e40af;
+  /* Primary brand color — drawn from the logo's cyan-to-emerald body. */
+  --accent-50: #ecfdf5;
+  --accent-100: #d1fae5;
+  --accent-200: #a7f3d0;
+  --accent-300: #6ee7b7;
+  --accent-500: #047857;
+  --accent-600: #065f46;
+  --accent-700: #065f46;
 
   --ink-900: #0f172a;
   --surface: #ffffff;
@@ -37,9 +37,10 @@
   --surface-card-hover: #f4f7fc;
   --outline-soft: #e6e9ef;
   --outline-strong: #cbd5e1;
-  --ring-soft: rgba(37, 99, 235, 0.28);
-  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px -4px rgba(15, 23, 42, 0.08);
-  --shadow-lift: 0 12px 32px -16px rgba(15, 23, 42, 0.18);
+  --ring-soft: rgba(5, 150, 105, 0.28);
+  --error-foreground: #b91c1c;
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.035), 0 8px 18px -16px rgba(15, 23, 42, 0.14);
+  --shadow-lift: 0 14px 30px -24px rgba(15, 23, 42, 0.22);
 
   /* Unified radius scale */
   --radius-sm: 10px;
@@ -54,21 +55,21 @@
   --foreground-strong: #f7f9fc;
   --muted-foreground: #9aa7b8;
 
-  --brand-50: rgba(217, 95, 180, 0.12);
-  --brand-100: rgba(217, 95, 180, 0.18);
-  --brand-200: rgba(217, 95, 180, 0.28);
-  --brand-300: #e98cca;
-  --brand-500: #d95fb4;
-  --brand-600: #e274bf;
-  --brand-700: #f0a7d6;
+  --brand-50: rgba(190, 242, 100, 0.1);
+  --brand-100: rgba(190, 242, 100, 0.16);
+  --brand-200: rgba(190, 242, 100, 0.24);
+  --brand-300: #bef264;
+  --brand-500: #a3e635;
+  --brand-600: #bef264;
+  --brand-700: #d9f99d;
 
-  --accent-50: rgba(91, 140, 255, 0.12);
-  --accent-100: rgba(91, 140, 255, 0.18);
-  --accent-200: rgba(91, 140, 255, 0.28);
-  --accent-300: #93b4ff;
-  --accent-500: #5b8cff;
-  --accent-600: #7aa0ff;
-  --accent-700: #b8ccff;
+  --accent-50: rgba(52, 211, 153, 0.1);
+  --accent-100: rgba(52, 211, 153, 0.16);
+  --accent-200: rgba(52, 211, 153, 0.24);
+  --accent-300: #34d399;
+  --accent-500: #047857;
+  --accent-600: #065f46;
+  --accent-700: #6ee7b7;
 
   --ink-900: #f7f9fc;
   --surface: #111a27;
@@ -83,9 +84,10 @@
   --footer-bg: #060a11;
   --outline-soft: rgba(255, 255, 255, 0.075);
   --outline-strong: rgba(255, 255, 255, 0.16);
-  --ring-soft: rgba(91, 140, 255, 0.32);
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 10px -6px rgba(0, 0, 0, 0.65);
-  --shadow-lift: 0 20px 44px -22px rgba(0, 0, 0, 0.85);
+  --ring-soft: rgba(52, 211, 153, 0.3);
+  --error-foreground: #fca5a5;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.25), 0 10px 20px -18px rgba(0, 0, 0, 0.5);
+  --shadow-lift: 0 16px 34px -26px rgba(0, 0, 0, 0.72);
 }
 
 @theme inline {
@@ -103,6 +105,14 @@ body {
     "Inter",
     "Segoe UI",
     sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: none;
 }
 
 a,
@@ -169,6 +179,21 @@ textarea {
 
 .motion-status-dot {
   animation: status-dot 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .premium-pill {

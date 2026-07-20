@@ -4,17 +4,11 @@ import ContentSection from "@/components/seo/ContentSection";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata(
-  "About | ToolsWebsite",
-  "Learn what ToolsWebsite offers across image, text, developer, and SEO workflows, and how the site is built for browser-first utility work.",
+  "About | Webutilia",
+  "Learn what Webutilia offers across image, text, developer, and SEO workflows, and how the site is built for browser-first utility work.",
   {
     path: "/about",
     category: "About",
-    keywords: [
-      "about toolswebsite",
-      "browser tools website",
-      "image text developer seo tools",
-      "online productivity tools",
-    ],
   }
 );
 
@@ -23,9 +17,9 @@ export default function AboutPage() {
     <section className="py-16 sm:py-20">
       <Container className="max-w-5xl space-y-8">
         <div className="max-w-4xl">
-          <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-5xl">About ToolsWebsite</h1>
+          <h1 className="text-4xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-5xl">About Webutilia</h1>
           <p className="mt-6 text-lg leading-8 text-[var(--muted-foreground)]">
-            ToolsWebsite is a browser-first tools library built for practical work across image editing,
+            Webutilia is a browser-first tools library built for practical work across image editing,
             text cleanup, developer utilities, and SEO preparation. The goal is simple: make recurring
             utility tasks faster without forcing users into heavy software or unnecessary uploads.
           </p>
@@ -55,11 +49,20 @@ export default function AboutPage() {
               answer: "Browser-first utilities reduce friction for small, repeated tasks and help users move faster without installing extra software or handing simple jobs off to heavier systems."
             },
             {
-              question: "Is ToolsWebsite only for one type of user?",
+              question: "Is Webutilia only for one type of user?",
               answer: "No. The site is designed for a broad working audience including marketers, writers, store owners, developers, operations teams, editors, and independent site builders."
             }
           ]}
         />
+
+        <section className="border-y border-[var(--outline-soft)] py-8 sm:py-10" aria-labelledby="review-method-heading">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-700)]">How Webutilia is reviewed</p>
+          <h2 id="review-method-heading" className="mt-3 text-2xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-3xl">Claims follow the working tool</h2>
+          <div className="mt-4 grid gap-4 text-sm leading-7 text-[var(--muted-foreground)] sm:grid-cols-2 sm:text-base">
+            <p>Each tool page is checked against its actual inputs, limits, processing path, preview, and final action. Copy is updated when formats or controls change, so the page does not promise an option the interface cannot deliver.</p>
+            <p>Local-processing claims are used only for workflows that run in the browser. Public website and network checks identify their protected server request because a browser cannot directly perform those diagnostics.</p>
+          </div>
+        </section>
       </Container>
     </section>
   );

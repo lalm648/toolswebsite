@@ -4,6 +4,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import CopyButton from "@/components/tool/CopyButton";
+import FileDropzone from "@/components/tool/FileDropzone";
+import { PrivacyNotice, ProcessingProgress, WorkbenchError } from "@/components/tool/WorkbenchStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,6 +83,7 @@ export default function GeneratorUtilityWorkbench({
   const [count, setCount] = useState(5);
   const [algorithm, setAlgorithm] = useState("SHA-256");
   const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
   const [rules, setRules] = useState({
     lower: true,
     upper: true,
@@ -102,6 +105,7 @@ export default function GeneratorUtilityWorkbench({
   }, [slug]);
 
   async function generate() {
+    setBusy(true);
     setError("");
     setImageUrl("");
     try {
@@ -123,6 +127,7 @@ export default function GeneratorUtilityWorkbench({
           : new TextEncoder().encode(input).buffer;
         setOutput(bytesToHex(await crypto.subtle.digest(algorithm, data)));
       } else if (slug === "qr-code-generator") {
+        if (input.length > 4000) throw new Error("Keep QR content under 4,000 characters for reliable scanning.");
         const QRCode = (await import("qrcode")).default;
         const url = await QRCode.toDataURL(input, {
           width: 768,
@@ -133,6 +138,7 @@ export default function GeneratorUtilityWorkbench({
         setImageUrl(url);
         setOutput(input);
       } else if (slug === "barcode-generator") {
+        if (input.length > 80) throw new Error("Keep barcode content under 80 characters.");
         const JsBarcode = (await import("jsbarcode")).default;
         if (!barcodeRef.current) return;
         JsBarcode(barcodeRef.current, input, {
@@ -153,10 +159,13 @@ export default function GeneratorUtilityWorkbench({
         const url = new URL(input);
         if (!/^https?:$/.test(url.protocol))
           throw new Error("Use an HTTP or HTTPS URL.");
-        const code = Array.from(
-          { length: 7 },
-          () => "abcdefghijkmnopqrstuvwxyz23456789"[secureRandomIndex(32)],
-        ).join("");
+        let code = "";
+        do {
+          code = Array.from(
+            { length: 7 },
+            () => "abcdefghijkmnopqrstuvwxyz23456789"[secureRandomIndex(32)],
+          ).join("");
+        } while (links.some((link) => link.code === code));
         const next = [
           { code, url: url.toString(), createdAt: new Date().toISOString() },
           ...links,
@@ -171,8 +180,25 @@ export default function GeneratorUtilityWorkbench({
           ? caughtError.message
           : "The value could not be generated.",
       );
+    } finally {
+      setBusy(false);
     }
   }
+
+  function resetWorkbench() {
+    setOutput("");
+    setImageUrl("");
+    setError("");
+    setFile(null);
+    if (!slug.includes("generator") && slug !== "url-shortener") setInput("");
+  }
+
+  const selectedPoolSize =
+    (rules.lower ? 25 : 0) +
+    (rules.upper ? 24 : 0) +
+    (rules.digits ? 8 : 0) +
+    (rules.symbols ? 20 : 0);
+  const estimatedEntropy = selectedPoolSize ? Math.floor(length * Math.log2(selectedPoolSize)) : 0;
 
   const title =
     slug === "password-generator"
@@ -187,7 +213,7 @@ export default function GeneratorUtilityWorkbench({
 
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
         {slug === "password-generator" ? (
           <div className="mt-4 space-y-4">
@@ -244,6 +270,7 @@ export default function GeneratorUtilityWorkbench({
                 </label>
               ))}
             </div>
+            <p className="text-xs text-[var(--muted-foreground)]">Estimated strength: about {estimatedEntropy} bits per password. Generated with Web Crypto.</p>
           </div>
         ) : slug === "uuid-generator" ? (
           <label className="mt-4 block text-sm font-medium">
@@ -275,10 +302,18 @@ export default function GeneratorUtilityWorkbench({
               onChange={(event) => setInput(event.target.value)}
               placeholder="Enter text, or choose a file below"
             />
-            <Input
-              type="file"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            <FileDropzone
+              accept=""
+              files={file ? [file] : []}
+              onFiles={(next) => setFile(next[0] ?? null)}
+              onError={setError}
+              maxFileSize={250 * 1024 * 1024}
+              maxTotalSize={250 * 1024 * 1024}
+              label="Choose a file to hash"
+              hint="Any file type · maximum 250 MB"
+              disabled={busy}
             />
+            {algorithm === "SHA-1" ? <p className="text-xs leading-5 text-amber-700">SHA-1 is provided for legacy compatibility, not for new security-sensitive designs.</p> : null}
           </div>
         ) : (
           <Textarea
@@ -296,22 +331,22 @@ export default function GeneratorUtilityWorkbench({
           className="mt-4 w-full"
           onClick={() => void generate()}
           disabled={
-            slug !== "password-generator" &&
-            slug !== "uuid-generator" &&
-            !input.trim() &&
-            !file
+            busy ||
+            (slug !== "password-generator" &&
+              slug !== "uuid-generator" &&
+              !input.trim() &&
+              !file)
           }
         >
-          Generate
+          {busy ? "Working…" : "Generate"}
         </Button>
-        {error ? (
-          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        ) : null}
+        {(output || imageUrl || file) ? <Button type="button" variant="ghost" className="mt-2 w-full" onClick={resetWorkbench}>Reset</Button> : null}
+        <ProcessingProgress active={busy} label="Generating result" />
+        <PrivacyNotice />
+        <WorkbenchError message={error} />
       </section>
 
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Result
@@ -354,7 +389,7 @@ export default function GeneratorUtilityWorkbench({
             />
           </div>
         ) : (
-          <pre className="mt-4 min-h-56 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
+          <pre aria-live="polite" className="mt-4 min-h-56 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
             {output || "Your generated result will appear here."}
           </pre>
         )}

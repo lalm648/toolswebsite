@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import ToolResult from "@/components/tool/ToolResult";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 const STANDARD_LINE_LENGTH = 80;
@@ -94,9 +95,10 @@ export default function WordCounterTool() {
                 Count words, characters, lines, and paragraphs instantly in the browser.
               </p>
             </div>
-            <Badge variant="secondary" className="normal-case tracking-normal text-[11px] font-medium">
-              Live analysis
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="normal-case tracking-normal text-[11px] font-medium">Live analysis</Badge>
+              <Button size="sm" variant="ghost" disabled={!text} onClick={() => setText("")}>Clear</Button>
+            </div>
           </div>
           <Textarea
             value={text}

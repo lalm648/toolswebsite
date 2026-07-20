@@ -2,7 +2,9 @@
 
 /* eslint-disable @next/next/no-img-element -- Generated blob URLs are local processing previews. */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import FileDropzone from "@/components/tool/FileDropzone";
+import { PrivacyNotice, ProcessingProgress, WorkbenchError } from "@/components/tool/WorkbenchStatus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { encodeCanvasToAvif } from "@/lib/avif-encoder";
@@ -13,7 +15,27 @@ import {
 } from "@/lib/image-conversion";
 
 type ImageUtilityWorkbenchProps = { slug: string };
-type ImageResult = { url: string; name: string; size: number; type: string };
+type ImageResult = {
+  url: string;
+  name: string;
+  size: number;
+  type: string;
+  width?: number;
+  height?: number;
+  originalName?: string;
+  originalSize?: number;
+  originalWidth?: number;
+  originalHeight?: number;
+  transparency?: boolean;
+};
+
+function imageSizeChange(original?: number, output?: number) {
+  if (!original || output === undefined) return "";
+  const change = ((original - output) / original) * 100;
+  return change >= 0
+    ? `${change.toFixed(1)}% smaller`
+    : `${Math.abs(change).toFixed(1)}% larger`;
+}
 
 const multiFileSlugs = new Set([
   "bulk-image-resizer",
@@ -49,6 +71,16 @@ function canvasFor(image: CanvasImageSource, width: number, height: number) {
   context.imageSmoothingQuality = "high";
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
   return { canvas, context };
+}
+
+function canvasHasTransparency(context: CanvasRenderingContext2D) {
+  const { width, height } = context.canvas;
+  const alpha = context.getImageData(0, 0, width, height).data;
+  const stride = Math.max(4, Math.floor((width * height) / 250_000) * 4);
+  for (let index = 3; index < alpha.length; index += stride) {
+    if (alpha[index] < 255) return true;
+  }
+  return false;
 }
 
 async function encodeCanvas(
@@ -264,23 +296,33 @@ export default function ImageUtilityWorkbench({
   const [width, setWidth] = useState(1600);
   const [format, setFormat] = useState("webp");
   const [quality, setQuality] = useState(84);
-  const [watermark, setWatermark] = useState("© ToolsWebsite");
+  const [watermark, setWatermark] = useState("© Webutilia");
   const [tolerance, setTolerance] = useState(52);
   const [ratio, setRatio] = useState("1:1");
   const [delay, setDelay] = useState(500);
   const [topText, setTopText] = useState("TOP TEXT");
   const [bottomText, setBottomText] = useState("BOTTOM TEXT");
+  const [sourcePreviewUrl, setSourcePreviewUrl] = useState("");
+  const [fitPreview, setFitPreview] = useState(true);
+  const canceledRef = useRef(false);
   useEffect(
     () => () => {
       results.forEach((result) => URL.revokeObjectURL(result.url));
     },
     [results],
   );
+  useEffect(
+    () => () => {
+      if (sourcePreviewUrl) URL.revokeObjectURL(sourcePreviewUrl);
+    },
+    [sourcePreviewUrl],
+  );
   function replaceResults(next: ImageResult[]) {
     results.forEach((result) => URL.revokeObjectURL(result.url));
     setResults(next);
   }
   async function processImages() {
+    canceledRef.current = false;
     setBusy(true);
     setError("");
     setPalette([]);
@@ -296,6 +338,7 @@ export default function ImageUtilityWorkbench({
         );
         const gif = GIFEncoder();
         for (let i = 0; i < loaded.length; i += 1) {
+          if (canceledRef.current) throw new Error("Processing canceled.");
           const { context } = canvasFor(loaded[i], frameWidth, frameHeight);
           const data = context.getImageData(0, 0, frameWidth, frameHeight).data;
           const colors = quantize(data, 256);
@@ -316,6 +359,12 @@ export default function ImageUtilityWorkbench({
             name: "animation.gif",
             size: blob.size,
             type: blob.type,
+            width: frameWidth,
+            height: frameHeight,
+            originalName: `${files.length} source frames`,
+            originalSize: files.reduce((sum, file) => sum + file.size, 0),
+            originalWidth: loaded[0].naturalWidth,
+            originalHeight: loaded[0].naturalHeight,
           },
         ]);
         return;
@@ -329,6 +378,7 @@ export default function ImageUtilityWorkbench({
         const pngs = [] as Array<{ size: number; blob: Blob }>;
         const zip = new JSZipModule.default();
         for (const size of sizes) {
+          if (canceledRef.current) throw new Error("Processing canceled.");
           const { canvas } = canvasFor(image, size, size);
           const blob = await encodeCanvas(canvas, "png", 1);
           pngs.push({ size, blob });
@@ -345,12 +395,17 @@ export default function ImageUtilityWorkbench({
             name: "favicon-package.zip",
             size: blob.size,
             type: blob.type,
+            originalName: files[0].name,
+            originalSize: files[0].size,
+            originalWidth: image.naturalWidth,
+            originalHeight: image.naturalHeight,
           },
         ]);
         return;
       }
       const next: ImageResult[] = [];
       for (let fileIndex = 0; fileIndex < files.length; fileIndex += 1) {
+        if (canceledRef.current) throw new Error("Processing canceled.");
         const file = files[fileIndex];
         const image = await loadImage(file);
         let targetWidth = image.naturalWidth,
@@ -458,6 +513,12 @@ export default function ImageUtilityWorkbench({
               : "jpg"
             : slug === "background-remover"
               ? "png"
+              : slug === "watermarker"
+                ? file.type === "image/png"
+                  ? "png"
+                  : file.type === "image/webp"
+                    ? "webp"
+                    : "jpg"
               : slug === "smart-image-cropper" || slug === "meme-generator"
                 ? "jpg"
                 : slug === "bulk-image-resizer"
@@ -469,6 +530,15 @@ export default function ImageUtilityWorkbench({
           name: replaceFileExtension(file.name, outputFormat),
           size: blob.size,
           type: blob.type,
+          width: canvas.width,
+          height: canvas.height,
+          originalName: file.name,
+          originalSize: file.size,
+          originalWidth: image.naturalWidth,
+          originalHeight: image.naturalHeight,
+          transparency:
+            ["png", "webp", "avif"].includes(outputFormat) &&
+            canvasHasTransparency(context),
         });
         setProgress((fileIndex + 1) / files.length);
       }
@@ -482,6 +552,17 @@ export default function ImageUtilityWorkbench({
     } finally {
       setBusy(false);
     }
+  }
+
+  function resetWorkbench() {
+    canceledRef.current = true;
+    replaceResults([]);
+    setFiles([]);
+    setSourcePreviewUrl("");
+    setMarkFile(null);
+    setPalette([]);
+    setError("");
+    setProgress(0);
   }
   async function downloadAll() {
     if (results.length === 1) {
@@ -507,26 +588,28 @@ export default function ImageUtilityWorkbench({
   const needsFormat = slug === "format-converter";
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">
           Images and settings
         </h2>
-        <Input
-          className="mt-4"
-          type="file"
+        <FileDropzone
           accept="image/jpeg,image/png,image/webp"
+          files={files}
           multiple={multiple}
-          onChange={(event) =>
-            setFiles(Array.from(event.target.files ?? []).slice(0, 50))
-          }
+          maxFiles={50}
+          maxFileSize={40 * 1024 * 1024}
+          maxTotalSize={300 * 1024 * 1024}
+          disabled={busy}
+          label={multiple ? "Choose images" : "Choose an image"}
+          hint="JPEG, PNG, or WebP · drag and drop supported"
+          onError={setError}
+          onFiles={(next) => {
+            replaceResults([]);
+            setPalette([]);
+            setFiles(next);
+            setSourcePreviewUrl(next[0] ? URL.createObjectURL(next[0]) : "");
+          }}
         />
-        <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-          {files.length
-            ? `${files.length} image${files.length === 1 ? "" : "s"} selected`
-            : multiple
-              ? "Choose up to 50 images."
-              : "Choose one image."}
-        </p>
         {slug === "bulk-image-resizer" ? (
           <label className="mt-4 block text-sm font-medium">
             Maximum width
@@ -649,22 +732,19 @@ export default function ImageUtilityWorkbench({
             />
           </div>
         ) : null}
-        <Button
-          className="mt-5 w-full"
-          disabled={busy || !files.length}
-          onClick={() => void processImages()}
-        >
-          {busy
-            ? `Processing ${Math.round(progress * 100)}%…`
-            : "Process locally"}
-        </Button>
-        {error ? (
-          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        ) : null}
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <Button className="w-full sm:flex-1" disabled={busy || !files.length} onClick={() => void processImages()}>
+            Process locally
+          </Button>
+          {files.length || results.length || palette.length ? (
+            <Button type="button" variant="secondary" onClick={resetWorkbench}>Reset</Button>
+          ) : null}
+        </div>
+        <ProcessingProgress active={busy} progress={progress} label="Processing images" onCancel={() => { canceledRef.current = true; }} />
+        <PrivacyNotice />
+        <WorkbenchError message={error} />
       </section>
-      <section className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Results
@@ -693,29 +773,58 @@ export default function ImageUtilityWorkbench({
             ))}
           </div>
         ) : results.length ? (
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className={`mt-5 grid gap-4 ${results.length > 1 ? "sm:grid-cols-2" : ""}`}>
+            {results.length === 1 && results[0].type.startsWith("image/") ? (
+              <div className="flex justify-end gap-1">
+                <button type="button" className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${fitPreview ? "bg-[var(--accent-500)] text-white" : "border border-[var(--outline-soft)]"}`} onClick={() => setFitPreview(true)}>Fit</button>
+                <button type="button" className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${!fitPreview ? "bg-[var(--accent-500)] text-white" : "border border-[var(--outline-soft)]"}`} onClick={() => setFitPreview(false)}>1:1</button>
+              </div>
+            ) : null}
             {results.map((result) => (
               <div
                 key={result.url}
                 className="overflow-hidden rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)]"
               >
-                <div className="flex h-44 items-center justify-center bg-white p-3">
-                  <img
-                    src={result.url}
-                    alt="Processed result"
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </div>
+                {result.type.startsWith("image/") ? (
+                  <div className={`grid ${results.length === 1 && sourcePreviewUrl ? "sm:grid-cols-2" : ""}`}>
+                    {results.length === 1 && sourcePreviewUrl ? (
+                      <figure className="min-w-0 border-b border-[var(--outline-soft)] sm:border-b-0 sm:border-r">
+                        <figcaption className="border-b border-[var(--outline-soft)] px-3 py-2 text-xs font-semibold text-[var(--muted-foreground)]">Before</figcaption>
+                        <div className="flex h-52 items-center justify-center overflow-auto bg-white p-3">
+                          <img src={sourcePreviewUrl} alt={`Original preview of ${result.originalName ?? "source image"}`} className={fitPreview ? "max-h-full max-w-full object-contain" : "max-w-none"} />
+                        </div>
+                      </figure>
+                    ) : null}
+                    <figure className="min-w-0">
+                      <figcaption className="border-b border-[var(--outline-soft)] px-3 py-2 text-xs font-semibold text-[var(--muted-foreground)]">{results.length === 1 ? "After" : "Output"}</figcaption>
+                      <div className="flex h-52 items-center justify-center overflow-auto bg-white p-3">
+                        <img src={result.url} alt={`Preview of ${result.name}`} className={fitPreview ? "max-h-full max-w-full object-contain" : "max-w-none"} />
+                      </div>
+                    </figure>
+                  </div>
+                ) : (
+                  <div className="flex h-32 items-center justify-center bg-[var(--accent-50)] px-4 text-center text-sm font-semibold text-[var(--accent-700)]">Download package ready</div>
+                )}
                 <div className="p-3">
                   <p className="truncate text-sm font-semibold text-[var(--ink-900)]">
                     {result.name}
                   </p>
-                  <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                    {formatBytes(result.size)}
-                  </p>
+                  <dl className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                    {result.originalSize ? <div><dt className="text-[var(--muted-foreground)]">Original</dt><dd className="mt-0.5 font-semibold tabular-nums text-[var(--ink-900)]">{formatBytes(result.originalSize)}</dd></div> : null}
+                    <div><dt className="text-[var(--muted-foreground)]">Output</dt><dd className="mt-0.5 font-semibold tabular-nums text-[var(--ink-900)]">{formatBytes(result.size)}</dd></div>
+                    {result.originalSize ? <div><dt className="text-[var(--muted-foreground)]">Size change</dt><dd className="mt-0.5 font-semibold tabular-nums text-[var(--ink-900)]">{imageSizeChange(result.originalSize, result.size)}</dd></div> : null}
+                    {result.width && result.height ? <div><dt className="text-[var(--muted-foreground)]">Dimensions</dt><dd className="mt-0.5 font-semibold tabular-nums text-[var(--ink-900)]">{result.width}×{result.height}</dd></div> : null}
+                    {result.originalWidth && result.originalHeight ? <div><dt className="text-[var(--muted-foreground)]">Original dimensions</dt><dd className="mt-0.5 font-semibold tabular-nums text-[var(--ink-900)]">{result.originalWidth}×{result.originalHeight}</dd></div> : null}
+                    <div><dt className="text-[var(--muted-foreground)]">Format</dt><dd className="mt-0.5 font-semibold uppercase text-[var(--ink-900)]">{result.name.split(".").pop()}</dd></div>
+                    {result.transparency !== undefined ? <div><dt className="text-[var(--muted-foreground)]">Transparency</dt><dd className="mt-0.5 font-semibold text-[var(--ink-900)]">{result.transparency ? "Present" : "None detected"}</dd></div> : null}
+                  </dl>
+                  {result.originalSize && result.size > result.originalSize ? (
+                    <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">This output is larger than the source. Lower quality, reduce dimensions, or choose WebP/AVIF when a smaller file is the goal.</p>
+                  ) : null}
                 </div>
               </div>
             ))}
+            {results.length ? <Button variant="secondary" className={`w-full ${results.length > 1 ? "sm:col-span-2" : ""}`} onClick={resetWorkbench}>Process another image</Button> : null}
           </div>
         ) : (
           <div className="mt-4 flex min-h-72 items-center justify-center rounded-xl border border-dashed border-[var(--outline-strong)] px-5 text-center text-sm text-[var(--muted-foreground)]">

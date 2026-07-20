@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { trackSearch } from "@/lib/analytics";
 
@@ -22,6 +22,25 @@ export default function SearchBar({
   const large = size === "lg";
   const inputLabel = "Search tools";
   const lastTrackedQueryRef = useRef("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function focusSearch(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const editing =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable;
+
+      if (event.key === "/" && !editing) {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+    }
+
+    window.addEventListener("keydown", focusSearch);
+    return () => window.removeEventListener("keydown", focusSearch);
+  }, []);
 
   function maybeTrackQuery(nextValue: string) {
     const normalized = nextValue.trim();
@@ -52,6 +71,7 @@ export default function SearchBar({
           </svg>
         </span>
         <Input
+          ref={inputRef}
           type="search"
           value={value}
           onChange={(event) => onChange?.(event.target.value)}
@@ -63,8 +83,13 @@ export default function SearchBar({
           }}
           placeholder={placeholder}
           aria-label={inputLabel}
-          className={large ? "h-14 rounded-2xl pl-14 pr-6 text-base shadow-[var(--shadow-lift)]" : "pl-14 pr-6"}
+          className={large ? "h-16 rounded-2xl border-[var(--outline-strong)] pl-14 pr-16 text-base shadow-[var(--shadow-soft)] sm:text-lg" : "pl-14 pr-6"}
         />
+        {large ? (
+          <span className="pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-2 py-1 text-xs font-semibold text-[var(--muted-foreground)] sm:inline-flex">
+            /
+          </span>
+        ) : null}
       </label>
     </div>
   );

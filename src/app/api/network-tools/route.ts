@@ -59,6 +59,16 @@ const allowedPorts = [
   8080, 8443,
 ];
 
+const allowedActions = new Set([
+  "html-content-scraper",
+  "broken-link-checker",
+  "sitemap-builder",
+  "dns-inspector",
+  "port-scanner",
+  "ping-monitor",
+  "whois-lookup",
+]);
+
 function isBlockedAddress(address: string) {
   const normalized = address.toLowerCase().replace(/^::ffff:/, "");
   if (normalized.includes(":"))
@@ -142,7 +152,7 @@ async function safeRequest(
       {
         method,
         headers: {
-          "user-agent": "ToolsWebsite-NetworkUtility/1.0",
+          "user-agent": "Webutilia-NetworkUtility/1.0",
           accept:
             "text/html,application/xhtml+xml,application/json;q=0.8,*/*;q=0.5",
         },
@@ -273,8 +283,14 @@ export async function POST(request: Request) {
     const action = String(body.action ?? "");
     const input = String(body.input ?? "").trim();
     if (!input) throw new Error("Enter a URL or domain.");
+    if (input.length > 2048) throw new Error("Keep the URL or domain under 2,048 characters.");
+    if (!allowedActions.has(action)) throw new Error("Unknown network utility.");
     if (action === "html-content-scraper") {
       const page = await safeRequest(input);
+      const contentType = String(page.headers["content-type"] ?? "").toLowerCase();
+      if (!contentType.includes("text/html") && !contentType.includes("application/xhtml+xml")) {
+        throw new Error("The destination did not return an HTML page.");
+      }
       const blocks = [
         ...page.body.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/gi),
       ]
@@ -296,7 +312,8 @@ export async function POST(request: Request) {
           ...(await Promise.all(
             links.slice(index, index + 5).map(async (url) => {
               try {
-                const response = await safeRequest(url, "HEAD");
+                let response = await safeRequest(url, "HEAD");
+                if (response.status === 405) response = await safeRequest(url, "GET");
                 return {
                   url,
                   status: response.status,
@@ -323,6 +340,7 @@ export async function POST(request: Request) {
     }
     if (action === "sitemap-builder") {
       const start = new URL(input);
+      if (!["http:", "https:"].includes(start.protocol)) throw new Error("Only HTTP and HTTPS URLs are supported.");
       const origin = start.origin;
       const queue = [start.toString()];
       const visited = new Set<string>();

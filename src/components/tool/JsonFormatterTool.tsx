@@ -70,7 +70,7 @@ export default function JsonFormatterTool() {
         <Textarea
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder='{"name":"ToolsWebsite","type":"formatter"}'
+          placeholder='{"name":"Webutilia","type":"formatter"}'
           className="mt-5 min-h-[360px] font-mono text-sm"
         />
         <div className="mt-4 flex flex-wrap gap-3">
