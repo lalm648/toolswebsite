@@ -11,6 +11,10 @@ import http from "node:http";
 import https from "node:https";
 import net from "node:net";
 import { NextResponse } from "next/server";
+import {
+  extractPageLinks,
+  extractReadableHtml,
+} from "@/lib/server/html-tools";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -155,6 +159,7 @@ async function safeRequest(
           "user-agent": "Webutilia-NetworkUtility/1.0",
           accept:
             "text/html,application/xhtml+xml,application/json;q=0.8,*/*;q=0.5",
+          "accept-encoding": "identity",
         },
         lookup: (_hostname, _options, callback) =>
           callback(null, resolved.address, resolved.family),
@@ -206,35 +211,6 @@ async function safeRequest(
   };
 }
 
-function extractLinks(html: string, baseUrl: string) {
-  const links = new Set<string>();
-  const expression = /<a\b[^>]*?href\s*=\s*["']([^"'#]+)["']/gi;
-  let match: RegExpExecArray | null;
-  while ((match = expression.exec(html)) && links.size < 100) {
-    try {
-      const url = new URL(match[1], baseUrl);
-      if (["http:", "https:"].includes(url.protocol)) {
-        url.hash = "";
-        links.add(url.toString());
-      }
-    } catch {}
-  }
-  return [...links];
-}
-function cleanText(value: string) {
-  return value
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 function parseDomain(value: string) {
   const trimmed = value
     .trim()
@@ -291,21 +267,18 @@ export async function POST(request: Request) {
       if (!contentType.includes("text/html") && !contentType.includes("application/xhtml+xml")) {
         throw new Error("The destination did not return an HTML page.");
       }
-      const blocks = [
-        ...page.body.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/gi),
-      ]
-        .map((match) => cleanText(match[2]))
-        .filter((value) => value.length > 20)
-        .slice(0, 100);
+      const report = extractReadableHtml(page.body);
       return NextResponse.json({
         url: page.url,
         status: page.status,
-        content: blocks.join("\n\n"),
+        contentType,
+        bytes: Buffer.byteLength(page.body),
+        ...report,
       });
     }
     if (action === "broken-link-checker") {
       const page = await safeRequest(input);
-      const links = extractLinks(page.body, page.url).slice(0, 30);
+      const links = extractPageLinks(page.body, page.url, 30);
       const results = [];
       for (let index = 0; index < links.length; index += 5) {
         results.push(
@@ -313,7 +286,9 @@ export async function POST(request: Request) {
             links.slice(index, index + 5).map(async (url) => {
               try {
                 let response = await safeRequest(url, "HEAD");
-                if (response.status === 405) response = await safeRequest(url, "GET");
+                if (response.status >= 400) {
+                  response = await safeRequest(url, "GET");
+                }
                 return {
                   url,
                   status: response.status,
@@ -341,27 +316,57 @@ export async function POST(request: Request) {
     if (action === "sitemap-builder") {
       const start = new URL(input);
       if (!["http:", "https:"].includes(start.protocol)) throw new Error("Only HTTP and HTTPS URLs are supported.");
-      const origin = start.origin;
+      start.hash = "";
       const queue = [start.toString()];
-      const visited = new Set<string>();
+      const attempted = new Set<string>();
+      const successful = new Set<string>();
+      let crawlOrigin = "";
+      let failed = 0;
       // Stay comfortably under the 30s function limit even if pages are slow.
       const deadline = Date.now() + 22_000;
-      while (queue.length && visited.size < 25 && Date.now() < deadline) {
+      while (queue.length && attempted.size < 25 && Date.now() < deadline) {
         // Fetch up to 4 pages per round so a few slow pages can't serialize
         // into a function timeout.
-        const batch = queue.splice(0, 4).filter((url) => !visited.has(url));
-        batch.forEach((url) => visited.add(url));
+        const batch = queue.splice(0, 4).filter((url) => !attempted.has(url));
+        batch.forEach((url) => attempted.add(url));
         const pages = await Promise.all(
           batch.map((url) => safeRequest(url).catch(() => null)),
         );
         for (const page of pages) {
-          if (!page) continue;
-          for (const link of extractLinks(page.body, page.url)) {
+          const contentType = String(
+            page?.headers["content-type"] ?? "",
+          ).toLowerCase();
+          if (
+            !page ||
+            page.status < 200 ||
+            page.status >= 400 ||
+            (!contentType.includes("text/html") &&
+              !contentType.includes("application/xhtml+xml"))
+          ) {
+            failed += 1;
+            continue;
+          }
+          const resolvedPage = new URL(page.url);
+          resolvedPage.hash = "";
+          if (!crawlOrigin) crawlOrigin = resolvedPage.origin;
+          if (resolvedPage.origin !== crawlOrigin) {
+            failed += 1;
+            continue;
+          }
+          successful.add(resolvedPage.toString());
+          for (const link of extractPageLinks(page.body, page.url)) {
             try {
               const parsed = new URL(link);
+              parsed.hash = "";
+              const isLikelyAsset =
+                /\.(?:avif|bmp|css|csv|docx?|eot|gif|ico|jpe?g|js|json|m4a|mov|mp3|mp4|ogg|otf|pdf|png|pptx?|rar|svg|tar|tiff?|ttf|wav|webm|webp|woff2?|xlsx?|xml|zip)$/i.test(
+                  parsed.pathname,
+                );
               if (
-                parsed.origin === origin &&
-                !visited.has(parsed.toString()) &&
+                parsed.origin === crawlOrigin &&
+                !isLikelyAsset &&
+                !attempted.has(parsed.toString()) &&
+                !queue.includes(parsed.toString()) &&
                 queue.length < 50
               )
                 queue.push(parsed.toString());
@@ -369,8 +374,15 @@ export async function POST(request: Request) {
           }
         }
       }
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...visited].map((url) => `  <url><loc>${url.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</loc></url>`).join("\n")}\n</urlset>`;
-      return NextResponse.json({ pages: visited.size, xml });
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...successful].map((url) => `  <url><loc>${url.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</loc></url>`).join("\n")}\n</urlset>`;
+      return NextResponse.json({
+        pages: successful.size,
+        attempted: attempted.size,
+        failed,
+        truncated: queue.length > 0 || Date.now() >= deadline,
+        origin: crawlOrigin || start.origin,
+        xml,
+      });
     }
     if (action === "dns-inspector") {
       const domain = parseDomain(input);

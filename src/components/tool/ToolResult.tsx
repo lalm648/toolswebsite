@@ -19,7 +19,7 @@ export default function ToolResult({
       <CardContent className="p-6 sm:p-7">
         <div className="text-center">
           <div
-            className={`mx-auto flex h-18 w-18 items-center justify-center rounded-[1.4rem] bg-[var(--ink-900)] text-white ${
+            className={`mx-auto flex h-18 w-18 items-center justify-center rounded-[1.4rem] border border-[var(--outline-strong)] bg-[var(--surface-cta)] text-[var(--accent-300)] shadow-[var(--shadow-soft)] ${
               isProcessing ? "motion-float" : ""
             }`}
           >

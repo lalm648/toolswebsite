@@ -30,8 +30,28 @@ function extension(fileName: string) {
       .replace(/[^a-z0-9]/g, "") || "bin"
   );
 }
-function replaceExtension(fileName: string, next: string) {
-  return `${fileName.replace(/\.[^.]+$/, "")}.${next}`;
+function mediaOutputName(
+  slug: string,
+  fileName: string,
+  outputExtension: string,
+  speed: number,
+) {
+  const base = fileName.replace(/\.[^.]+$/, "");
+  const suffix: Record<string, string> = {
+    "video-compressor": "compressed",
+    "audio-extractor": "audio",
+    "video-format-transpiler": "transpiled",
+    "thumbnail-grabber": "thumbnail",
+    "video-clipper": "clip",
+    "video-muter": "muted",
+    "subtitles-burner": "captioned",
+    "audio-format-switcher": "converted",
+  };
+  const operation =
+    slug === "video-speed-adjuster"
+      ? `${Number(speed.toFixed(2))}x`
+      : suffix[slug] ?? "processed";
+  return `${base}-${operation}.${outputExtension}`;
 }
 function download(result: MediaResult) {
   const anchor = document.createElement("a");
@@ -122,7 +142,13 @@ function encodeWav(channelData: Float32Array[], sampleRate: number) {
   return new Uint8Array(buffer);
 }
 
-async function analyzeBpm(file: File) {
+type BpmAnalysis = {
+  bpm: number;
+  detectedPeaks: number;
+  alternatives: number[];
+};
+
+async function analyzeBpm(file: File): Promise<BpmAnalysis> {
   const context = new AudioContext();
   try {
     const audio = await context.decodeAudioData(await file.arrayBuffer());
@@ -166,9 +192,18 @@ async function analyzeBpm(file: File) {
         const rounded = Math.round(bpm);
         histogram.set(rounded, (histogram.get(rounded) ?? 0) + 1);
       }
-    const best = [...histogram].sort((a, b) => b[1] - a[1])[0]?.[0];
+    const ranked = [...histogram].sort((a, b) => b[1] - a[1]);
+    const best = ranked[0]?.[0];
     if (!best) throw new Error("Not enough rhythmic peaks were found.");
-    return best;
+    return {
+      bpm: best,
+      detectedPeaks: peaks.length,
+      alternatives: ranked
+        .slice(1)
+        .map(([value]) => value)
+        .filter((value) => Math.abs(value - best) > 2)
+        .slice(0, 3),
+    };
   } finally {
     void context.close();
   }
@@ -190,6 +225,7 @@ export default function MediaUtilityWorkbench({
   const [speed, setSpeed] = useState(1);
   const [targetSize, setTargetSize] = useState(25);
   const [analysis, setAnalysis] = useState("");
+  const [bpmAnalysis, setBpmAnalysis] = useState<BpmAnalysis | null>(null);
   const [mediaInfo, setMediaInfo] = useState("");
   const [mediaDetails, setMediaDetails] = useState<MediaDetails | null>(null);
   const [sourceUrls, setSourceUrls] = useState<string[]>([]);
@@ -197,15 +233,29 @@ export default function MediaUtilityWorkbench({
   const [sampleRate, setSampleRate] = useState(44100);
   const [channels, setChannels] = useState(2);
   const [targetPeakDb, setTargetPeakDb] = useState(-1);
+  const [combineMode, setCombineMode] = useState<"sequence" | "mix">("sequence");
+  const [trackDurations, setTrackDurations] = useState<number[]>([]);
   const ffmpegRef = useRef<import("@ffmpeg/ffmpeg").FFmpeg | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const recordingStartedAtRef = useRef(0);
+  const recordingAccumulatedRef = useRef(0);
+  const recordingPausedRef = useRef(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const levelFrameRef = useRef<number | null>(null);
   const [recording, setRecording] = useState(false);
+  const [recordingPaused, setRecordingPaused] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [recordingName, setRecordingName] = useState("voice-recording");
+  const [inputLevel, setInputLevel] = useState(0);
   const canceledRef = useRef(false);
   useEffect(() => {
     return () => {
       ffmpegRef.current?.terminate();
       recorderRef.current?.stream.getTracks().forEach((track) => track.stop());
+      if (levelFrameRef.current !== null)
+        cancelAnimationFrame(levelFrameRef.current);
+      void audioContextRef.current?.close();
     };
   }, []);
   useEffect(() => {
@@ -235,10 +285,12 @@ export default function MediaUtilityWorkbench({
     const nextUrls = next.map((file) => URL.createObjectURL(file));
     setSourceUrls(nextUrls);
     setAnalysis("");
+    setBpmAnalysis(null);
     setProgress(0);
     if (!next.length) {
       setMediaInfo("");
       setMediaDetails(null);
+      setTrackDurations([]);
       return;
     }
     try {
@@ -258,8 +310,11 @@ export default function MediaUtilityWorkbench({
       }));
       const first = items[0];
       const duration = multiple
-        ? items.reduce((sum, item) => sum + item.duration, 0)
+        ? combineMode === "mix"
+          ? Math.max(...items.map((item) => item.duration), 0)
+          : items.reduce((sum, item) => sum + item.duration, 0)
         : first.duration;
+      setTrackDurations(items.map((item) => item.duration));
       if (first.duration > 0) setEnd(Number(first.duration.toFixed(2)));
       const size = next.reduce((sum, file) => sum + file.size, 0);
       const details = {
@@ -302,6 +357,7 @@ export default function MediaUtilityWorkbench({
     setBusy(true);
     setError("");
     setAnalysis("");
+    setBpmAnalysis(null);
     setProgress(0);
     try {
       if (!files.length) throw new Error("Choose a media file first.");
@@ -311,8 +367,9 @@ export default function MediaUtilityWorkbench({
       if (slug === "bpm-detector") {
         const bpm = await analyzeBpm(files[0]);
         if (canceledRef.current) throw new Error("Processing canceled.");
+        setBpmAnalysis(bpm);
         setAnalysis(
-          `Estimated tempo: ${bpm} BPM\n\nThis is an energy-peak estimate. Tracks with syncopation, long intros, or changing tempo may need manual verification.`,
+          `Estimated tempo: ${bpm.bpm} BPM\nDetected rhythmic peaks: ${bpm.detectedPeaks}${bpm.alternatives.length ? `\nAlternative candidates: ${bpm.alternatives.join(", ")} BPM` : ""}\n\nThis is an energy-peak estimate. Tracks with syncopation, long intros, or changing tempo may need manual verification.`,
         );
         return;
       }
@@ -536,7 +593,7 @@ export default function MediaUtilityWorkbench({
           outputName,
         ];
       } else if (slug === "audio-joiner") {
-        outputName = `joined.${format}`;
+        outputName = `${combineMode === "mix" ? "mixed" : "joined"}.${format}`;
         mime = audioMime(format);
         const inputs = inputNames.flatMap((name) => ["-i", name]);
         const channelLayout = channels === 1 ? "mono" : "stereo";
@@ -547,10 +604,14 @@ export default function MediaUtilityWorkbench({
           )
           .join(";");
         const streams = inputNames.map((_, index) => `[a${index}]`).join("");
+        const combination =
+          combineMode === "mix"
+            ? `${streams}amix=inputs=${inputNames.length}:duration=longest:dropout_transition=2:normalize=1[a]`
+            : `${streams}concat=n=${inputNames.length}:v=0:a=1[a]`;
         args = [
           ...inputs,
           "-filter_complex",
-          `${normalizedStreams};${streams}concat=n=${inputNames.length}:v=0:a=1[a]`,
+          `${normalizedStreams};${combination}`,
           "-map",
           "[a]",
           ...audioEncodingArgs(format, bitrate, sampleRate, channels),
@@ -584,8 +645,13 @@ export default function MediaUtilityWorkbench({
       setBlob(
         new Blob([new Uint8Array(data).buffer], { type: mime }),
         slug === "audio-joiner"
-          ? `joined-${files.length}-tracks.${format}`
-          : replaceExtension(files[0].name, outputName.split(".").pop() ?? "bin"),
+          ? `${combineMode === "mix" ? "mixed" : "joined"}-${files.length}-tracks.${format}`
+          : mediaOutputName(
+              slug,
+              files[0].name,
+              outputName.split(".").pop() ?? "bin",
+              speed,
+            ),
       );
     } catch (caught) {
       setError(
@@ -621,21 +687,61 @@ export default function MediaUtilityWorkbench({
     setSourceUrls([]);
     setSubtitle(null);
     setAnalysis("");
+    setBpmAnalysis(null);
     setMediaInfo("");
     setMediaDetails(null);
+    setTrackDurations([]);
     setError("");
     setProgress(0);
+    setRecordingSeconds(0);
+    setRecordingPaused(false);
+    recordingPausedRef.current = false;
+  }
+  function stopLevelMeter() {
+    if (levelFrameRef.current !== null) {
+      cancelAnimationFrame(levelFrameRef.current);
+      levelFrameRef.current = null;
+    }
+    setInputLevel(0);
+  }
+  function updateRecordingClock() {
+    const active = recordingStartedAtRef.current
+      ? performance.now() - recordingStartedAtRef.current
+      : 0;
+    setRecordingSeconds((recordingAccumulatedRef.current + active) / 1000);
   }
   async function toggleRecording() {
     if (recording) {
+      if (!recordingPaused) {
+        recordingAccumulatedRef.current +=
+          performance.now() - recordingStartedAtRef.current;
+      }
       recorderRef.current?.stop();
       setRecording(false);
+      setRecordingPaused(false);
+      recordingPausedRef.current = false;
+      setRecordingSeconds(recordingAccumulatedRef.current / 1000);
+      stopLevelMeter();
       return;
     }
     try {
+      clearResult();
+      setError("");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const preferredMime = [
+        "audio/webm;codecs=opus",
+        "audio/mp4",
+        "audio/ogg;codecs=opus",
+      ].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(
+        stream,
+        preferredMime ? { mimeType: preferredMime } : undefined,
+      );
       chunksRef.current = [];
+      recordingAccumulatedRef.current = 0;
+      recordingStartedAtRef.current = performance.now();
+      setRecordingSeconds(0);
+      recordingPausedRef.current = false;
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
@@ -643,14 +749,71 @@ export default function MediaUtilityWorkbench({
         const blob = new Blob(chunksRef.current, {
           type: recorder.mimeType || "audio/webm",
         });
-        setBlob(blob, "voice-recording.webm");
+        const fileExtension = recorder.mimeType.includes("mp4")
+          ? "m4a"
+          : recorder.mimeType.includes("ogg")
+            ? "ogg"
+            : "webm";
+        const safeName =
+          recordingName.trim().replace(/[^a-z0-9_-]+/gi, "-") ||
+          "voice-recording";
+        setBlob(blob, `${safeName}.${fileExtension}`);
         stream.getTracks().forEach((track) => track.stop());
+        stopLevelMeter();
+        void audioContextRef.current?.close();
+        audioContextRef.current = null;
       };
       recorderRef.current = recorder;
-      recorder.start();
+      const context = new AudioContext();
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 256;
+      context.createMediaStreamSource(stream).connect(analyser);
+      audioContextRef.current = context;
+      const samples = new Uint8Array(analyser.fftSize);
+      let previousUpdate = 0;
+      const measureLevel = (time: number) => {
+        analyser.getByteTimeDomainData(samples);
+        let energy = 0;
+        for (const sample of samples) {
+          const centered = (sample - 128) / 128;
+          energy += centered * centered;
+        }
+        if (time - previousUpdate > 80) {
+          if (recordingPausedRef.current) {
+            setInputLevel(0);
+          } else {
+            setInputLevel(Math.min(1, Math.sqrt(energy / samples.length) * 3.5));
+            updateRecordingClock();
+          }
+          previousUpdate = time;
+        }
+        levelFrameRef.current = requestAnimationFrame(measureLevel);
+      };
+      levelFrameRef.current = requestAnimationFrame(measureLevel);
+      recorder.start(500);
       setRecording(true);
+      setRecordingPaused(false);
+      recordingPausedRef.current = false;
     } catch {
       setError("Microphone permission was not granted.");
+    }
+  }
+  function toggleRecordingPause() {
+    const recorder = recorderRef.current;
+    if (!recorder || !recording) return;
+    if (recordingPaused) {
+      recorder.resume();
+      recordingStartedAtRef.current = performance.now();
+      setRecordingPaused(false);
+      recordingPausedRef.current = false;
+    } else {
+      recorder.pause();
+      recordingAccumulatedRef.current +=
+        performance.now() - recordingStartedAtRef.current;
+      setRecordingSeconds(recordingAccumulatedRef.current / 1000);
+      setRecordingPaused(true);
+      recordingPausedRef.current = true;
+      setInputLevel(0);
     }
   }
   function moveTrack(index: number, offset: number) {
@@ -660,10 +823,11 @@ export default function MediaUtilityWorkbench({
     [next[index], next[target]] = [next[target], next[index]];
     void selectFiles(next);
   }
-  const isAudio =
-    slug.startsWith("audio-") ||
-    slug === "bpm-detector" ||
-    slug === "volume-normalizer";
+  const sourceIsAudio =
+    slug !== "audio-extractor" &&
+    (slug.startsWith("audio-") ||
+      slug === "bpm-detector" ||
+      slug === "volume-normalizer");
   const multiple = slug === "audio-joiner";
   const configurableAudio = ["audio-extractor", "audio-format-switcher", "audio-joiner"].includes(slug);
   const estimatedSize = mediaDetails
@@ -674,8 +838,10 @@ export default function MediaUtilityWorkbench({
       ? "Detect BPM"
       : slug === "volume-normalizer"
         ? "Normalize audio"
-        : slug === "audio-joiner"
-          ? "Join tracks"
+      : slug === "audio-joiner"
+          ? combineMode === "mix"
+            ? "Mix tracks together"
+            : "Join tracks in order"
           : slug === "audio-format-switcher"
             ? "Convert audio"
             : slug === "audio-extractor"
@@ -683,41 +849,87 @@ export default function MediaUtilityWorkbench({
               : "Process media";
   if (slug === "voice-recorder")
     return (
-      <section className="mx-auto max-w-2xl rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 text-center shadow-[var(--shadow-soft)]">
-        <div
-          className={`mx-auto h-20 w-20 rounded-full ${recording ? "motion-pulse-ring bg-red-500" : "bg-[var(--accent-100)]"}`}
-        />
-        <h2 className="mt-5 text-2xl font-semibold text-[var(--ink-900)]">
-          {recording ? "Recording…" : "Ready to record"}
-        </h2>
-        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-          Microphone audio stays in this browser session.
-        </p>
-        <Button className="mt-6" onClick={() => void toggleRecording()}>
-          {recording ? "Stop and save" : "Start recording"}
-        </Button>
+      <section className="mx-auto max-w-3xl overflow-hidden rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
+        <div className="bg-[linear-gradient(145deg,var(--surface-cta),var(--accent-700))] p-6 text-center text-white sm:p-8">
+          <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">
+            <span className={`h-2 w-2 rounded-full ${recording && !recordingPaused ? "motion-pulse-ring bg-red-400" : "bg-white/60"}`} />
+            {recording ? (recordingPaused ? "Paused" : "Recording locally") : result ? "Take complete" : "Microphone studio"}
+          </div>
+          <p className="mt-6 font-mono text-5xl font-semibold tabular-nums tracking-tight sm:text-6xl">
+            {Math.floor(recordingSeconds / 60).toString().padStart(2, "0")}:
+            {Math.floor(recordingSeconds % 60).toString().padStart(2, "0")}
+          </p>
+          <div
+            className="mx-auto mt-7 flex h-20 max-w-xl items-end justify-center gap-1 rounded-2xl border border-white/15 bg-black/10 px-4 py-3"
+            aria-label={`Microphone input level ${Math.round(inputLevel * 100)} percent`}
+          >
+            {Array.from({ length: 28 }, (_, index) => {
+              const centerDistance = Math.abs(index - 13.5) / 13.5;
+              const shape = 0.35 + (1 - centerDistance) * 0.65;
+              const activeHeight = recordingPaused
+                ? 10
+                : Math.max(10, inputLevel * shape * 100);
+              return (
+                <span
+                  key={index}
+                  className="w-1.5 rounded-full bg-white/80 transition-[height] duration-75"
+                  style={{ height: `${activeHeight}%` }}
+                />
+              );
+            })}
+          </div>
+          <p className="mt-3 text-xs text-white/70">
+            {recording
+              ? recordingPaused
+                ? "Resume when you are ready to continue this take."
+                : "Speak naturally and keep the level moving below its maximum."
+              : "Your microphone stream and recording stay in this browser session."}
+          </p>
+        </div>
+        <div className="p-5 sm:p-6">
+          <label className="block text-left text-sm font-medium text-[var(--ink-900)]">
+            Recording name
+            <Input
+              className="mt-2"
+              value={recordingName}
+              maxLength={80}
+              disabled={recording}
+              onChange={(event) => setRecordingName(event.target.value)}
+            />
+          </label>
+          <div className="mt-4 flex flex-col justify-center gap-2 sm:flex-row">
+            <Button onClick={() => void toggleRecording()}>
+              {recording ? "Stop and save" : result ? "Record a new take" : "Start recording"}
+            </Button>
+            {recording ? (
+              <Button variant="secondary" onClick={toggleRecordingPause}>
+                {recordingPaused ? "Resume recording" : "Pause recording"}
+              </Button>
+            ) : null}
+          </div>
         {result ? (
-          <div className="mx-auto mt-5 max-w-lg text-left">
+          <div className="mx-auto mt-5 max-w-xl text-left">
             <AudioPreview
               src={result.url}
               title={result.name}
               tone="result"
-              metadata={{ size: result.size, format: extension(result.name) }}
+              metadata={{
+                size: result.size,
+                format: extension(result.name),
+                duration: recordingSeconds,
+              }}
             />
           </div>
         ) : null}
         {result ? (
-          <Button
-            variant="secondary"
-            className="mt-3 sm:ml-3"
-            onClick={() => download(result)}
-          >
-            Download recording
-          </Button>
+          <div className="mt-3 flex flex-col justify-center gap-2 sm:flex-row">
+            <Button onClick={() => download(result)}>Download recording</Button>
+            <Button variant="ghost" onClick={resetWorkbench}>Reset</Button>
+          </div>
         ) : null}
-        {result ? <Button variant="ghost" className="mt-3 sm:ml-3" onClick={resetWorkbench}>Reset</Button> : null}
         <PrivacyNotice />
         <WorkbenchError message={error} />
+        </div>
       </section>
     );
   return (
@@ -727,20 +939,20 @@ export default function MediaUtilityWorkbench({
           Media source
         </h2>
         <FileDropzone
-          accept={isAudio ? "audio/*,.flac,.m4a,.aac,.ogg,.wav,.mp3" : "video/*,.mkv,.mov,.webm,.mp4,.m4v,.avi"}
+          accept={sourceIsAudio ? "audio/*,.flac,.m4a,.aac,.ogg,.wav,.mp3" : "video/*,.mkv,.mov,.webm,.mp4,.m4v,.avi"}
           files={files}
           multiple={multiple}
           maxFiles={multiple ? 20 : 1}
           maxFileSize={1024 * 1024 * 1024}
           maxTotalSize={1.5 * 1024 * 1024 * 1024}
           disabled={busy}
-          label={multiple ? "Choose audio tracks" : `Choose ${isAudio ? "audio" : "video"}`}
-          hint={isAudio ? "MP3, WAV, AAC, M4A, OGG, FLAC, or WebM audio" : "MP4, WebM, MOV, MKV, M4V, or AVI"}
+          label={multiple ? "Choose audio tracks" : `Choose ${sourceIsAudio ? "audio" : "video"}`}
+          hint={sourceIsAudio ? "MP3, WAV, AAC, M4A, OGG, FLAC, or WebM audio" : "MP4, WebM, MOV, MKV, M4V, or AVI"}
           onError={setError}
           onFiles={(next) => void selectFiles(next)}
         />
         {mediaInfo ? <p className="mt-2 text-xs text-[var(--muted-foreground)]">{mediaInfo}</p> : null}
-        {isAudio && files.length && sourceUrls[0] ? (
+        {sourceIsAudio && files.length && sourceUrls[0] ? (
           <div className="mt-4">
             <AudioPreview
               src={sourceUrls[0]}
@@ -774,6 +986,60 @@ export default function MediaUtilityWorkbench({
               ))}
             </ol>
           </div>
+        ) : null}
+        {slug === "audio-joiner" ? (
+          <fieldset className="mt-4">
+            <legend className="text-sm font-medium text-[var(--ink-900)]">
+              Combine mode
+            </legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {(
+                [
+                  {
+                    value: "sequence",
+                    title: "Join in sequence",
+                    detail: "Track 2 starts after track 1 ends.",
+                  },
+                  {
+                    value: "mix",
+                    title: "Mix simultaneously",
+                    detail: "All tracks start together and are balanced.",
+                  },
+                ] as const
+              ).map((mode) => (
+                <button
+                  key={mode.value}
+                  type="button"
+                  disabled={busy}
+                  className={`rounded-xl border p-3 text-left transition ${
+                    combineMode === mode.value
+                      ? "border-[var(--accent-400)] bg-[var(--accent-50)] ring-1 ring-[var(--accent-300)]"
+                      : "border-[var(--outline-soft)] bg-[var(--surface-raised)] hover:border-[var(--accent-300)]"
+                  }`}
+                  onClick={() => {
+                    setCombineMode(mode.value);
+                    if (mediaDetails && trackDurations.length) {
+                      const duration =
+                        mode.value === "mix"
+                          ? Math.max(...trackDurations)
+                          : trackDurations.reduce((sum, value) => sum + value, 0);
+                      setMediaDetails({ ...mediaDetails, duration });
+                      setMediaInfo(
+                        `${files.length} tracks · ${duration.toFixed(2)} seconds · ${formatBytes(mediaDetails.size)}`,
+                      );
+                    }
+                  }}
+                >
+                  <span className="block text-xs font-bold text-[var(--ink-900)]">
+                    {mode.title}
+                  </span>
+                  <span className="mt-1 block text-[11px] leading-5 text-[var(--muted-foreground)]">
+                    {mode.detail}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
         ) : null}
         {configurableAudio ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -945,9 +1211,59 @@ export default function MediaUtilityWorkbench({
           ) : null}
         </div>
         {analysis ? (
-          <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-5 text-sm leading-7">
-            {analysis}
-          </pre>
+          slug === "bpm-detector" && bpmAnalysis ? (
+            <div className="mt-4 space-y-4">
+              <div className="overflow-hidden rounded-xl border border-[var(--outline-soft)] bg-[linear-gradient(145deg,var(--surface-cta),var(--accent-700))] p-6 text-center text-white">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/70">
+                  Estimated tempo
+                </p>
+                <p className="mt-3 text-6xl font-semibold tabular-nums tracking-tight">
+                  {bpmAnalysis.bpm}
+                </p>
+                <p className="mt-1 text-sm font-bold uppercase tracking-[0.18em] text-white/80">
+                  BPM
+                </p>
+                <div className="relative mx-auto mt-6 h-2 max-w-sm rounded-full bg-white/20">
+                  <span
+                    className="absolute top-1/2 h-5 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow"
+                    style={{
+                      left: `${Math.max(0, Math.min(100, ((bpmAnalysis.bpm - 70) / 120) * 100))}%`,
+                    }}
+                  />
+                </div>
+                <div className="mx-auto mt-2 flex max-w-sm justify-between text-[10px] font-semibold text-white/60">
+                  <span>70</span>
+                  <span>130</span>
+                  <span>190</span>
+                </div>
+              </div>
+              <dl className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Tempo feel</dt>
+                  <dd className="mt-1 font-semibold text-[var(--ink-900)]">
+                    {bpmAnalysis.bpm < 90 ? "Slow" : bpmAnalysis.bpm < 120 ? "Moderate" : bpmAnalysis.bpm < 150 ? "Upbeat" : "Fast"}
+                  </dd>
+                </div>
+                <div className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Rhythmic peaks</dt>
+                  <dd className="mt-1 font-semibold tabular-nums text-[var(--ink-900)]">{bpmAnalysis.detectedPeaks}</dd>
+                </div>
+              </dl>
+              {bpmAnalysis.alternatives.length ? (
+                <div className="rounded-xl border border-[var(--accent-200)] bg-[var(--accent-50)] p-4 text-sm text-[var(--accent-700)]">
+                  <p className="font-semibold">Alternative tempo candidates</p>
+                  <p className="mt-1 font-mono">{bpmAnalysis.alternatives.join(" · ")} BPM</p>
+                </div>
+              ) : null}
+              <p className="text-xs leading-5 text-[var(--muted-foreground)]">
+                Energy-peak estimates can vary with syncopation, long intros, or changing tempo. Verify by ear before beat-critical editing.
+              </p>
+            </div>
+          ) : (
+            <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-5 text-sm leading-7">
+              {analysis}
+            </pre>
+          )
         ) : result ? (
           <div className="mt-5">
             <video

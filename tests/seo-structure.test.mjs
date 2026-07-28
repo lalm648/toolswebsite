@@ -42,10 +42,14 @@ test("collection item lists identify linked items with Schema.org item propertie
   }
 });
 
-test("the SEO generator avoids incomplete rich-result presets and old placeholder branding", () => {
+test("the SEO generator validates required fields and does not fabricate rich-result data", () => {
   const generator = source("src/components/tool/MetaTagGeneratorTool.tsx");
+  const builder = source("src/lib/tools/meta-tags.ts");
 
-  assert.doesNotMatch(generator, /jsonLdType: "(?:Product|SoftwareApplication)"/);
   assert.doesNotMatch(generator, /toolswebsite\.example|meta name="keywords"/);
-  assert.match(generator, /incomplete rich-result claims/);
+  assert.match(generator, /hasBlockingErrors/);
+  assert.match(generator, /Structured data must match visible page content/);
+  assert.match(builder, /"@type": "Product"/);
+  assert.match(builder, /"@type": "WebApplication"/);
+  assert.doesNotMatch(builder, /aggregateRating|"review"/);
 });

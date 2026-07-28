@@ -30,8 +30,11 @@ const tabs = [
   { id: "document", label: "PDF" },
   { id: "video", label: "Video" },
   { id: "audio", label: "Audio" },
+  { id: "text", label: "Text" },
   { id: "developer", label: "Developer" },
   { id: "security", label: "Security" },
+  { id: "network", label: "Network" },
+  { id: "seo", label: "SEO" },
   { id: "all", label: "All Tools" },
 ] as const;
 

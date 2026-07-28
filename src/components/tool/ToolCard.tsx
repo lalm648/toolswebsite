@@ -8,7 +8,7 @@ import { trackToolOpen } from "@/lib/analytics";
 
 type ToolCardProps = {
   tool: ToolDefinition;
-  variant?: "standard" | "featured";
+  variant?: "standard" | "featured" | "compact" | "spotlight";
   badge?: string;
 };
 
@@ -36,6 +36,23 @@ const categoryAccentStyles: Record<ToolDefinition["category"], string> = {
   network: "bg-teal-500/12 text-teal-500 ring-1 ring-teal-500/20 group-hover:bg-teal-500 group-hover:text-white group-hover:ring-teal-500/40",
   seo: "bg-fuchsia-500/12 text-fuchsia-500 ring-1 ring-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white group-hover:ring-fuchsia-500/40",
 };
+
+const variedAccentStyles = [
+  "bg-emerald-500/12 text-emerald-600 ring-1 ring-emerald-500/20 group-hover:bg-emerald-600 group-hover:text-white",
+  "bg-cyan-500/12 text-cyan-600 ring-1 ring-cyan-500/20 group-hover:bg-cyan-600 group-hover:text-white",
+  "bg-blue-500/12 text-blue-600 ring-1 ring-blue-500/20 group-hover:bg-blue-600 group-hover:text-white",
+  "bg-violet-500/12 text-violet-600 ring-1 ring-violet-500/20 group-hover:bg-violet-600 group-hover:text-white",
+  "bg-amber-500/12 text-amber-600 ring-1 ring-amber-500/20 group-hover:bg-amber-500 group-hover:text-white",
+  "bg-rose-500/12 text-rose-600 ring-1 ring-rose-500/20 group-hover:bg-rose-600 group-hover:text-white",
+];
+
+function variedAccent(slug: string) {
+  const value = Array.from(slug).reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0,
+  );
+  return variedAccentStyles[value % variedAccentStyles.length];
+}
 
 const iconMap: Record<string, ReactNode> = {
   "jpg-to-png": (
@@ -239,7 +256,42 @@ const categoryLabels: Record<ToolDefinition["category"], string> = {
 
 export default function ToolCard({ tool, variant = "standard", badge }: ToolCardProps) {
   const featured = variant === "featured";
+  const compact = variant === "compact";
+  const spotlight = variant === "spotlight";
   const icon = iconMap[tool.icon] ?? categoryIconMap[tool.category];
+  const accentStyle =
+    tool.category === "image" ? variedAccent(tool.slug) : categoryAccentStyles[tool.category];
+
+  if (compact) {
+    return (
+      <Link
+        href={tool.href}
+        onClick={() => trackToolOpen(tool.slug, tool.category)}
+        aria-label={`Open ${tool.title}, ${categoryLabels[tool.category]} tool`}
+        className="group flex min-h-20 min-w-0 max-w-full items-center gap-3 rounded-xl border border-transparent bg-[var(--surface-raised)] p-3 transition-all hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+      >
+        <span
+          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.7rem] p-2.5 transition-all group-hover:scale-105 ${accentStyle}`}
+        >
+          {icon}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-bold text-[var(--ink-900)] group-hover:text-[var(--accent-700)]">
+            {tool.title}
+          </span>
+          <span className="mt-0.5 block truncate text-[11px] text-[var(--muted-foreground)]">
+            {tool.description}
+          </span>
+        </span>
+        <span
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--outline-soft)] text-sm text-[var(--accent-700)] transition-transform group-hover:translate-x-0.5 group-hover:border-[var(--accent-200)] group-hover:bg-[var(--accent-50)]"
+          aria-hidden="true"
+        >
+          →
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <Link
@@ -250,42 +302,111 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
       aria-label={`Open ${tool.title}, ${categoryLabels[tool.category]} tool`}
       className="group block h-full rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
     >
-      <Card className="h-full border-0 bg-[var(--surface-card)] shadow-[var(--shadow-soft)] transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-lift)]">
-        <CardContent className={`flex h-full flex-col ${featured ? "min-h-52 p-5" : "min-h-44 p-4.5"}`}>
+      <Card
+        className={`relative h-full overflow-hidden transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-lift)] ${
+          spotlight
+            ? "border-0 bg-[var(--surface-cta)] shadow-[0_24px_55px_-36px_rgba(15,23,42,0.9)]"
+            : "border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)] group-hover:border-[var(--outline-strong)]"
+        }`}
+      >
+        {spotlight ? (
+          <>
+            <span
+              className="absolute -right-12 -top-16 h-52 w-52 rounded-full border border-white/10 bg-white/5"
+              aria-hidden="true"
+            />
+            <span
+              className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-violet-400"
+              aria-hidden="true"
+            />
+          </>
+        ) : null}
+        <CardContent
+          className={`relative flex h-full flex-col ${
+            spotlight
+              ? "min-h-64 p-6 sm:p-7"
+              : featured
+                ? "min-h-60 p-5"
+                : "min-h-52 p-5"
+          }`}
+        >
           <div className="flex items-start justify-between gap-3">
             <span
               className={`inline-flex items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-105 ${
-                featured ? "h-12 w-12 p-2.5" : "h-11 w-11 p-2.5"
-              } ${categoryAccentStyles[tool.category]}`}
+                spotlight
+                  ? "h-14 w-14 bg-white/10 p-3 text-white ring-1 ring-white/15"
+                  : featured
+                    ? "h-12 w-12 p-2.5"
+                    : "h-11 w-11 p-2.5"
+              } ${spotlight ? "" : accentStyle}`}
             >
               {icon}
             </span>
             {badge ? (
-              <span className="rounded-full bg-[var(--accent-50)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--accent-700)]">
+              <span
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
+                  spotlight
+                    ? "border border-white/10 bg-white/10 text-white/75"
+                    : "bg-[var(--accent-50)] text-[var(--accent-700)]"
+                }`}
+              >
                 {badge}
               </span>
             ) : null}
           </div>
-          <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
-            {categoryLabels[tool.category]}
+          <p
+            className={`mt-5 line-clamp-1 text-[10px] font-bold uppercase tracking-[0.14em] ${
+              spotlight ? "text-white/50" : "text-[var(--muted-foreground)]"
+            }`}
+          >
+            {tool.meta}
           </p>
           <h3
-            className={`font-bold tracking-tight text-[var(--ink-900)] group-hover:text-[var(--accent-700)] ${
-              featured ? "mt-1.5 text-lg" : "mt-1.5 text-[15px]"
+            className={`font-bold tracking-tight ${
+              spotlight
+                ? "mt-2 text-2xl text-white sm:text-3xl"
+                : featured
+                  ? "mt-1.5 text-lg text-[var(--ink-900)] group-hover:text-[var(--accent-700)]"
+                  : "mt-1.5 text-[15px] text-[var(--ink-900)] group-hover:text-[var(--accent-700)]"
             }`}
           >
             {tool.title}
           </h3>
           <p
-            className={`mt-1.5 text-[var(--muted-foreground)] ${
-              featured ? "text-sm leading-6" : "line-clamp-2 text-[13px] leading-6"
+            className={`mt-2 ${
+              spotlight
+                ? "max-w-xl text-sm leading-6 text-white/65"
+                : featured
+                  ? "text-sm leading-6 text-[var(--muted-foreground)]"
+                  : "line-clamp-2 text-[13px] leading-6 text-[var(--muted-foreground)]"
             }`}
           >
             {tool.description}
           </p>
-          <span className="mt-auto inline-flex items-center justify-between pt-4 text-xs font-bold text-[var(--accent-700)]">
-            Open tool
-            <span className="text-base transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          <span
+            className={`mt-auto inline-flex items-center justify-between pt-5 text-xs font-bold ${
+              spotlight ? "text-white" : "text-[var(--accent-700)]"
+            }`}
+          >
+            <span
+              className={
+                spotlight
+                  ? "rounded-full bg-white px-4 py-2.5 text-slate-950 shadow-lg"
+                  : ""
+              }
+            >
+              {spotlight ? "Start this workflow" : "Open tool"}
+            </span>
+            <span
+              className={`text-base transition-transform group-hover:translate-x-1 ${
+                spotlight
+                  ? "grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/5"
+                  : ""
+              }`}
+              aria-hidden="true"
+            >
+              →
+            </span>
           </span>
         </CardContent>
       </Card>

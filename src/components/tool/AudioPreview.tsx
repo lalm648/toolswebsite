@@ -49,6 +49,17 @@ export default function AudioPreview({
   useEffect(() => {
     let active = true;
     const context = new AudioContext();
+    let closing: Promise<void> | null = null;
+
+    function closeContext() {
+      if (!closing) {
+        closing =
+          context.state === "closed"
+            ? Promise.resolve()
+            : context.close().catch(() => undefined);
+      }
+      return closing;
+    }
 
     async function decode() {
       try {
@@ -88,14 +99,14 @@ export default function AudioPreview({
       } catch {
         // Native audio controls remain useful when Web Audio cannot decode a codec.
       } finally {
-        void context.close();
+        void closeContext();
       }
     }
 
     void decode();
     return () => {
       active = false;
-      void context.close();
+      void closeContext();
     };
   }, [src, metadata?.bitrateKbps, metadata?.duration, metadata?.size]);
 

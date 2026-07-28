@@ -269,7 +269,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "meta-tag-generator",
     title: "Meta Tag Generator",
-    description: "Draft SEO metadata with a simple structure for titles and descriptions.",
+    description: "Build validated search, Open Graph, Twitter, canonical, robots, and page-specific JSON-LD metadata.",
     href: "/tools/seo/meta-tag-generator",
     category: "seo",
     meta: "SEO utility",
@@ -323,7 +323,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "smart-image-cropper",
     title: "Smart Image Cropper",
-    description: "Create centered, feature-aware crops for common social and content aspect ratios.",
+    description: "Find a high-interest crop, apply common aspect ratios, preview it, and export locally.",
     href: "/tools/image/smart-image-cropper",
     category: "image",
     meta: "Smart cropping",
@@ -377,7 +377,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "audio-extractor",
     title: "Audio Extractor",
-    description: "Extract an MP3 or WAV audio track from a video file.",
+    description: "Extract audio from local video as MP3, WAV, FLAC, M4A, AAC, OGG, or WebM.",
     href: "/tools/video/audio-extractor",
     category: "video",
     meta: "Media extraction",
@@ -449,7 +449,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "audio-joiner",
     title: "Audio Joiner",
-    description: "Combine multiple ordered audio tracks into one continuous file.",
+    description: "Join audio in sequence or mix tracks together, then preview and export one file.",
     href: "/tools/audio/audio-joiner",
     category: "audio",
     meta: "Audio editing",
@@ -458,7 +458,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "voice-recorder",
     title: "Voice Recorder & Saver",
-    description: "Capture a microphone stream and save the recording as an audio file.",
+    description: "Record, pause, resume, monitor, preview, and download microphone audio locally.",
     href: "/tools/audio/voice-recorder",
     category: "audio",
     meta: "Recording",
@@ -467,7 +467,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "bpm-detector",
     title: "BPM / Tempo Detector",
-    description: "Estimate the tempo of an audio track from its energy peaks.",
+    description: "Estimate tempo from rhythmic peaks and review BPM candidates in a visual result.",
     href: "/tools/audio/bpm-detector",
     category: "audio",
     meta: "Audio analysis",
@@ -548,7 +548,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "csv-to-json",
     title: "CSV to JSON Migrator",
-    description: "Convert spreadsheet-style CSV rows into structured JSON objects.",
+    description: "Detect common delimiters, validate quoted tabular data, preview rows, and export structured JSON objects.",
     href: "/tools/developer/csv-to-json",
     category: "developer",
     meta: "Data conversion",
@@ -557,7 +557,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "sql-schema-visualizer",
     title: "SQL Schema Visualizer",
-    description: "Parse CREATE TABLE statements into a readable relationship-oriented schema chart.",
+    description: "Turn CREATE TABLE statements into visual table, key, and relationship cards with Mermaid export.",
     href: "/tools/developer/sql-schema-visualizer",
     category: "developer",
     meta: "Database utility",
@@ -566,7 +566,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "code-minifier",
     title: "Code Minifier",
-    description: "Minify JavaScript or CSS by removing comments and unnecessary whitespace.",
+    description: "Parse and minify JavaScript with Terser or CSS with CSSO while preserving valid program syntax.",
     href: "/tools/developer/code-minifier",
     category: "developer",
     meta: "Code optimization",
@@ -638,7 +638,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "hash-calculator",
     title: "Hash Calculator",
-    description: "Calculate SHA-1, SHA-256, SHA-384, or SHA-512 fingerprints for text and files.",
+    description: "Calculate SHA hashes for text or files and verify them against an expected checksum.",
     href: "/tools/security/hash-calculator",
     category: "security",
     meta: "Integrity utility",
@@ -692,7 +692,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "ping-monitor",
     title: "Ping Monitor",
-    description: "Measure repeated HTTP response latency and availability for a public URL.",
+    description: "Measure five HTTP latency samples with availability, average, range, and a visual chart.",
     href: "/tools/network/ping-monitor",
     category: "network",
     meta: "Availability monitoring",

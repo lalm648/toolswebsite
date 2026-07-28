@@ -12,7 +12,14 @@ const desktopLinks = [
   { href: "/tools/document", label: "PDF" },
   { href: "/tools/video", label: "Video" },
   { href: "/tools/developer", label: "Developer" },
-  { href: "/#tool-library", label: "All Tools" },
+];
+
+const moreDesktopLinks = [
+  { href: "/tools/audio", label: "Audio Tools" },
+  { href: "/tools/text", label: "Text Tools" },
+  { href: "/tools/security", label: "Security & Generators" },
+  { href: "/tools/network", label: "Web & Network Tools" },
+  { href: "/tools/seo", label: "SEO Tools" },
 ];
 
 // Full list for the mobile menu.
@@ -39,6 +46,9 @@ function isActiveLink(pathname: string, href: string) {
 export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMoreActive = moreDesktopLinks.some((link) =>
+    isActiveLink(pathname, link.href),
+  );
 
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
@@ -84,6 +94,63 @@ export default function Header() {
                   </Link>
                 );
               })}
+              <details className="group relative">
+                <summary
+                  className={`flex cursor-pointer list-none items-center gap-1 rounded-full px-3 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)] [&::-webkit-details-marker]:hidden ${
+                    isMoreActive
+                      ? "bg-[var(--accent-50)] text-[var(--accent-700)]"
+                      : "text-[var(--muted-foreground)] hover:bg-[var(--accent-50)] hover:text-[var(--accent-700)]"
+                  }`}
+                >
+                  More
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="h-3.5 w-3.5 transition-transform group-open:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    aria-hidden="true"
+                  >
+                    <path d="m4 6 4 4 4-4" />
+                  </svg>
+                </summary>
+                <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-[var(--radius-md)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-2 shadow-[var(--shadow-lift)]">
+                  {moreDesktopLinks.map((link) => {
+                    const isActive = isActiveLink(pathname, link.href);
+
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        aria-current={isActive ? "page" : undefined}
+                        onClick={(event) => {
+                          event.currentTarget
+                            .closest("details")
+                            ?.removeAttribute("open");
+                        }}
+                        className={`block rounded-xl px-3 py-2.5 text-sm font-medium ${
+                          isActive
+                            ? "bg-[var(--accent-50)] text-[var(--accent-700)]"
+                            : "text-[var(--foreground)] hover:bg-[var(--surface-panel)] hover:text-[var(--ink-900)]"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </details>
+              <Link
+                href="/#tool-library"
+                aria-current={pathname === "/" ? "page" : undefined}
+                className={`rounded-full px-3 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)] ${
+                  pathname === "/"
+                    ? "bg-[var(--accent-50)] text-[var(--accent-700)]"
+                    : "text-[var(--muted-foreground)] hover:bg-[var(--accent-50)] hover:text-[var(--accent-700)]"
+                }`}
+              >
+                All Tools
+              </Link>
             </nav>
             <ThemeToggle />
             <Link

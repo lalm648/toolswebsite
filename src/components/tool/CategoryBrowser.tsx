@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import WaitlistBlock from "@/components/lead/WaitlistBlock";
 import ContentSection from "@/components/seo/ContentSection";
 import CategoryHero from "@/components/tool/CategoryHero";
-import ToolsSection from "@/components/tool/ToolsSection";
+import CategoryToolDirectory from "@/components/tool/CategoryToolDirectory";
 import type { CategoryDefinition, ToolDefinition } from "@/lib/data/tools";
 import { categorySeoContent } from "@/lib/seo/content";
 import { siteUrl } from "@/lib/seo/metadata";
@@ -97,15 +97,18 @@ export default function CategoryBrowser({
           __html: JSON.stringify(categoryJsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <CategoryHero category={category} value={query} onChange={setQuery} />
+      <CategoryHero
+        category={category}
+        toolCount={tools.length}
+        value={query}
+        onChange={setQuery}
+      />
 
       <div id="category-tools" className="scroll-mt-24">
-        <ToolsSection
-          title="Choose the workflow you need"
-          description={`Open a focused ${category.title.toLowerCase()} workflow with clear inputs, processing, verification, and final actions.`}
+        <CategoryToolDirectory
+          category={category}
           tools={filteredTools}
           query={query}
-          compact
         />
       </div>
 

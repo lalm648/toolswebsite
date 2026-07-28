@@ -52,7 +52,7 @@ export default function ToolUploader({
       <CardContent className="p-6 sm:p-7">
         <div className="flex flex-col items-center text-center">
           <div
-            className={`relative flex h-18 w-18 items-center justify-center rounded-[1.4rem] bg-[var(--ink-900)] text-white ${
+            className={`relative flex h-18 w-18 items-center justify-center rounded-[1.4rem] border border-[var(--outline-strong)] bg-[var(--surface-cta)] text-[var(--accent-300)] shadow-[var(--shadow-soft)] ${
               isDragActive || isProcessing ? "motion-float" : ""
             }`}
           >

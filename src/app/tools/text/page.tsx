@@ -15,8 +15,8 @@ export default function TextToolsPage() {
   }
 
   return (
-    <section className="py-16 sm:py-20">
-      <Container className="space-y-12">
+    <section className="py-8 sm:py-12">
+      <Container>
         <CategoryBrowser category={category} tools={tools} />
       </Container>
     </section>

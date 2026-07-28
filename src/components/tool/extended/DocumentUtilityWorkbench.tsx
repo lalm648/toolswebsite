@@ -10,10 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { downloadTextFile } from "@/lib/download";
+import {
+  extractPdfPageText,
+  type PdfTextMode,
+} from "@/lib/tools/pdf-text";
 
 type DocumentUtilityWorkbenchProps = { slug: string };
 type BinaryResult = { url: string; name: string; size: number; type: string; pageCount?: number };
 type PdfPageInfo = { counts: number[]; thumbnails: string[] };
+type PdfExtractionStats = {
+  pages: number;
+  textItems: number;
+  words: number;
+  characters: number;
+};
 
 function documentSizeChange(original: number, output: number) {
   if (!original || !output) return "";
@@ -121,6 +131,12 @@ export default function DocumentUtilityWorkbench({
   const [progress, setProgress] = useState(0);
   const [pageSelection, setPageSelection] = useState("");
   const [pdfInfo, setPdfInfo] = useState<PdfPageInfo>({ counts: [], thumbnails: [] });
+  const [pdfTextMode, setPdfTextMode] =
+    useState<PdfTextMode>("reading-order");
+  const [joinHyphenated, setJoinHyphenated] = useState(true);
+  const [includePageHeaders, setIncludePageHeaders] = useState(true);
+  const [extractionStats, setExtractionStats] =
+    useState<PdfExtractionStats | null>(null);
 
   useEffect(
     () => () => {
@@ -177,6 +193,7 @@ export default function DocumentUtilityWorkbench({
     setError("");
     setOutput("");
     setProgress(0);
+    setExtractionStats(null);
     clearResult();
     try {
       if (slug === "pdf-merger") {
@@ -251,6 +268,9 @@ export default function DocumentUtilityWorkbench({
           data: new Uint8Array(await files[0].arrayBuffer()),
         }).promise;
         const pages: string[] = [];
+        let textItems = 0;
+        let words = 0;
+        let characters = 0;
         for (
           let pageNumber = 1;
           pageNumber <= document.numPages;
@@ -258,11 +278,36 @@ export default function DocumentUtilityWorkbench({
         ) {
           const page = await document.getPage(pageNumber);
           const content = await page.getTextContent();
-          pages.push(
-            `--- Page ${pageNumber} ---\n${content.items.map((item) => ("str" in item ? item.str : "")).join(" ")}`,
+          const extracted = extractPdfPageText(
+            content.items.filter(
+              (item): item is import("pdfjs-dist/types/src/display/api").TextItem =>
+                "str" in item,
+            ),
+            { mode: pdfTextMode, joinHyphenated },
           );
+          textItems += extracted.items;
+          words += extracted.words;
+          characters += extracted.characters;
+          if (extracted.text) {
+            pages.push(
+              includePageHeaders
+                ? `--- Page ${pageNumber} ---\n${extracted.text}`
+                : extracted.text,
+            );
+          }
           setProgress(pageNumber / document.numPages);
         }
+        if (!pages.length) {
+          throw new Error(
+            "No embedded text was found. This PDF may contain scanned images and needs OCR, which this extractor does not claim to perform.",
+          );
+        }
+        setExtractionStats({
+          pages: document.numPages,
+          textItems,
+          words,
+          characters,
+        });
         setOutput(pages.join("\n\n"));
       } else if (slug === "file-word-counter") {
         const value = await files[0].text();
@@ -372,6 +417,7 @@ export default function DocumentUtilityWorkbench({
     setProgress(0);
     setPageSelection("");
     setPdfInfo({ counts: [], thumbnails: [] });
+    setExtractionStats(null);
   }
 
   function moveDocument(index: number, offset: number) {
@@ -479,6 +525,65 @@ export default function DocumentUtilityWorkbench({
             <span className="mt-2 block text-xs text-[var(--muted-foreground)]">Leave blank for every page. Ranges are inclusive.</span>
           </label>
         ) : null}
+        {slug === "pdf-text-extractor" ? (
+          <fieldset className="mt-4 space-y-3">
+            <legend className="text-sm font-medium text-[var(--ink-900)]">
+              Extraction settings
+            </legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {(
+                [
+                  {
+                    value: "reading-order",
+                    title: "Reading order",
+                    detail: "Follows the PDF text stream and rebuilds lines.",
+                  },
+                  {
+                    value: "preserve-layout",
+                    title: "Preserve layout",
+                    detail: "Uses page coordinates for columns and tables.",
+                  },
+                ] as const
+              ).map((mode) => (
+                <button
+                  key={mode.value}
+                  type="button"
+                  className={`rounded-xl border p-3 text-left ${
+                    pdfTextMode === mode.value
+                      ? "border-[var(--accent-400)] bg-[var(--accent-50)] ring-1 ring-[var(--accent-300)]"
+                      : "border-[var(--outline-soft)] bg-[var(--surface-raised)]"
+                  }`}
+                  onClick={() => setPdfTextMode(mode.value)}
+                >
+                  <span className="block text-xs font-bold text-[var(--ink-900)]">
+                    {mode.title}
+                  </span>
+                  <span className="mt-1 block text-[11px] leading-5 text-[var(--muted-foreground)]">
+                    {mode.detail}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <label className="flex items-start gap-3 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3 text-xs leading-5">
+              <input
+                className="mt-1 accent-[var(--accent-500)]"
+                type="checkbox"
+                checked={joinHyphenated}
+                onChange={(event) => setJoinHyphenated(event.target.checked)}
+              />
+              Join words broken across lines with a hyphen
+            </label>
+            <label className="flex items-start gap-3 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3 text-xs leading-5">
+              <input
+                className="mt-1 accent-[var(--accent-500)]"
+                type="checkbox"
+                checked={includePageHeaders}
+                onChange={(event) => setIncludePageHeaders(event.target.checked)}
+              />
+              Include page separators in the text output
+            </label>
+          </fieldset>
+        ) : null}
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <Button className="w-full sm:flex-1" disabled={busy || (fileRequired ? !files.length : !text.trim())} onClick={() => void processFiles()}>Process document</Button>
           {files.length || output || result ? <Button type="button" variant="secondary" onClick={resetWorkbench}>Reset</Button> : null}
@@ -529,9 +634,33 @@ export default function DocumentUtilityWorkbench({
             className="mt-4 min-h-96 w-full rounded-xl border border-[var(--outline-soft)] bg-white"
           />
         ) : output ? (
-          <pre className="mt-4 min-h-72 overflow-auto whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
-            {output}
-          </pre>
+          <>
+            {slug === "pdf-text-extractor" && extractionStats ? (
+              <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {[
+                  ["Pages", extractionStats.pages],
+                  ["Text items", extractionStats.textItems],
+                  ["Words", extractionStats.words],
+                  ["Characters", extractionStats.characters],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3"
+                  >
+                    <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">
+                      {label}
+                    </dt>
+                    <dd className="mt-1 font-bold tabular-nums text-[var(--ink-900)]">
+                      {Number(value).toLocaleString()}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+            <pre className="mt-4 min-h-72 overflow-auto whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
+              {output}
+            </pre>
+          </>
         ) : result ? (
           <div className="mt-4">
             {result.type === "application/pdf" ? (

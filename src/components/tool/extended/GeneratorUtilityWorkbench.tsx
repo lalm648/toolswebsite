@@ -82,6 +82,7 @@ export default function GeneratorUtilityWorkbench({
   const [length, setLength] = useState(20);
   const [count, setCount] = useState(5);
   const [algorithm, setAlgorithm] = useState("SHA-256");
+  const [expectedHash, setExpectedHash] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [rules, setRules] = useState({
@@ -190,6 +191,7 @@ export default function GeneratorUtilityWorkbench({
     setImageUrl("");
     setError("");
     setFile(null);
+    setExpectedHash("");
     if (!slug.includes("generator") && slug !== "url-shortener") setInput("");
   }
 
@@ -199,6 +201,11 @@ export default function GeneratorUtilityWorkbench({
     (rules.digits ? 8 : 0) +
     (rules.symbols ? 20 : 0);
   const estimatedEntropy = selectedPoolSize ? Math.floor(length * Math.log2(selectedPoolSize)) : 0;
+  const normalizedExpectedHash = expectedHash.trim().toLowerCase();
+  const hashMatches =
+    slug === "hash-calculator" && output && normalizedExpectedHash
+      ? output.toLowerCase() === normalizedExpectedHash
+      : null;
 
   const title =
     slug === "password-generator"
@@ -291,7 +298,10 @@ export default function GeneratorUtilityWorkbench({
             <select
               className="h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
               value={algorithm}
-              onChange={(event) => setAlgorithm(event.target.value)}
+              onChange={(event) => {
+                setAlgorithm(event.target.value);
+                setOutput("");
+              }}
             >
               {["SHA-1", "SHA-256", "SHA-384", "SHA-512"].map((value) => (
                 <option key={value}>{value}</option>
@@ -313,6 +323,24 @@ export default function GeneratorUtilityWorkbench({
               hint="Any file type · maximum 250 MB"
               disabled={busy}
             />
+            {file ? (
+              <p className="rounded-xl border border-[var(--accent-200)] bg-[var(--accent-50)] px-3 py-2 text-xs leading-5 text-[var(--accent-700)]">
+                File mode is active. The checksum will use <strong>{file.name}</strong>,
+                not the text field.
+              </p>
+            ) : null}
+            <label className="block text-sm font-medium text-[var(--ink-900)]">
+              Expected hash <span className="font-normal text-[var(--muted-foreground)]">(optional)</span>
+              <Input
+                className="mt-2 font-mono text-xs"
+                value={expectedHash}
+                onChange={(event) =>
+                  setExpectedHash(event.target.value.replace(/\s/g, ""))
+                }
+                placeholder="Paste a known checksum to verify"
+                spellCheck={false}
+              />
+            </label>
             {algorithm === "SHA-1" ? <p className="text-xs leading-5 text-amber-700">SHA-1 is provided for legacy compatibility, not for new security-sensitive designs.</p> : null}
           </div>
         ) : (
@@ -338,7 +366,13 @@ export default function GeneratorUtilityWorkbench({
               !file)
           }
         >
-          {busy ? "Working…" : "Generate"}
+          {busy
+            ? "Working…"
+            : slug === "hash-calculator"
+              ? expectedHash
+                ? "Calculate and verify"
+                : "Calculate hash"
+              : "Generate"}
         </Button>
         {(output || imageUrl || file) ? <Button type="button" variant="ghost" className="mt-2 w-full" onClick={resetWorkbench}>Reset</Button> : null}
         <ProcessingProgress active={busy} label="Generating result" />
@@ -387,6 +421,43 @@ export default function GeneratorUtilityWorkbench({
               alt="Generated code"
               className="max-h-80 max-w-full"
             />
+          </div>
+        ) : slug === "hash-calculator" ? (
+          <div className="mt-4 space-y-3">
+            <div className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="rounded-full bg-[var(--accent-100)] px-2.5 py-1 text-[10px] font-bold text-[var(--accent-700)]">
+                  {algorithm}
+                </span>
+                <span className="text-[11px] text-[var(--muted-foreground)]">
+                  {file ? `${file.name} · ${file.size.toLocaleString()} bytes` : "Text input"}
+                </span>
+              </div>
+              <p
+                aria-live="polite"
+                className="mt-4 min-h-24 break-all font-mono text-sm leading-7 text-[var(--ink-900)]"
+              >
+                {output || "The calculated checksum will appear here."}
+              </p>
+            </div>
+            {hashMatches !== null ? (
+              <div
+                className={`rounded-xl border p-4 ${
+                  hashMatches
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-100"
+                    : "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/20 dark:text-red-100"
+                }`}
+              >
+                <p className="font-semibold">
+                  {hashMatches ? "Checksum verified" : "Checksum does not match"}
+                </p>
+                <p className="mt-1 text-xs leading-5 opacity-80">
+                  {hashMatches
+                    ? "The calculated value exactly matches the expected hash."
+                    : "Check the source, algorithm, and expected value before trusting this file."}
+                </p>
+              </div>
+            ) : null}
           </div>
         ) : (
           <pre aria-live="polite" className="mt-4 min-h-56 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">

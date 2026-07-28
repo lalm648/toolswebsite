@@ -21,6 +21,7 @@ export function extractToolDefinitions(source = read("src/lib/data/tools.ts")) {
 
 export function auditToolRegistry() {
   const tools = extractToolDefinitions();
+  const experienceSource = read("src/lib/data/tool-experience.ts");
   const failures = [];
   const warnings = [];
   const unique = (field) => {
@@ -49,6 +50,9 @@ export function auditToolRegistry() {
   for (const tool of tools) {
     const expectedHref = `/tools/${tool.category}/${tool.slug}`;
     if (tool.href !== expectedHref) failures.push(`${tool.slug} has unexpected href ${tool.href}`);
+    if (!experienceSource.includes(`"${tool.slug}": {`)) {
+      failures.push(`${tool.slug} is missing a purpose-built workflow definition`);
+    }
     const dedicatedPage = join(projectRoot, "src/app", tool.href, "page.tsx");
     if (existsSync(dedicatedPage)) {
       dedicated += 1;
@@ -88,7 +92,17 @@ export function auditToolRegistry() {
       tools.filter((tool) => tool.category === category).length,
     ]),
   );
-  return { tools: tools.length, dedicated, extended, categoryCounts, failures, warnings };
+  return {
+    tools: tools.length,
+    dedicated,
+    extended,
+    experienceDefinitions: tools.filter((tool) =>
+      experienceSource.includes(`"${tool.slug}": {`),
+    ).length,
+    categoryCounts,
+    failures,
+    warnings,
+  };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -91,12 +91,12 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
   },
   "smart-image-cropper": {
     intro: [
-      "Different platforms expect different aspect ratios, and cropping each one by hand is tedious. This cropper produces centered crops for common social and content ratios quickly.",
+      "Different platforms expect different aspect ratios, and cropping each one by hand is tedious. This cropper analyzes edge and contrast detail to place a high-interest area inside common social and content ratios.",
       "Cropping runs in the browser so your images stay private and export instantly.",
     ],
     highlights: [
       "Crop to common social and content aspect ratios.",
-      "Get consistent, centered results across images.",
+      "Use image detail to guide the crop instead of always taking the center.",
       "Export locally without uploading your photos.",
     ],
     useCases: ["Preparing social post images", "Creating consistent thumbnails", "Fitting images to layout ratios"],
@@ -329,29 +329,29 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
   },
   "audio-joiner": {
     intro: [
-      "Combining several audio tracks into one file is useful for mixtapes, lessons, and voice segments. This joiner merges ordered tracks into a single continuous file.",
-      "Joining runs locally with a WebAssembly engine, keeping your audio private.",
+      "Combining several audio tracks can mean placing clips one after another or layering them so they play together. This audio joiner supports both a sequential join and a simultaneous normalized mix.",
+      "Reorder up to 20 source tracks, choose the output format and encoding settings, listen to the result, and download one file. Processing runs locally with a WebAssembly engine.",
     ],
     highlights: [
-      "Merge multiple audio tracks into one file.",
-      "Control the order of the combined segments.",
+      "Join tracks in sequence or mix all tracks from the same starting point.",
+      "Control order, output format, bitrate, sample rate, and channels.",
       "Process audio locally without uploading it.",
     ],
-    useCases: ["Combining recorded voice segments", "Merging song sections", "Joining lesson audio into one file"],
+    useCases: ["Combining recorded voice segments", "Mixing narration with background audio", "Joining lesson audio into one file"],
     faq: [
-      { question: "Can I set the track order?", answer: "Yes, tracks are joined in the order you arrange them." },
-      { question: "Do formats need to match?", answer: "The tool handles common audio inputs and produces one continuous output file." },
+      { question: "What is the difference between join and mix?", answer: "Join in sequence places each track after the previous one. Mix simultaneously starts all tracks together and balances them into one output." },
+      { question: "Do formats need to match?", answer: "No. Common audio inputs are resampled and encoded into the single output format you choose." },
     ],
-    keywords: ["audio joiner", "merge audio files", "combine audio online", "join mp3 files", "audio merger"],
+    keywords: ["audio joiner", "audio mixer online", "merge audio files", "combine audio online", "join mp3 files", "audio merger"],
   },
   "voice-recorder": {
     intro: [
-      "A quick voice note or narration often just needs a simple recorder that saves a file. This tool captures your microphone and saves the recording locally.",
-      "Audio is recorded in the browser and saved to your device — nothing is uploaded.",
+      "A voice note or narration needs more than a start button when you want a usable take. This browser recorder includes an elapsed timer, live microphone level, pause and resume controls, naming, playback, and download.",
+      "Audio is recorded in the browser and saved to your device. The microphone stream and finished take are not uploaded.",
     ],
     highlights: [
-      "Record directly from your microphone in the browser.",
-      "Save the recording as an audio file.",
+      "Record, pause, resume, and monitor microphone audio in the browser.",
+      "Name the take, listen back, and save it as an audio file.",
       "Keep recordings private with local processing.",
     ],
     useCases: ["Capturing a quick voice note", "Recording narration for a video", "Saving an audio memo"],
@@ -367,8 +367,8 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
       "Analysis runs locally in the browser, so the audio stays on your device.",
     ],
     highlights: [
-      "Estimate the tempo (BPM) of an audio track.",
-      "Analyze rhythm from the track's energy peaks.",
+      "Estimate the tempo (BPM) and show it on a visual tempo scale.",
+      "Review detected rhythmic peaks and alternative tempo candidates.",
       "Process audio locally without uploading it.",
     ],
     useCases: ["Finding the BPM for a DJ set", "Matching tempo for practice", "Checking a track's tempo for editing"],
@@ -537,9 +537,9 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
       "Parsing runs in the browser, so your schema stays on your device.",
     ],
     highlights: [
-      "Parse CREATE TABLE statements into readable structure.",
-      "See tables, columns, and relationships at a glance.",
-      "Process schemas locally without uploading them.",
+      "Parse CREATE TABLE statements into visual table cards.",
+      "See column types, primary keys, foreign keys, and relationships at a glance.",
+      "Copy or download the generated Mermaid ER source.",
     ],
     useCases: ["Understanding an unfamiliar database", "Documenting a schema", "Reviewing table relationships"],
     faq: [
@@ -550,7 +550,7 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
   },
   "code-minifier": {
     intro: [
-      "Smaller JavaScript and CSS files load faster in production. This minifier removes comments and unnecessary whitespace to shrink your code.",
+      "Smaller JavaScript and CSS files load faster in production. This tool parses JavaScript with Terser or CSS with CSSO before applying standards-aware minification.",
       "Minification runs in the browser, so your source code is never uploaded.",
     ],
     highlights: [
@@ -669,20 +669,20 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
   },
   "url-shortener": {
     intro: [
-      "Long links are hard to share and remember. This tool creates short redirect codes for long URLs so they are easier to pass around.",
-      "Short codes are created for your links so you can share a compact address that redirects to the original.",
+      "Long links are hard to scan during a local workflow. This tool creates compact redirect codes stored in the current browser so you can test and organize short paths without sending destinations to a hosted registry.",
+      "These links only resolve in the same browser profile because there is intentionally no public database. Use a persistent hosted shortener when a link must work for other people or devices.",
     ],
     highlights: [
-      "Turn long URLs into short redirect codes.",
-      "Share compact, memorable links.",
-      "Manage the short links you create.",
+      "Turn long URLs into locally stored redirect codes.",
+      "Validate HTTP and HTTPS destinations before saving.",
+      "Manage up to 100 short paths in the current browser.",
     ],
-    useCases: ["Sharing a long link in a message", "Creating a tidy link for print", "Shortening a tracking-heavy URL"],
+    useCases: ["Testing short-link patterns", "Organizing local redirect references", "Prototyping a short URL workflow"],
     faq: [
-      { question: "How does the short link work?", answer: "Each short code maps to your original URL and redirects visitors to it when opened." },
-      { question: "Do short links expire?", answer: "Availability depends on the deployment; short codes remain valid while the site retains them." },
+      { question: "Can I share the generated link with another person?", answer: "No. The registry lives only in this browser profile, so another person or device will not have the destination mapping." },
+      { question: "How long does a local short link last?", answer: "It remains available while this browser keeps the site's local storage. Clearing site data removes the registry." },
     ],
-    keywords: ["url shortener", "shorten url", "short link generator", "link shortener online", "create short url"],
+    keywords: ["local url shortener", "short link prototype", "local redirect generator", "browser short link registry"],
   },
   "hash-calculator": {
     intro: [
@@ -691,13 +691,13 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
     ],
     highlights: [
       "Compute SHA-1, SHA-256, SHA-384, and SHA-512 hashes.",
-      "Verify text and file integrity with a fingerprint.",
+      "Paste an expected checksum to get a clear match or mismatch result.",
       "Hash locally without uploading anything.",
     ],
     useCases: ["Verifying a downloaded file", "Comparing file fingerprints", "Generating a checksum for text"],
     faq: [
       { question: "Which algorithms are supported?", answer: "The SHA-1, SHA-256, SHA-384, and SHA-512 algorithms are supported via the browser's crypto API." },
-      { question: "Is my file uploaded?", answer: "No, hashing runs locally in your browser using SubtleCrypto." },
+      { question: "Can I verify a published checksum?", answer: "Yes. Paste the expected hash and the tool compares it exactly with the checksum calculated from your text or file." },
     ],
     keywords: ["hash calculator", "sha256 generator", "file checksum", "hash generator online", "sha hash tool"],
   },
@@ -792,14 +792,14 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
       "Requests are made by a server endpoint restricted to public destinations, since browsers block arbitrary cross-origin calls.",
     ],
     highlights: [
-      "Measure repeated HTTP response latency.",
-      "Check whether a public URL is responding.",
+      "Measure five HTTP response-latency samples.",
+      "Review availability, average, fastest, slowest, and a sample chart.",
       "Runs through a server endpoint restricted to public sites.",
     ],
     useCases: ["Spot-checking if a site is up", "Measuring response time for a URL", "Verifying an endpoint responds consistently"],
     faq: [
       { question: "Is this an ICMP ping?", answer: "No, it measures HTTP response latency rather than raw ICMP, since HTTP is what can be measured safely from a server endpoint." },
-      { question: "How many samples are taken?", answer: "Several requests are made and averaged to give a representative latency reading." },
+      { question: "How many samples are taken?", answer: "Five controlled HTTP requests are measured and summarized with an average, range, availability percentage, and chart." },
     ],
     keywords: ["ping monitor", "website uptime check", "url latency test", "http ping", "check if website is up"],
   },

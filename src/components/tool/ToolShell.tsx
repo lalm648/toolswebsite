@@ -3,6 +3,7 @@ import Link from "next/link";
 import Container from "@/components/Container";
 import ContentSection from "@/components/seo/ContentSection";
 import RelatedTools from "@/components/tool/RelatedTools";
+import ToolExperiencePanel from "@/components/tool/ToolExperiencePanel";
 import AdSlot from "@/components/monetization/AdSlot";
 import { Badge } from "@/components/ui/badge";
 import { siteFlags } from "@/lib/site-flags";
@@ -55,6 +56,16 @@ export default function ToolShell({
   const relatedTools = tool ? getRelatedTools(tool.slug, tool.category) : [];
   const steps = tool ? getToolSteps(tool) : [];
   const canonicalUrl = tool ? `${siteUrl}${tool.href}` : siteUrl;
+  const processingSignal =
+    category?.slug === "network"
+      ? {
+          label: "Protected request",
+          detail: "Only the public destination is sent",
+        }
+      : {
+          label: "Browser processing",
+          detail: "Files stay local where supported",
+        };
   const breadcrumbJsonLd =
     tool && category
       ? {
@@ -160,14 +171,14 @@ export default function ToolShell({
               <Link href="/" className="hover:text-[var(--accent-700)]">
                 Home
               </Link>
-              <span>/</span>
+              <span aria-hidden="true">›</span>
               <Link
                 href={category.href}
                 className="hover:text-[var(--accent-700)]"
               >
                 {category.title}
               </Link>
-              <span>/</span>
+              <span aria-hidden="true">›</span>
               <span className="font-medium text-[var(--ink-900)]">{title}</span>
             </nav>
           ) : null}
@@ -179,6 +190,47 @@ export default function ToolShell({
             {description}
           </p>
         </div>
+
+        {tool && category ? (
+          <ul
+            aria-label="Tool access and privacy"
+            className="mx-auto grid max-w-3xl gap-2 rounded-[var(--radius-md)] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-2 sm:grid-cols-3"
+          >
+            {[
+              {
+                label: "Free to use",
+                detail: "No payment required",
+              },
+              {
+                label: "No account",
+                detail: "Start immediately",
+              },
+              processingSignal,
+            ].map((signal) => (
+              <li
+                key={signal.label}
+                className="flex min-w-0 items-center gap-3 rounded-xl bg-[var(--surface-raised)] px-3 py-2.5"
+              >
+                <span
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--accent-50)] text-xs font-bold text-[var(--accent-700)]"
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-xs font-bold text-[var(--ink-900)]">
+                    {signal.label}
+                  </span>
+                  <span className="block truncate text-[11px] text-[var(--muted-foreground)]">
+                    {signal.detail}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {tool ? <ToolExperiencePanel tool={tool} /> : null}
 
         {children}
 

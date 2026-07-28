@@ -7,27 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
+import {
+  buildJsonLd,
+  buildMetaTags,
+  isAbsoluteHttpUrl,
+  type MetaPresetMode,
+  type MetaTagOptions,
+  type SchemaDetails,
+} from "@/lib/tools/meta-tags";
 
-type PresetMode = "website" | "article" | "product" | "tool";
-
-type MetaTagOptions = {
-  title: string;
-  description: string;
-  canonicalUrl: string;
-  imageUrl: string;
-  imageAlt: string;
-  imageWidth: string;
-  imageHeight: string;
-  siteName: string;
-  type: string;
-  locale: string;
-  robots: string;
-  twitterCard: string;
-  twitterSite: string;
-  twitterCreator: string;
-  author: string;
-  keywords: string;
-};
+type PresetMode = MetaPresetMode;
 
 type LocalImagePreview = {
   fileName: string;
@@ -37,7 +26,7 @@ type LocalImagePreview = {
 };
 
 type WarningItem = {
-  level: "warning" | "info";
+  level: "error" | "warning" | "info";
   message: string;
 };
 
@@ -45,9 +34,6 @@ type PresetConfig = {
   label: string;
   badge: string;
   type: string;
-  jsonLdType: string;
-  title: string;
-  description: string;
   robots: string;
   twitterCard: string;
   keywords: string;
@@ -58,10 +44,6 @@ const presetConfigs: Record<PresetMode, PresetConfig> = {
     label: "Website",
     badge: "Site-wide SEO",
     type: "website",
-    jsonLdType: "WebSite",
-    title: "Webutilia | Browser-first online tools",
-    description:
-      "Convert images, format JSON, count words, and use practical browser-first tools without sending files to a server.",
     robots: "index, follow, max-image-preview:large",
     twitterCard: "summary_large_image",
     keywords: "online tools, image tools, developer tools, seo tools",
@@ -70,9 +52,6 @@ const presetConfigs: Record<PresetMode, PresetConfig> = {
     label: "Article",
     badge: "Editorial SEO",
     type: "article",
-    jsonLdType: "Article",
-    title: "How to optimize image workflows for the web",
-    description: "A practical guide to image formats, compression, and metadata for faster pages and stronger sharing previews.",
     robots: "index, follow, max-image-preview:large",
     twitterCard: "summary_large_image",
     keywords: "article seo, image optimization, web performance",
@@ -81,9 +60,6 @@ const presetConfigs: Record<PresetMode, PresetConfig> = {
     label: "Product",
     badge: "Commercial SEO",
     type: "product",
-    jsonLdType: "WebPage",
-    title: "AI Image Toolkit | Fast browser-based editing",
-    description: "Edit, compress, and convert images with a lightweight browser workflow designed for product teams and marketers.",
     robots: "index, follow, max-image-preview:large",
     twitterCard: "summary_large_image",
     keywords: "product seo, saas product, image toolkit",
@@ -92,124 +68,11 @@ const presetConfigs: Record<PresetMode, PresetConfig> = {
     label: "Tool Page",
     badge: "Utility SEO",
     type: "website",
-    jsonLdType: "WebPage",
-    title: "JPG to PNG Converter | Fast browser tool",
-    description: "Convert JPG images to PNG directly in your browser with live preview, instant download, and no server upload.",
     robots: "index, follow, max-image-preview:large",
     twitterCard: "summary_large_image",
     keywords: "jpg to png, image converter, browser tool",
   },
 };
-
-function escapeAttribute(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function buildMetaTags({
-  title,
-  description,
-  canonicalUrl,
-  imageUrl,
-  imageAlt,
-  imageWidth,
-  imageHeight,
-  siteName,
-  type,
-  locale,
-  robots,
-  twitterCard,
-  twitterSite,
-  twitterCreator,
-  author,
-}: MetaTagOptions) {
-  const lines = [
-    `<title>${escapeAttribute(title)}</title>`,
-    `<meta name="description" content="${escapeAttribute(description)}" />`,
-    canonicalUrl ? `<link rel="canonical" href="${escapeAttribute(canonicalUrl)}" />` : "",
-    robots ? `<meta name="robots" content="${escapeAttribute(robots)}" />` : "",
-    author ? `<meta name="author" content="${escapeAttribute(author)}" />` : "",
-    `<meta property="og:title" content="${escapeAttribute(title)}" />`,
-    `<meta property="og:description" content="${escapeAttribute(description)}" />`,
-    `<meta property="og:type" content="${escapeAttribute(type)}" />`,
-    canonicalUrl ? `<meta property="og:url" content="${escapeAttribute(canonicalUrl)}" />` : "",
-    siteName ? `<meta property="og:site_name" content="${escapeAttribute(siteName)}" />` : "",
-    locale ? `<meta property="og:locale" content="${escapeAttribute(locale)}" />` : "",
-    imageUrl ? `<meta property="og:image" content="${escapeAttribute(imageUrl)}" />` : "",
-    imageAlt ? `<meta property="og:image:alt" content="${escapeAttribute(imageAlt)}" />` : "",
-    imageWidth ? `<meta property="og:image:width" content="${escapeAttribute(imageWidth)}" />` : "",
-    imageHeight ? `<meta property="og:image:height" content="${escapeAttribute(imageHeight)}" />` : "",
-    `<meta name="twitter:card" content="${escapeAttribute(twitterCard)}" />`,
-    `<meta name="twitter:title" content="${escapeAttribute(title)}" />`,
-    `<meta name="twitter:description" content="${escapeAttribute(description)}" />`,
-    twitterSite ? `<meta name="twitter:site" content="${escapeAttribute(twitterSite)}" />` : "",
-    twitterCreator ? `<meta name="twitter:creator" content="${escapeAttribute(twitterCreator)}" />` : "",
-    imageUrl ? `<meta name="twitter:image" content="${escapeAttribute(imageUrl)}" />` : "",
-    imageAlt ? `<meta name="twitter:image:alt" content="${escapeAttribute(imageAlt)}" />` : "",
-  ];
-
-  return lines.filter(Boolean).join("\n");
-}
-
-function buildJsonLd(mode: PresetMode, options: MetaTagOptions) {
-  const base = {
-    "@context": "https://schema.org",
-    "@type": presetConfigs[mode].jsonLdType,
-    name: options.title,
-    description: options.description,
-    url: options.canonicalUrl || undefined,
-    image: options.imageUrl || undefined,
-    inLanguage: options.locale ? options.locale.replace("_", "-") : undefined,
-    author: options.author ? { "@type": "Organization", name: options.author } : undefined,
-  };
-
-  if (mode === "article") {
-    return JSON.stringify(
-      {
-        ...base,
-        headline: options.title,
-        publisher: options.siteName ? { "@type": "Organization", name: options.siteName } : undefined,
-      },
-      null,
-      2
-    );
-  }
-
-  if (mode === "product") {
-    return JSON.stringify(
-      {
-        ...base,
-        about: {
-          "@type": "Thing",
-          name: options.title,
-          description: options.description,
-        },
-      },
-      null,
-      2
-    );
-  }
-
-  if (mode === "tool") {
-    return JSON.stringify(
-      {
-        ...base,
-        about: {
-          "@type": "Thing",
-          name: options.title,
-          description: options.description,
-        },
-      },
-      null,
-      2
-    );
-  }
-
-  return JSON.stringify(base, null, 2);
-}
 
 function loadImageDimensions(url: string) {
   return new Promise<{ width: number; height: number }>((resolve, reject) => {
@@ -238,29 +101,35 @@ function scoreDescription(value: string) {
   return { label: "Too long", tone: "text-[var(--brand-700)]" };
 }
 
-function isLikelyAbsoluteUrl(value: string) {
-  return /^https?:\/\//i.test(value.trim());
-}
-
 export default function MetaTagGeneratorTool() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [preset, setPreset] = useState<PresetMode>("website");
-  const [title, setTitle] = useState(presetConfigs.website.title);
-  const [description, setDescription] = useState(presetConfigs.website.description);
-  const [canonicalUrl, setCanonicalUrl] = useState("https://www.webutilia.com");
-  const [imageUrl, setImageUrl] = useState("https://www.webutilia.com/api/og?title=Webutilia");
-  const [imageAlt, setImageAlt] = useState("Webutilia preview card");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [canonicalUrl, setCanonicalUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageAlt, setImageAlt] = useState("");
   const [imageWidth, setImageWidth] = useState("1200");
   const [imageHeight, setImageHeight] = useState("630");
-  const [siteName, setSiteName] = useState("Webutilia");
+  const [siteName, setSiteName] = useState("");
   const [type, setType] = useState(presetConfigs.website.type);
   const [locale, setLocale] = useState("en_US");
   const [robots, setRobots] = useState(presetConfigs.website.robots);
   const [twitterCard, setTwitterCard] = useState(presetConfigs.website.twitterCard);
   const [twitterSite, setTwitterSite] = useState("");
   const [twitterCreator, setTwitterCreator] = useState("");
-  const [author, setAuthor] = useState("Webutilia");
+  const [author, setAuthor] = useState("");
   const [keywords, setKeywords] = useState(presetConfigs.website.keywords);
+  const [includeDocumentTags, setIncludeDocumentTags] = useState(true);
+  const [datePublished, setDatePublished] = useState("");
+  const [dateModified, setDateModified] = useState("");
+  const [productBrand, setProductBrand] = useState("");
+  const [productSku, setProductSku] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+  const [priceCurrency, setPriceCurrency] = useState("USD");
+  const [availability, setAvailability] = useState("InStock");
+  const [applicationCategory, setApplicationCategory] =
+    useState("UtilitiesApplication");
   const [imageError, setImageError] = useState("");
   const [copyState, setCopyState] = useState<"" | "meta" | "jsonld">("");
   const [localPreview, setLocalPreview] = useState<LocalImagePreview | null>(null);
@@ -276,8 +145,6 @@ export default function MetaTagGeneratorTool() {
   function applyPreset(nextPreset: PresetMode) {
     const config = presetConfigs[nextPreset];
     setPreset(nextPreset);
-    setTitle(config.title);
-    setDescription(config.description);
     setType(config.type);
     setRobots(config.robots);
     setTwitterCard(config.twitterCard);
@@ -318,7 +185,7 @@ export default function MetaTagGeneratorTool() {
     }
   }
 
-  const metaOptions = useMemo(
+  const metaOptions = useMemo<MetaTagOptions>(
     () => ({
       title,
       description,
@@ -335,7 +202,6 @@ export default function MetaTagGeneratorTool() {
       twitterSite,
       twitterCreator,
       author,
-      keywords,
     }),
     [
       title,
@@ -353,42 +219,117 @@ export default function MetaTagGeneratorTool() {
       twitterSite,
       twitterCreator,
       author,
-      keywords,
     ]
   );
 
-  const output = useMemo(() => buildMetaTags(metaOptions), [metaOptions]);
-  const jsonLd = useMemo(() => buildJsonLd(preset, metaOptions), [preset, metaOptions]);
+  const schemaDetails = useMemo<SchemaDetails>(
+    () => ({
+      datePublished,
+      dateModified,
+      productBrand,
+      productSku,
+      productPrice,
+      priceCurrency,
+      availability,
+      applicationCategory,
+    }),
+    [
+      datePublished,
+      dateModified,
+      productBrand,
+      productSku,
+      productPrice,
+      priceCurrency,
+      availability,
+      applicationCategory,
+    ],
+  );
+  const output = useMemo(
+    () => buildMetaTags(metaOptions, { includeDocumentTags }),
+    [metaOptions, includeDocumentTags],
+  );
+  const jsonLd = useMemo(
+    () => buildJsonLd(preset, metaOptions, schemaDetails),
+    [preset, metaOptions, schemaDetails],
+  );
   const titleScore = useMemo(() => scoreTitle(title), [title]);
   const descriptionScore = useMemo(() => scoreDescription(description), [description]);
 
   const warnings = useMemo(() => {
     const items: WarningItem[] = [];
 
-    if (!title.trim()) items.push({ level: "warning", message: "Title is required." });
-    if (!description.trim()) items.push({ level: "warning", message: "Description is required." });
+    if (!title.trim()) items.push({ level: "error", message: "Title is required before this output is ready to use." });
+    if (!description.trim()) items.push({ level: "error", message: "Description is required before this output is ready to use." });
     if (title.trim().length > 70) items.push({ level: "warning", message: "Title is likely too long for search results." });
     if (description.trim().length > 175)
       items.push({ level: "warning", message: "Description is likely too long and may be truncated." });
-    if (!canonicalUrl.trim()) items.push({ level: "warning", message: "Canonical URL is missing." });
-    if (canonicalUrl.trim() && !isLikelyAbsoluteUrl(canonicalUrl))
-      items.push({ level: "warning", message: "Canonical URL should be absolute, including https://." });
+    if (!canonicalUrl.trim()) items.push({ level: "error", message: "Canonical URL is required for canonical, Open Graph, and structured-data output." });
+    if (canonicalUrl.trim() && !isAbsoluteHttpUrl(canonicalUrl))
+      items.push({ level: "error", message: "Canonical URL must be an absolute HTTP or HTTPS URL." });
     if (!imageUrl.trim())
       items.push({ level: "warning", message: "Social image URL is missing. Social previews may be weak without it." });
-    if (imageUrl.trim() && !isLikelyAbsoluteUrl(imageUrl))
-      items.push({ level: "warning", message: "Social image URL should be absolute and publicly reachable." });
+    if (imageUrl.trim() && !isAbsoluteHttpUrl(imageUrl))
+      items.push({ level: "error", message: "Social image URL must be absolute and publicly reachable." });
     if (!imageAlt.trim()) items.push({ level: "info", message: "Add image alt text for richer accessibility and preview metadata." });
     if (!imageWidth.trim() || !imageHeight.trim())
       items.push({ level: "info", message: "Image dimensions help social platforms render previews faster." });
+    if (
+      (imageWidth.trim() && !/^\d+$/.test(imageWidth)) ||
+      (imageHeight.trim() && !/^\d+$/.test(imageHeight))
+    )
+      items.push({ level: "warning", message: "Image width and height should be positive integers in pixels." });
+    if (locale.trim() && !/^[a-z]{2}(?:[_-][A-Z]{2})?$/.test(locale.trim()))
+      items.push({ level: "warning", message: "Use a locale such as en_US or en-GB." });
+    if (twitterSite.trim() && !/^@[A-Za-z0-9_]{1,15}$/.test(twitterSite.trim()))
+      items.push({ level: "warning", message: "Twitter site should be a valid @handle." });
+    if (twitterCreator.trim() && !/^@[A-Za-z0-9_]{1,15}$/.test(twitterCreator.trim()))
+      items.push({ level: "warning", message: "Twitter creator should be a valid @handle." });
     if (!twitterSite.trim()) items.push({ level: "info", message: "Twitter site handle is optional but useful for branded cards." });
-    if (preset === "tool" || preset === "product")
+    if (preset === "article") {
+      if (!author.trim())
+        items.push({ level: "warning", message: "Article schema should identify the visible author." });
+      if (!datePublished)
+        items.push({ level: "warning", message: "Add the real publication date before using Article schema." });
+      if (!imageUrl.trim())
+        items.push({ level: "warning", message: "Article schema is stronger with a representative image." });
+    }
+    if (preset === "product") {
+      if (!productBrand.trim())
+        items.push({ level: "warning", message: "Add the visible product brand before using Product schema." });
+      if (!productPrice.trim())
+        items.push({ level: "warning", message: "Add a real visible price, or omit the Product offer entirely." });
+      if (productPrice.trim() && !/^\d+(?:\.\d{1,2})?$/.test(productPrice.trim()))
+        items.push({ level: "error", message: "Product price must be a plain number such as 49.00." });
       items.push({
         level: "info",
-        message: "This preset uses WebPage schema to avoid incomplete rich-result claims. Add Product or SoftwareApplication markup only when the page contains every required, visible field, including genuine offer and review data where Google requires it.",
+        message: "Do not invent reviews, ratings, availability, or price. Structured data must match visible page content.",
+      });
+    }
+    if (preset === "tool")
+      items.push({
+        level: "info",
+        message: "WebApplication schema describes the tool but does not guarantee a Google rich result. Do not add fabricated ratings.",
       });
 
     return items;
-  }, [title, description, canonicalUrl, imageUrl, imageAlt, imageWidth, imageHeight, twitterSite, preset]);
+  }, [
+    title,
+    description,
+    canonicalUrl,
+    imageUrl,
+    imageAlt,
+    imageWidth,
+    imageHeight,
+    locale,
+    twitterSite,
+    twitterCreator,
+    preset,
+    author,
+    datePublished,
+    productBrand,
+    productPrice,
+  ]);
+  const hasBlockingErrors = warnings.some((item) => item.level === "error");
 
   async function copyToClipboard(value: string, kind: "meta" | "jsonld") {
     try {
@@ -474,13 +415,13 @@ export default function MetaTagGeneratorTool() {
 
             <label className="text-sm font-medium text-[var(--ink-900)]">
               Title
-              <Input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2" />
+              <Input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2" placeholder="A specific page title for search and sharing" />
               <span className={`mt-2 block text-xs ${titleScore.tone}`}>{title.length} characters · {titleScore.label}</span>
             </label>
 
             <label className="text-sm font-medium text-[var(--ink-900)]">
               Description
-              <Textarea value={description} onChange={(event) => setDescription(event.target.value)} className="mt-2 min-h-28" />
+              <Textarea value={description} onChange={(event) => setDescription(event.target.value)} className="mt-2 min-h-28" placeholder="Describe the page accurately in one or two useful sentences." />
               <span className={`mt-2 block text-xs ${descriptionScore.tone}`}>
                 {description.length} characters · {descriptionScore.label}
               </span>
@@ -489,7 +430,7 @@ export default function MetaTagGeneratorTool() {
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="text-sm font-medium text-[var(--ink-900)]">
                 Canonical URL
-                <Input value={canonicalUrl} onChange={(event) => setCanonicalUrl(event.target.value)} className="mt-2" />
+                <Input value={canonicalUrl} onChange={(event) => setCanonicalUrl(event.target.value)} className="mt-2" placeholder="https://example.com/page" />
               </label>
               <label className="text-sm font-medium text-[var(--ink-900)]">
                 OG type
@@ -526,6 +467,155 @@ export default function MetaTagGeneratorTool() {
                 Use these to keep the page focused. They are not emitted as a meta keywords tag.
               </span>
             </label>
+            <label className="flex items-start gap-3 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 text-xs leading-5">
+              <input
+                className="mt-1 accent-[var(--accent-500)]"
+                type="checkbox"
+                checked={includeDocumentTags}
+                onChange={(event) =>
+                  setIncludeDocumentTags(event.target.checked)
+                }
+              />
+              <span>
+                <strong className="block text-[var(--ink-900)]">
+                  Include charset and viewport tags
+                </strong>
+                Keep enabled when generating a complete starter head block.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold text-[var(--ink-900)]">
+                Structured data details
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
+                These fields generate a real {preset === "tool" ? "WebApplication" : preset[0].toUpperCase() + preset.slice(1)} schema object. Only enter information visible on the page.
+              </p>
+            </div>
+            <Badge className="border border-[var(--outline-soft)] bg-[var(--surface-raised)] text-[var(--ink-900)]">
+              {preset === "tool" ? "WebApplication" : presetConfigs[preset].label}
+            </Badge>
+          </div>
+
+          <div className="mt-5 grid gap-4 rounded-[1.2rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 sm:p-5">
+            {preset === "article" ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-sm font-medium text-[var(--ink-900)]">
+                  Publication date
+                  <Input
+                    className="mt-2"
+                    type="date"
+                    value={datePublished}
+                    onChange={(event) => setDatePublished(event.target.value)}
+                  />
+                </label>
+                <label className="text-sm font-medium text-[var(--ink-900)]">
+                  Last modified
+                  <Input
+                    className="mt-2"
+                    type="date"
+                    value={dateModified}
+                    onChange={(event) => setDateModified(event.target.value)}
+                  />
+                </label>
+              </div>
+            ) : null}
+
+            {preset === "product" ? (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="text-sm font-medium text-[var(--ink-900)]">
+                    Brand
+                    <Input
+                      className="mt-2"
+                      value={productBrand}
+                      onChange={(event) => setProductBrand(event.target.value)}
+                    />
+                  </label>
+                  <label className="text-sm font-medium text-[var(--ink-900)]">
+                    SKU <span className="font-normal text-[var(--muted-foreground)]">(optional)</span>
+                    <Input
+                      className="mt-2"
+                      value={productSku}
+                      onChange={(event) => setProductSku(event.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <label className="text-sm font-medium text-[var(--ink-900)]">
+                    Visible price
+                    <Input
+                      className="mt-2"
+                      inputMode="decimal"
+                      value={productPrice}
+                      onChange={(event) => setProductPrice(event.target.value)}
+                      placeholder="49.00"
+                    />
+                  </label>
+                  <label className="text-sm font-medium text-[var(--ink-900)]">
+                    Currency
+                    <Input
+                      className="mt-2 uppercase"
+                      maxLength={3}
+                      value={priceCurrency}
+                      onChange={(event) =>
+                        setPriceCurrency(event.target.value.toUpperCase())
+                      }
+                    />
+                  </label>
+                  <label className="text-sm font-medium text-[var(--ink-900)]">
+                    Availability
+                    <select
+                      className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
+                      value={availability}
+                      onChange={(event) => setAvailability(event.target.value)}
+                    >
+                      <option value="InStock">In stock</option>
+                      <option value="OutOfStock">Out of stock</option>
+                      <option value="PreOrder">Pre-order</option>
+                      <option value="BackOrder">Back order</option>
+                    </select>
+                  </label>
+                </div>
+              </>
+            ) : null}
+
+            {preset === "tool" ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="text-sm font-medium text-[var(--ink-900)]">
+                  Application category
+                  <Input
+                    className="mt-2"
+                    value={applicationCategory}
+                    onChange={(event) =>
+                      setApplicationCategory(event.target.value)
+                    }
+                  />
+                </label>
+                <label className="text-sm font-medium text-[var(--ink-900)]">
+                  Free-offer currency
+                  <Input
+                    className="mt-2 uppercase"
+                    maxLength={3}
+                    value={priceCurrency}
+                    onChange={(event) =>
+                      setPriceCurrency(event.target.value.toUpperCase())
+                    }
+                  />
+                </label>
+              </div>
+            ) : null}
+
+            {preset === "website" ? (
+              <p className="rounded-xl border border-[var(--accent-200)] bg-[var(--accent-50)] p-4 text-xs leading-5 text-[var(--accent-700)]">
+                WebSite schema uses the title, description, canonical URL,
+                locale, social image, and site name already entered above.
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -625,7 +715,9 @@ export default function MetaTagGeneratorTool() {
                 <div
                   key={item.message}
                   className={`rounded-[1.1rem] border px-4 py-3 text-sm leading-6 ${
-                    item.level === "warning"
+                    item.level === "error"
+                      ? "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/20 dark:text-red-100"
+                      : item.level === "warning"
                       ? "border-[var(--brand-200)] bg-[var(--brand-50)] text-[var(--brand-700)]"
                       : "border-[var(--outline-soft)] bg-[var(--surface-panel)] text-[var(--foreground)]"
                   }`}
@@ -696,7 +788,7 @@ export default function MetaTagGeneratorTool() {
         <ToolResult title="Generated meta tags">
           <div className="mb-4 flex items-center justify-between gap-3">
             <p className="text-xs text-[var(--muted-foreground)]">Ready-to-paste HTML head tags.</p>
-            <Button type="button" variant="secondary" size="sm" onClick={() => void copyToClipboard(output, "meta")}>
+            <Button type="button" variant="secondary" size="sm" disabled={hasBlockingErrors} onClick={() => void copyToClipboard(output, "meta")}>
               {copyState === "meta" ? "Copied" : "Copy tags"}
             </Button>
           </div>
@@ -710,7 +802,7 @@ export default function MetaTagGeneratorTool() {
         <ToolResult title="Generated JSON-LD">
           <div className="mb-4 flex items-center justify-between gap-3">
             <p className="text-xs text-[var(--muted-foreground)]">Structured data based on the selected preset mode.</p>
-            <Button type="button" variant="secondary" size="sm" onClick={() => void copyToClipboard(jsonLd, "jsonld")}>
+            <Button type="button" variant="secondary" size="sm" disabled={hasBlockingErrors} onClick={() => void copyToClipboard(jsonLd, "jsonld")}>
               {copyState === "jsonld" ? "Copied" : "Copy JSON-LD"}
             </Button>
           </div>

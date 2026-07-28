@@ -14,7 +14,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
   }
 
   return (
-    <section className="py-8 sm:py-11">
+    <section className="py-8 sm:py-12">
       <Container>
         <CategoryBrowser category={category} tools={getToolsByCategory(slug)} />
       </Container>

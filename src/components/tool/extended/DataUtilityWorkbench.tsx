@@ -7,9 +7,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { downloadTextFile } from "@/lib/download";
+import {
+  csvDelimiterLabel,
+  type CsvDelimiter,
+  type CsvParseResult,
+} from "@/lib/tools/csv";
 
 type DataUtilityWorkbenchProps = {
   slug: string;
+};
+
+type SqlColumn = {
+  name: string;
+  type: string;
+  primary: boolean;
+  foreign: boolean;
+  reference?: string;
+};
+
+type SqlRelationship = {
+  fromTable: string;
+  fromColumn: string;
+  toTable: string;
+  toColumn: string;
+};
+
+type SqlSchema = {
+  mermaid: string;
+  tables: Array<{ name: string; columns: SqlColumn[] }>;
+  relationships: SqlRelationship[];
 };
 
 const examples: Record<string, string> = {
@@ -22,53 +48,6 @@ const examples: Record<string, string> = {
   "regex-tester": "Contact ada@example.com or team@example.org for details.",
   "diff-checker": "const total = items.length;\nreturn total;",
 };
-
-function parseCsv(source: string) {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = "";
-  let quoted = false;
-
-  for (let index = 0; index < source.length; index += 1) {
-    const character = source[index];
-    const next = source[index + 1];
-
-    if (character === '"' && quoted && next === '"') {
-      cell += '"';
-      index += 1;
-    } else if (character === '"') {
-      quoted = !quoted;
-    } else if (character === "," && !quoted) {
-      row.push(cell);
-      cell = "";
-    } else if ((character === "\n" || character === "\r") && !quoted) {
-      if (character === "\r" && next === "\n") index += 1;
-      row.push(cell);
-      if (row.some((value) => value.length > 0)) rows.push(row);
-      row = [];
-      cell = "";
-    } else {
-      cell += character;
-    }
-  }
-
-  row.push(cell);
-  if (row.some((value) => value.length > 0)) rows.push(row);
-  if (quoted) throw new Error("The CSV contains an unclosed quoted value.");
-  if (rows.length < 2)
-    throw new Error("Add a header row and at least one data row.");
-
-  const headers = rows[0].map((header) => header.trim());
-  if (headers.some((header) => !header))
-    throw new Error("Every CSV column needs a header.");
-
-  return rows.slice(1).map((values, rowIndex) => {
-    if (values.length > headers.length) {
-      throw new Error(`Row ${rowIndex + 2} has more values than the header row.`);
-    }
-    return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]));
-  });
-}
 
 function splitSqlColumns(body: string) {
   const columns: string[] = [];
@@ -92,120 +71,106 @@ function splitSqlColumns(body: string) {
 function visualizeSql(source: string) {
   const tableExpression =
     /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["`\[]?([\w.-]+)["`\]]?\s*\(([\s\S]*?)\)\s*;/gi;
-  const tables: Array<{ name: string; columns: string[] }> = [];
+  const tableSources: Array<{ name: string; body: string }> = [];
   let match: RegExpExecArray | null;
 
   while ((match = tableExpression.exec(source))) {
-    const columns = splitSqlColumns(match[2]).filter(
-      (line) => !/^(PRIMARY|FOREIGN|UNIQUE|CONSTRAINT|CHECK)\b/i.test(line),
-    );
-    tables.push({ name: match[1], columns });
+    tableSources.push({ name: match[1], body: match[2] });
   }
 
-  if (!tables.length)
+  if (!tableSources.length)
     throw new Error("No terminated CREATE TABLE statements were found.");
+
+  const relationships: SqlRelationship[] = [];
+  const tables = tableSources.map((table) => {
+    const lines = splitSqlColumns(table.body);
+    const columns = lines
+      .filter(
+        (line) =>
+          !/^(PRIMARY|FOREIGN|UNIQUE|CONSTRAINT|CHECK)\b/i.test(line.trim()),
+      )
+      .map((column): SqlColumn | null => {
+        const parts = column
+          .replace(/["`\[\]]/g, "")
+          .trim()
+          .split(/\s+/);
+        if (parts.length < 2) return null;
+        const reference = column.match(
+          /\bREFERENCES\s+["`\[]?([\w.-]+)["`\]]?\s*\(\s*["`\[]?(\w+)/i,
+        );
+        const parsed = {
+          name: parts[0],
+          type: parts[1],
+          primary: /PRIMARY\s+KEY/i.test(column),
+          foreign: Boolean(reference),
+          reference: reference ? `${reference[1]}.${reference[2]}` : undefined,
+        };
+        if (reference) {
+          relationships.push({
+            fromTable: table.name,
+            fromColumn: parsed.name,
+            toTable: reference[1],
+            toColumn: reference[2],
+          });
+        }
+        return parsed;
+      })
+      .filter((column): column is SqlColumn => column !== null);
+
+    for (const line of lines) {
+      const relation = line.match(
+        /FOREIGN\s+KEY\s*\(\s*["`\[]?(\w+)["`\]]?\s*\)\s+REFERENCES\s+["`\[]?([\w.-]+)["`\]]?\s*\(\s*["`\[]?(\w+)/i,
+      );
+      if (
+        relation &&
+        !relationships.some(
+          (item) =>
+            item.fromTable === table.name &&
+            item.fromColumn === relation[1] &&
+            item.toTable === relation[2] &&
+            item.toColumn === relation[3],
+        )
+      ) {
+        relationships.push({
+          fromTable: table.name,
+          fromColumn: relation[1],
+          toTable: relation[2],
+          toColumn: relation[3],
+        });
+        const column = columns.find((item) => item.name === relation[1]);
+        if (column) {
+          column.foreign = true;
+          column.reference = `${relation[2]}.${relation[3]}`;
+        }
+      }
+    }
+    return { name: table.name, columns };
+  });
 
   const lines = ["erDiagram"];
   for (const table of tables) {
     lines.push(`  ${table.name.replace(/\W/g, "_")} {`);
     for (const column of table.columns) {
-      const parts = column
-        .replace(/["`\[\]]/g, "")
-        .trim()
-        .split(/\s+/);
-      if (parts.length < 2) continue;
-      const [name, type] = parts;
       const markers = [
-        /PRIMARY\s+KEY/i.test(column) ? "PK" : "",
-        /REFERENCES/i.test(column) ? "FK" : "",
+        column.primary ? "PK" : "",
+        column.foreign ? "FK" : "",
       ]
         .filter(Boolean)
         .join(",");
       lines.push(
-        `    ${type.replace(/\W/g, "_")} ${name}${markers ? ` ${markers}` : ""}`,
+        `    ${column.type.replace(/\W/g, "_")} ${column.name.replace(/\W/g, "_")}${markers ? ` ${markers}` : ""}`,
       );
     }
     lines.push("  }");
   }
 
-  const relationExpression =
-    /(?:FOREIGN\s+KEY\s*\(\s*)?["`\[]?(\w+)["`\]]?\s*\)?\s+REFERENCES\s+["`\[]?([\w.-]+)["`\]]?\s*\(\s*["`\[]?(\w+)/gi;
-  while ((match = relationExpression.exec(source))) {
-    const owner = tables.find((table) =>
-      table.columns.some((column) => column.includes(match?.[0] ?? "")),
+  for (const relationship of relationships) {
+    lines.push(
+      `  ${relationship.toTable.replace(/\W/g, "_")} ||--o{ ${relationship.fromTable.replace(/\W/g, "_")} : "${relationship.fromColumn}"`,
     );
-    if (owner)
-      lines.push(
-        `  ${match[2].replace(/\W/g, "_")} ||--o{ ${owner.name.replace(/\W/g, "_")} : "${match[1]}"`,
-      );
   }
 
-  return lines.join("\n");
-}
-
-function minifyCode(source: string) {
-  let output = "";
-  let quote = "";
-  let escaped = false;
-  let lineComment = false;
-  let blockComment = false;
-
-  for (let index = 0; index < source.length; index += 1) {
-    const character = source[index];
-    const next = source[index + 1];
-
-    if (lineComment) {
-      if (character === "\n") lineComment = false;
-      continue;
-    }
-    if (blockComment) {
-      if (character === "*" && next === "/") {
-        blockComment = false;
-        index += 1;
-      }
-      continue;
-    }
-    if (quote) {
-      output += character;
-      if (escaped) escaped = false;
-      else if (character === "\\") escaped = true;
-      else if (character === quote) quote = "";
-      continue;
-    }
-    if (character === "/" && next === "/") {
-      lineComment = true;
-      index += 1;
-      continue;
-    }
-    if (character === "/" && next === "*") {
-      blockComment = true;
-      index += 1;
-      continue;
-    }
-    if (character === '"' || character === "'" || character === "`") {
-      quote = character;
-      output += character;
-      continue;
-    }
-    if (/\s/.test(character)) {
-      const previous = output.at(-1) ?? "";
-      const upcoming = source.slice(index + 1).match(/\S/)?.[0] ?? "";
-      if (/[$\w]/.test(previous) && /[$\w]/.test(upcoming)) output += " ";
-      continue;
-    }
-    output += character;
-  }
-
-  return output.trim();
-}
-
-function minifyCss(source: string) {
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\s+/g, " ")
-    .replace(/\s*([{}:;,>+~])\s*/g, "$1")
-    .replace(/;}/g, "}")
-    .trim();
+  return { mermaid: lines.join("\n"), tables, relationships } satisfies SqlSchema;
 }
 
 async function runRegex(pattern: string, flags: string, source: string) {
@@ -254,20 +219,43 @@ export default function DataUtilityWorkbench({
   const [pattern, setPattern] = useState("[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}");
   const [flags, setFlags] = useState("gi");
   const [output, setOutput] = useState("");
+  const [schema, setSchema] = useState<SqlSchema | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [codeType, setCodeType] = useState<"javascript" | "css">("javascript");
+  const [mangleJavascript, setMangleJavascript] = useState(false);
+  const [restructureCss, setRestructureCss] = useState(true);
+  const [csvDelimiter, setCsvDelimiter] = useState<CsvDelimiter>("auto");
+  const [inferCsvTypes, setInferCsvTypes] = useState(false);
+  const [trimCsvValues, setTrimCsvValues] = useState(true);
+  const [csvReport, setCsvReport] = useState<CsvParseResult | null>(null);
 
   async function processInput() {
     setBusy(true);
     setError("");
     try {
       if (slug === "csv-to-json") {
-        setOutput(JSON.stringify(parseCsv(input), null, 2));
+        const csv = await import("@/lib/tools/csv");
+        const report = csv.parseCsv(input, {
+          delimiter: csvDelimiter,
+          inferTypes: inferCsvTypes,
+          trimValues: trimCsvValues,
+        });
+        setCsvReport(report);
+        setOutput(JSON.stringify(report.records, null, 2));
       } else if (slug === "sql-schema-visualizer") {
-        setOutput(visualizeSql(input));
+        const nextSchema = visualizeSql(input);
+        setSchema(nextSchema);
+        setOutput(nextSchema.mermaid);
       } else if (slug === "code-minifier") {
-        setOutput(codeType === "css" ? minifyCss(input) : minifyCode(input));
+        const minifiers = await import("@/lib/tools/code-minify");
+        setOutput(
+          codeType === "css"
+            ? minifiers.minifyCss(input, { restructure: restructureCss })
+            : await minifiers.minifyJavascript(input, {
+                mangle: mangleJavascript,
+              }),
+        );
       } else if (slug === "regex-tester") {
         const matches = await runRegex(pattern, flags, input);
         setOutput(
@@ -302,6 +290,8 @@ export default function DataUtilityWorkbench({
       }
     } catch (caughtError) {
       setOutput("");
+      setSchema(null);
+      setCsvReport(null);
       setError(
         caughtError instanceof Error
           ? caughtError.message
@@ -323,7 +313,7 @@ export default function DataUtilityWorkbench({
     },
     "sql-schema-visualizer": {
       input: "SQL schema",
-      action: "Build Mermaid chart",
+      action: "Visualize schema",
       file: "schema.mmd",
     },
     "code-minifier": {
@@ -348,6 +338,8 @@ export default function DataUtilityWorkbench({
     setInput(examples[slug] ?? "");
     setSecondary(slug === "diff-checker" ? "const count = items.length;\nreturn count;" : "");
     setOutput("");
+    setSchema(null);
+    setCsvReport(null);
     setError("");
   }
 
@@ -377,13 +369,94 @@ export default function DataUtilityWorkbench({
           </div>
         ) : null}
         {slug === "code-minifier" ? (
-          <label className="mb-4 block text-sm font-semibold text-[var(--ink-900)]">
-            Source language
-            <select className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4" value={codeType} onChange={(event) => setCodeType(event.target.value as "javascript" | "css")}>
-              <option value="javascript">JavaScript</option>
-              <option value="css">CSS</option>
-            </select>
-          </label>
+          <div className="mb-4 space-y-3">
+            <label className="block text-sm font-semibold text-[var(--ink-900)]">
+              Source language
+              <select
+                className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
+                value={codeType}
+                onChange={(event) => {
+                  setCodeType(event.target.value as "javascript" | "css");
+                  setOutput("");
+                  setError("");
+                }}
+              >
+                <option value="javascript">JavaScript · Terser parser</option>
+                <option value="css">CSS · CSSO parser</option>
+              </select>
+            </label>
+            {codeType === "javascript" ? (
+              <label className="flex items-start gap-3 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 text-xs leading-5">
+                <input
+                  className="mt-1 accent-[var(--accent-500)]"
+                  type="checkbox"
+                  checked={mangleJavascript}
+                  onChange={(event) => setMangleJavascript(event.target.checked)}
+                />
+                <span>
+                  <strong className="block text-[var(--ink-900)]">
+                    Shorten local identifiers
+                  </strong>
+                  Leave this off when code relies on function or variable names
+                  at runtime.
+                </span>
+              </label>
+            ) : (
+              <label className="flex items-start gap-3 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 text-xs leading-5">
+                <input
+                  className="mt-1 accent-[var(--accent-500)]"
+                  type="checkbox"
+                  checked={restructureCss}
+                  onChange={(event) => setRestructureCss(event.target.checked)}
+                />
+                <span>
+                  <strong className="block text-[var(--ink-900)]">
+                    Optimize and restructure rules
+                  </strong>
+                  Disable this for conservative whitespace-and-token
+                  minification only.
+                </span>
+              </label>
+            )}
+          </div>
+        ) : null}
+        {slug === "csv-to-json" ? (
+          <div className="mb-4 grid gap-3 sm:grid-cols-3">
+            <label className="text-sm font-semibold text-[var(--ink-900)]">
+              Delimiter
+              <select
+                className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-3"
+                value={csvDelimiter}
+                onChange={(event) => {
+                  setCsvDelimiter(event.target.value as CsvDelimiter);
+                  setCsvReport(null);
+                  setOutput("");
+                }}
+              >
+                <option value="auto">Detect automatically</option>
+                <option value=",">Comma (,)</option>
+                <option value=";">Semicolon (;)</option>
+                <option value={"\t"}>Tab</option>
+                <option value="|">Pipe (|)</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 text-xs leading-5 sm:mt-7">
+              <input
+                type="checkbox"
+                checked={trimCsvValues}
+                onChange={(event) => setTrimCsvValues(event.target.checked)}
+              />
+              Trim outer whitespace
+            </label>
+            <label className="flex items-center gap-2 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 text-xs leading-5 sm:mt-7">
+              <input
+                type="checkbox"
+                checked={inferCsvTypes}
+                onChange={(event) => setInferCsvTypes(event.target.checked)}
+              />
+              Infer numbers, booleans, null
+            </label>
+          </div>
         ) : null}
         <label className="text-sm font-semibold text-[var(--ink-900)]">
           {current.input}
@@ -433,13 +506,137 @@ export default function DataUtilityWorkbench({
             </Button>
           </div>
         </div>
-        <pre className="mt-4 min-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--foreground)]">
-          {slug === "diff-checker" && output
-            ? output.split("\n").map((line, index) => (
-                <span key={index} className={`block px-1 ${line.startsWith("+") ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200" : line.startsWith("-") ? "bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200" : ""}`}>{line || " "}</span>
-              ))
-            : output || "Your processed result will appear here."}
-        </pre>
+        {slug === "csv-to-json" && csvReport ? (
+          <div className="mt-4 space-y-4">
+            <dl className="grid grid-cols-3 gap-2">
+              {[
+                ["Rows", csvReport.records.length],
+                ["Columns", csvReport.headers.length],
+                ["Delimiter", csvDelimiterLabel(csvReport.delimiter)],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3"
+                >
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">
+                    {label}
+                  </dt>
+                  <dd className="mt-1 font-bold text-[var(--ink-900)]">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <div className="max-h-80 overflow-auto rounded-xl border border-[var(--outline-soft)]">
+              <table className="w-full min-w-max border-collapse text-left text-xs">
+                <thead className="sticky top-0 bg-[var(--surface-panel)]">
+                  <tr>
+                    {csvReport.headers.map((header) => (
+                      <th key={header} className="px-3 py-2.5 font-semibold">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {csvReport.rows.slice(0, 12).map((row, rowIndex) => (
+                    <tr
+                      key={rowIndex}
+                      className="border-t border-[var(--outline-soft)] bg-[var(--surface-raised)]"
+                    >
+                      {row.map((value, columnIndex) => (
+                        <td
+                          key={`${rowIndex}-${columnIndex}`}
+                          className="max-w-64 truncate px-3 py-2.5 font-mono"
+                          title={String(value)}
+                        >
+                          {value === null ? "null" : String(value)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {csvReport.records.length > 12 ? (
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Previewing 12 of {csvReport.records.length.toLocaleString()} rows.
+                The copied and downloaded JSON includes every row.
+              </p>
+            ) : null}
+            <details className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)]">
+              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
+                JSON output
+              </summary>
+              <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-[var(--outline-soft)] p-4 text-xs leading-6">
+                {output}
+              </pre>
+            </details>
+          </div>
+        ) : slug === "sql-schema-visualizer" && schema ? (
+          <div className="mt-4 space-y-4">
+            <dl className="grid grid-cols-3 gap-2">
+              <div className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Tables</dt>
+                <dd className="mt-1 text-xl font-bold tabular-nums text-[var(--ink-900)]">{schema.tables.length}</dd>
+              </div>
+              <div className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Columns</dt>
+                <dd className="mt-1 text-xl font-bold tabular-nums text-[var(--ink-900)]">{schema.tables.reduce((sum, table) => sum + table.columns.length, 0)}</dd>
+              </div>
+              <div className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Relations</dt>
+                <dd className="mt-1 text-xl font-bold tabular-nums text-[var(--ink-900)]">{schema.relationships.length}</dd>
+              </div>
+            </dl>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {schema.tables.map((table) => (
+                <section key={table.name} className="overflow-hidden rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)]">
+                  <h3 className="border-b border-[var(--outline-soft)] bg-[var(--surface-cta)] px-4 py-3 font-mono text-sm font-bold text-white">{table.name}</h3>
+                  <ul className="divide-y divide-[var(--outline-soft)]">
+                    {table.columns.map((column) => (
+                      <li key={`${table.name}-${column.name}`} className="flex items-start gap-3 px-4 py-2.5 text-xs">
+                        <span className="min-w-0 flex-1">
+                          <span className="block break-all font-mono font-semibold text-[var(--ink-900)]">{column.name}</span>
+                          {column.reference ? <span className="mt-0.5 block break-all text-[10px] text-[var(--muted-foreground)]">→ {column.reference}</span> : null}
+                        </span>
+                        <span className="font-mono text-[var(--muted-foreground)]">{column.type}</span>
+                        {column.primary ? <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-200">PK</span> : null}
+                        {column.foreign ? <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[9px] font-bold text-sky-800 dark:bg-sky-950 dark:text-sky-200">FK</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+            {schema.relationships.length ? (
+              <section className="rounded-xl border border-[var(--accent-200)] bg-[var(--accent-50)] p-4">
+                <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--accent-700)]">Relationships</h3>
+                <ul className="mt-3 space-y-2">
+                  {schema.relationships.map((relationship, index) => (
+                    <li key={`${relationship.fromTable}-${relationship.fromColumn}-${index}`} className="flex flex-wrap items-center gap-2 rounded-lg bg-[var(--surface-card)] px-3 py-2 font-mono text-xs text-[var(--ink-900)]">
+                      <span>{relationship.fromTable}.{relationship.fromColumn}</span>
+                      <span className="font-sans font-bold text-[var(--accent-700)]">→</span>
+                      <span>{relationship.toTable}.{relationship.toColumn}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+            <details className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)]">
+              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[var(--ink-900)]">Mermaid ER source</summary>
+              <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-[var(--outline-soft)] p-4 text-xs leading-6">{schema.mermaid}</pre>
+            </details>
+          </div>
+        ) : (
+          <pre className="mt-4 min-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--foreground)]">
+            {slug === "diff-checker" && output
+              ? output.split("\n").map((line, index) => (
+                  <span key={index} className={`block px-1 ${line.startsWith("+") ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200" : line.startsWith("-") ? "bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200" : ""}`}>{line || " "}</span>
+                ))
+              : output || "Your processed result will appear here."}
+          </pre>
+        )}
         {output ? (
           <p className="mt-2 text-xs tabular-nums text-[var(--muted-foreground)]">
             {output.split(/\r?\n/).length.toLocaleString()} lines · {output.length.toLocaleString()} characters
