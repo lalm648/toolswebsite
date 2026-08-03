@@ -130,6 +130,7 @@ export default function DocumentUtilityWorkbench({
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [pageSelection, setPageSelection] = useState("");
+  const [splitMode, setSplitMode] = useState<"single" | "separate">("single");
   const [pdfInfo, setPdfInfo] = useState<PdfPageInfo>({ counts: [], thumbnails: [] });
   const [pdfTextMode, setPdfTextMode] =
     useState<PdfTextMode>("reading-order");
@@ -162,7 +163,7 @@ export default function DocumentUtilityWorkbench({
     try {
       const { PDFDocument } = await import("pdf-lib");
       const counts = await Promise.all(next.map(async (file) => {
-        const document = await PDFDocument.load(await file.arrayBuffer());
+        const document = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
         return document.getPageCount();
       }));
       const thumbnails: string[] = [];
@@ -201,7 +202,7 @@ export default function DocumentUtilityWorkbench({
         const merged = await PDFDocument.create();
         for (let index = 0; index < files.length; index += 1) {
           const file = files[index];
-          const source = await PDFDocument.load(await file.arrayBuffer());
+          const source = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
           const pages = await merged.copyPages(source, source.getPageIndices());
           pages.forEach((page) => merged.addPage(page));
           setProgress((index + 1) / files.length);
@@ -210,30 +211,46 @@ export default function DocumentUtilityWorkbench({
         await PDFDocument.load(bytes);
         setBinaryResult(bytes, "merged.pdf", "application/pdf", merged.getPageCount());
       } else if (slug === "pdf-splitter") {
-        const [{ PDFDocument }, JSZipModule] = await Promise.all([
-          import("pdf-lib"),
-          import("jszip"),
-        ]);
-        const source = await PDFDocument.load(await files[0].arrayBuffer());
-        const zip = new JSZipModule.default();
+        const { PDFDocument } = await import("pdf-lib");
+        const source = await PDFDocument.load(await files[0].arrayBuffer(), {
+          ignoreEncryption: true,
+        });
         const pageIndices = parsePageSelection(pageSelection, source.getPageCount());
-        for (let selectionIndex = 0; selectionIndex < pageIndices.length; selectionIndex += 1) {
-          const pageIndex = pageIndices[selectionIndex];
+
+        if (splitMode === "single") {
+          // Entering "1-5" means one five-page document. Returning a ZIP of five
+          // separate files was never what "extract these pages" asked for.
           const document = await PDFDocument.create();
-          const [page] = await document.copyPages(source, [pageIndex]);
-          document.addPage(page);
-          zip.file(
-            `page-${String(pageIndex + 1).padStart(3, "0")}.pdf`,
+          const pages = await document.copyPages(source, pageIndices);
+          pages.forEach((page) => document.addPage(page));
+          setProgress(1);
+          setBinaryResult(
             await document.save(),
+            `${files[0].name.replace(/\.pdf$/i, "")}-pages.pdf`,
+            "application/pdf",
+            pageIndices.length,
           );
-          setProgress((selectionIndex + 1) / pageIndices.length);
+        } else {
+          const JSZipModule = await import("jszip");
+          const zip = new JSZipModule.default();
+          for (let selectionIndex = 0; selectionIndex < pageIndices.length; selectionIndex += 1) {
+            const pageIndex = pageIndices[selectionIndex];
+            const document = await PDFDocument.create();
+            const [page] = await document.copyPages(source, [pageIndex]);
+            document.addPage(page);
+            zip.file(
+              `page-${String(pageIndex + 1).padStart(3, "0")}.pdf`,
+              await document.save(),
+            );
+            setProgress((selectionIndex + 1) / pageIndices.length);
+          }
+          setBinaryResult(
+            await zip.generateAsync({ type: "uint8array" }),
+            "split-pages.zip",
+            "application/zip",
+            pageIndices.length,
+          );
         }
-        setBinaryResult(
-          await zip.generateAsync({ type: "uint8array" }),
-          "split-pages.zip",
-          "application/zip",
-          pageIndices.length,
-        );
       } else if (slug === "image-to-pdf") {
         const { PDFDocument } = await import("pdf-lib");
         const document = await PDFDocument.create();
@@ -519,11 +536,26 @@ export default function DocumentUtilityWorkbench({
           </div>
         ) : null}
         {slug === "pdf-splitter" ? (
-          <label className="mt-4 block text-sm font-medium">
-            Pages to export
-            <Input className="mt-2" value={pageSelection} onChange={(event) => setPageSelection(event.target.value)} placeholder="All pages, or 1,3-5,8" inputMode="numeric" />
-            <span className="mt-2 block text-xs text-[var(--muted-foreground)]">Leave blank for every page. Ranges are inclusive.</span>
-          </label>
+          <>
+            <label className="mt-4 block text-sm font-medium">
+              Pages to export
+              <Input className="mt-2" value={pageSelection} onChange={(event) => setPageSelection(event.target.value)} placeholder="All pages, or 1,3-5,8" inputMode="numeric" />
+              <span className="mt-2 block text-xs text-[var(--muted-foreground)]">Leave blank for every page. Ranges are inclusive.</span>
+            </label>
+            <label className="mt-4 block text-sm font-medium">
+              Output
+              <select
+                className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
+                value={splitMode}
+                onChange={(event) =>
+                  setSplitMode(event.target.value as "single" | "separate")
+                }
+              >
+                <option value="single">One PDF containing those pages</option>
+                <option value="separate">A ZIP with one PDF per page</option>
+              </select>
+            </label>
+          </>
         ) : null}
         {slug === "pdf-text-extractor" ? (
           <fieldset className="mt-4 space-y-3">

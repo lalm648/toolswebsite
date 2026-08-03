@@ -6,28 +6,87 @@ import ToolResult from "@/components/tool/ToolResult";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
+// Words that stay lowercase inside a title unless they open or close it.
+const titleCaseMinorWords = new Set([
+  "a", "an", "and", "as", "at", "but", "by", "for", "from", "if", "in", "into",
+  "nor", "of", "on", "onto", "or", "over", "per", "so", "the", "to", "up",
+  "via", "vs", "with", "yet",
+]);
+
+/**
+ * An all-caps run of two or more letters is treated as an acronym and left alone.
+ * Without this, lowercasing the whole string first turned "NASA" into "Nasa".
+ */
+function isAcronym(word: string) {
+  return word.length > 1 && word === word.toUpperCase() && /\p{L}/u.test(word);
+}
+
+function capitalizeFirst(word: string) {
+  return word.replace(/\p{L}/u, (char) => char.toUpperCase());
+}
+
+/** Splits into words and the separators between them, so joining restores the input. */
+function tokenize(text: string) {
+  return text.split(/([^\p{L}\p{N}']+)/u);
+}
+
 function toTitleCase(text: string) {
-  // Capitalize the first letter of each word (start-of-string or after whitespace),
-  // leaving letters after apostrophes/hyphens untouched so "don't" -> "Don't".
-  return text.toLowerCase().replace(/(^|\s)(\p{L})/gu, (_match, sep, char) => sep + char.toUpperCase());
+  const tokens = tokenize(text);
+  const wordIndexes = tokens
+    .map((token, index) => (/[\p{L}\p{N}]/u.test(token) ? index : -1))
+    .filter((index) => index >= 0);
+  const firstWord = wordIndexes[0];
+  const lastWord = wordIndexes[wordIndexes.length - 1];
+
+  return tokens
+    .map((token, index) => {
+      if (!/[\p{L}\p{N}]/u.test(token)) return token;
+      if (isAcronym(token)) return token;
+
+      const lower = token.toLowerCase();
+
+      if (titleCaseMinorWords.has(lower) && index !== firstWord && index !== lastWord) {
+        return lower;
+      }
+
+      return capitalizeFirst(lower);
+    })
+    .join("");
 }
 
 function toSentenceCase(text: string) {
-  // Capitalize the first letter of each sentence, including after line breaks.
-  return text
-    .toLowerCase()
-    .replace(/(^\s*\p{L})|([.!?]\s+\p{L})|(\n\s*\p{L})/gu, (match) => match.toUpperCase());
+  const lowered = tokenize(text)
+    .map((token) => (isAcronym(token) ? token : token.toLowerCase()))
+    .join("");
+
+  return lowered.replace(
+    /(^\s*\p{L})|([.!?]\s+\p{L})|(\n\s*\p{L})/gu,
+    (match) => match.toUpperCase()
+  );
 }
 
 function splitWords(text: string) {
   return text.match(/[\p{L}\p{N}]+/gu) ?? [];
 }
 
+function toPascalCase(text: string) {
+  return splitWords(text)
+    .map((word) => (isAcronym(word) ? word : capitalizeFirst(word.toLowerCase())))
+    .join("");
+}
+
+function toConstantCase(text: string) {
+  return splitWords(text)
+    .map((word) => word.toUpperCase())
+    .join("_");
+}
+
 function toCamelCase(text: string) {
   return splitWords(text)
-    .map((word, index) =>
-      index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    )
+    .map((word, index) => {
+      if (index === 0) return word.toLowerCase();
+      return isAcronym(word) ? word : capitalizeFirst(word.toLowerCase());
+    })
     .join("");
 }
 
@@ -53,8 +112,10 @@ export default function CaseConverterTool() {
       ["Title Case", toTitleCase(text)],
       ["Sentence case", toSentenceCase(text)],
       ["camelCase", toCamelCase(text)],
+      ["PascalCase", toPascalCase(text)],
       ["snake_case", toSnakeCase(text)],
       ["kebab-case", toKebabCase(text)],
+      ["CONSTANT_CASE", toConstantCase(text)],
     ] as const,
     [text]
   );

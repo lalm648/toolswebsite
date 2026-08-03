@@ -26,24 +26,24 @@ const categoryInputs: Record<ToolCategorySlug, string> = {
 const experienceBySlug: Record<string, ExperienceSeed> = {
   "jpg-to-png": {
     intent: "Convert JPG images into editable, lossless PNG files",
-    controls: "Review each selected image",
+    controls: "Review the selected image",
     preview: "Compare source and PNG dimensions",
-    output: "Download individual PNG files or a ZIP",
-    capabilities: ["Batch conversion", "Local processing", "ZIP export"],
+    output: "Download the converted PNG",
+    capabilities: ["Lossless output", "Local processing", "Size comparison"],
   },
   "png-to-jpg": {
     intent: "Create smaller, widely compatible JPG files from PNG images",
     controls: "Choose quality and background handling",
     preview: "Compare appearance and estimated size",
-    output: "Download optimized JPG files",
-    capabilities: ["Quality control", "Transparency handling", "Batch export"],
+    output: "Download the optimized JPG",
+    capabilities: ["Quality control", "Transparency flattening", "Local processing"],
   },
   "jpg-to-webp": {
     intent: "Prepare efficient WebP images for modern websites",
     controls: "Choose WebP quality",
     preview: "Inspect visual quality and size change",
-    output: "Download WebP files individually or together",
-    capabilities: ["Web optimization", "Quality control", "Batch conversion"],
+    output: "Download the converted WebP",
+    capabilities: ["Web optimization", "Quality control", "Local processing"],
   },
   "jpg-to-avif": {
     intent: "Create compact AVIF assets from JPG sources",
@@ -56,8 +56,8 @@ const experienceBySlug: Record<string, ExperienceSeed> = {
     intent: "Reduce PNG delivery weight with WebP conversion",
     controls: "Choose output quality",
     preview: "Compare transparency, dimensions, and size",
-    output: "Download WebP files or a batch ZIP",
-    capabilities: ["Transparency support", "Quality control", "Batch export"],
+    output: "Download the converted WebP",
+    capabilities: ["Transparency support", "Quality control", "Local processing"],
   },
   "png-to-avif": {
     intent: "Turn PNG artwork into compact modern AVIF files",
@@ -68,10 +68,10 @@ const experienceBySlug: Record<string, ExperienceSeed> = {
   },
   "image-compressor": {
     intent: "Reduce image size without guessing at the result",
-    controls: "Set quality and output format",
+    controls: "Set a quality level or a target file size",
     preview: "Compare before, after, and percentage saved",
-    output: "Download compressed images or a ZIP",
-    capabilities: ["Before/after preview", "Savings report", "Batch compression"],
+    output: "Download the compressed image",
+    capabilities: ["Before/after preview", "Target file size", "Savings report"],
   },
   "image-resizer": {
     intent: "Resize images to exact pixel dimensions",

@@ -11,9 +11,11 @@ import { Input } from "@/components/ui/input";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   formatBytes,
+  getDrawingContext,
   getSizeDelta,
   imagePreviewBackgroundClassName,
   loadImageFromUrl,
+  MAX_OUTPUT_PIXELS,
   replaceFileExtension,
   toBlobFromCanvas,
   type ImageDimensions,
@@ -209,6 +211,24 @@ export default function ImageResizerTool() {
       return;
     }
 
+    // Per-axis limits are not enough: 12000 x 12000 passes both and still exceeds the
+    // canvas area ceiling on iOS, where toBlob then returns null or a blank bitmap.
+    if (targetWidth * targetHeight > MAX_OUTPUT_PIXELS) {
+      setError(
+        `That is ${(
+          (targetWidth * targetHeight) /
+          1_000_000
+        ).toFixed(0)} megapixels, which browsers cannot reliably export. Keep the total under ${
+          MAX_OUTPUT_PIXELS / 1_000_000
+        } megapixels.`
+      );
+      trackToolFailure("image-resizer", "resize", "pixel_budget_exceeded", {
+        width: targetWidth,
+        height: targetHeight,
+      });
+      return;
+    }
+
     setIsResizing(true);
     setError("");
 
@@ -220,7 +240,7 @@ export default function ImageResizerTool() {
       canvas.width = targetWidth;
       canvas.height = targetHeight;
 
-      const context = canvas.getContext("2d");
+      const context = getDrawingContext(canvas);
 
       if (!context) {
         setError("Your browser could not start image resizing.");
@@ -402,7 +422,6 @@ export default function ImageResizerTool() {
                       }
                       setResized(null);
                     }}
-                    disabled={isAspectRatioLocked}
                   />
                 </div>
 
@@ -448,7 +467,7 @@ export default function ImageResizerTool() {
             </div>
           ) : null}
 
-          {error ? <p className="mt-4 text-sm text-[var(--brand-600)]">{error}</p> : null}
+          {error ? <p className="mt-4 text-sm text-[var(--error-foreground)]">{error}</p> : null}
         </ToolUploader>
       </div>
 

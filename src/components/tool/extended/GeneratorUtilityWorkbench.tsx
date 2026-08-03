@@ -66,6 +66,30 @@ function bytesToHex(bytes: ArrayBuffer) {
   ).join("");
 }
 
+const barcodeFormats = [
+  "CODE128",
+  "EAN13",
+  "EAN8",
+  "UPC",
+  "CODE39",
+  "ITF14",
+  "MSI",
+  "pharmacode",
+] as const;
+
+type BarcodeFormat = (typeof barcodeFormats)[number];
+
+const barcodeFormatHints: Record<BarcodeFormat, string> = {
+  CODE128: "Code 128 accepts letters, digits, and symbols.",
+  EAN13: "EAN-13 needs 12 or 13 digits.",
+  EAN8: "EAN-8 needs 7 or 8 digits.",
+  UPC: "UPC-A needs 11 or 12 digits.",
+  CODE39: "Code 39 accepts capital letters, digits, and - . $ / + % space.",
+  ITF14: "ITF-14 needs 13 or 14 digits.",
+  MSI: "MSI accepts digits only.",
+  pharmacode: "Pharmacode accepts a number from 3 to 131070.",
+};
+
 export default function GeneratorUtilityWorkbench({
   slug,
 }: GeneratorUtilityWorkbenchProps) {
@@ -92,6 +116,8 @@ export default function GeneratorUtilityWorkbench({
     symbols: true,
   });
   const [links, setLinks] = useState<ShortLink[]>([]);
+  const [barcodeFormat, setBarcodeFormat] =
+    useState<BarcodeFormat>("CODE128");
   const barcodeRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -142,15 +168,30 @@ export default function GeneratorUtilityWorkbench({
         if (input.length > 80) throw new Error("Keep barcode content under 80 characters.");
         const JsBarcode = (await import("jsbarcode")).default;
         if (!barcodeRef.current) return;
-        JsBarcode(barcodeRef.current, input, {
-          format: "CODE128",
-          displayValue: true,
-          background: "#ffffff",
-          lineColor: "#0f172a",
-          margin: 24,
-          width: 3,
-          height: 120,
-        });
+        // Encoding a 12-digit product number as Code 128 produces a barcode that retail
+        // scanners will not read as a UPC, so the symbology has to be the user's choice.
+        try {
+          JsBarcode(barcodeRef.current, input, {
+            format: barcodeFormat,
+            displayValue: true,
+            background: "#ffffff",
+            lineColor: "#0f172a",
+            margin: 24,
+            width: 3,
+            height: 120,
+            valid: (isValid: boolean) => {
+              if (!isValid) {
+                throw new Error(
+                  `"${input}" is not valid ${barcodeFormat}. ${barcodeFormatHints[barcodeFormat]}`,
+                );
+              }
+            },
+          });
+        } catch (caught) {
+          throw caught instanceof Error
+            ? caught
+            : new Error(`This value could not be encoded as ${barcodeFormat}.`);
+        }
         const svg = new XMLSerializer().serializeToString(barcodeRef.current);
         setImageUrl(
           `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
@@ -344,16 +385,42 @@ export default function GeneratorUtilityWorkbench({
             {algorithm === "SHA-1" ? <p className="text-xs leading-5 text-amber-700">SHA-1 is provided for legacy compatibility, not for new security-sensitive designs.</p> : null}
           </div>
         ) : (
-          <Textarea
-            className="mt-4 min-h-40"
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder={
-              slug === "url-shortener"
-                ? "https://example.com/very/long/link"
-                : "Enter text or a URL"
-            }
-          />
+          <>
+            {slug === "barcode-generator" ? (
+              <label className="mt-4 block text-sm font-medium text-[var(--ink-900)]">
+                Barcode symbology
+                <select
+                  className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
+                  value={barcodeFormat}
+                  onChange={(event) => {
+                    setBarcodeFormat(event.target.value as BarcodeFormat);
+                    setOutput("");
+                    setImageUrl("");
+                    setError("");
+                  }}
+                >
+                  {barcodeFormats.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1.5 block text-xs font-normal text-[var(--muted-foreground)]">
+                  {barcodeFormatHints[barcodeFormat]}
+                </span>
+              </label>
+            ) : null}
+            <Textarea
+              className="mt-4 min-h-40"
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder={
+                slug === "url-shortener"
+                  ? "https://example.com/very/long/link"
+                  : "Enter text or a URL"
+              }
+            />
+          </>
         )}
         <Button
           className="mt-4 w-full"

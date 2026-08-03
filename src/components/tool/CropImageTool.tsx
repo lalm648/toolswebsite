@@ -11,6 +11,7 @@ import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   clamp,
   formatBytes,
+  getDrawingContext,
   getSizeDelta,
   imagePreviewBackgroundClassName,
   loadImageFromUrl,
@@ -266,10 +267,14 @@ export default function CropImageTool() {
 
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
+    // Touch drags end with pointercancel, not pointerup. Without this the stale drag
+    // state survives and the crop box jumps on the next interaction.
+    window.addEventListener("pointercancel", handlePointerUp);
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
     };
   }, [cropHeight, cropWidth, originalDimensions, previewGeometry]);
 
@@ -454,6 +459,10 @@ export default function CropImageTool() {
       return;
     }
 
+    // Without this the first finger movement scrolls the page and the browser cancels
+    // the drag, which made the cropper unusable on touch devices.
+    event.preventDefault();
+
     dragStateRef.current = {
       mode: "move",
       startPointerX: event.clientX,
@@ -500,7 +509,7 @@ export default function CropImageTool() {
       canvas.width = cropWidth;
       canvas.height = cropHeight;
 
-      const context = canvas.getContext("2d");
+      const context = getDrawingContext(canvas);
 
       if (!context) {
         setError("Your browser could not start image cropping.");
@@ -830,7 +839,7 @@ export default function CropImageTool() {
             </div>
           ) : null}
 
-          {error ? <p className="mt-4 text-sm text-(--brand-600)">{error}</p> : null}
+          {error ? <p className="mt-4 text-sm text-[var(--error-foreground)]">{error}</p> : null}
         </ToolUploader>
       </div>
 
@@ -859,7 +868,7 @@ export default function CropImageTool() {
                     <div
                       role="presentation"
                       onPointerDown={handleCropDragStart}
-                      className="absolute cursor-move border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.28)]"
+                      className="absolute cursor-move touch-none border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.28)]"
                       style={{
                         left: previewGeometry.offsetLeft + (cropX / originalDimensions.width) * previewGeometry.width,
                         top: previewGeometry.offsetTop + (cropY / originalDimensions.height) * previewGeometry.height,
@@ -876,22 +885,22 @@ export default function CropImageTool() {
                         <>
                           <div
                             onPointerDown={(event) => handleCropResizeStart("resize-left", event)}
-                            className="absolute bottom-3 left-0 top-3 -ml-2 w-4 cursor-ew-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            className="absolute bottom-3 left-0 top-3 -ml-2 w-4 cursor-ew-resize touch-none rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
                             aria-hidden="true"
                           />
                           <div
                             onPointerDown={(event) => handleCropResizeStart("resize-right", event)}
-                            className="absolute bottom-3 right-0 top-3 -mr-2 w-4 cursor-ew-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            className="absolute bottom-3 right-0 top-3 -mr-2 w-4 cursor-ew-resize touch-none rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
                             aria-hidden="true"
                           />
                           <div
                             onPointerDown={(event) => handleCropResizeStart("resize-top", event)}
-                            className="absolute left-3 right-3 top-0 -mt-2 h-4 cursor-ns-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            className="absolute left-3 right-3 top-0 -mt-2 h-4 cursor-ns-resize touch-none rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
                             aria-hidden="true"
                           />
                           <div
                             onPointerDown={(event) => handleCropResizeStart("resize-bottom", event)}
-                            className="absolute bottom-0 left-3 right-3 -mb-2 h-4 cursor-ns-resize rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
+                            className="absolute bottom-0 left-3 right-3 -mb-2 h-4 cursor-ns-resize touch-none rounded-full border border-white/70 bg-white/85 shadow-(--shadow-soft)"
                             aria-hidden="true"
                           />
                         </>

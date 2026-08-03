@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   formatBytes,
+  getDrawingContext,
   getSizeDelta,
   imagePreviewBackgroundClassName,
   loadImageFromUrl,
@@ -88,7 +89,7 @@ export default function RotateImageTool() {
   const [isRotating, setIsRotating] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState("");
-  const [rotation, setRotation] = useState(90);
+  const [rotation, setRotation] = useState(0);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("original");
 
   useEffect(() => {
@@ -139,7 +140,7 @@ export default function RotateImageTool() {
     setPreviewUrl(nextPreviewUrl);
     setRotated(null);
     setError("");
-    setRotation(90);
+    setRotation(0);
     setOutputFormat("original");
   }
 
@@ -186,7 +187,7 @@ export default function RotateImageTool() {
       canvas.width = targetWidth;
       canvas.height = targetHeight;
 
-      const context = canvas.getContext("2d");
+      const context = getDrawingContext(canvas);
 
       if (!context) {
         setError("Your browser could not start image rotation.");
@@ -259,7 +260,7 @@ export default function RotateImageTool() {
     setOriginalDimensions(null);
     setRotated(null);
     setError("");
-    setRotation(90);
+    setRotation(0);
     setOutputFormat("original");
     if (inputRef.current) inputRef.current.value = "";
   }
@@ -398,7 +399,7 @@ export default function RotateImageTool() {
             </div>
           ) : null}
 
-          {error ? <p className="mt-4 text-sm text-[var(--brand-600)]">{error}</p> : null}
+          {error ? <p className="mt-4 text-sm text-[var(--error-foreground)]">{error}</p> : null}
         </ToolUploader>
       </div>
 

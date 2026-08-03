@@ -8,9 +8,11 @@ import { PrivacyNotice, ProcessingProgress, WorkbenchError } from "@/components/
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { encodeCanvasToAvif } from "@/lib/avif-encoder";
+import { stripImageMetadata } from "@/lib/tools/strip-metadata";
 import {
   formatBytes,
   replaceFileExtension,
+  resolveOutputDimensions,
   toBlobFromCanvas,
 } from "@/lib/image-conversion";
 
@@ -27,6 +29,7 @@ type ImageResult = {
   originalWidth?: number;
   originalHeight?: number;
   transparency?: boolean;
+  removedMetadata?: string[];
 };
 
 function imageSizeChange(original?: number, output?: number) {
@@ -60,7 +63,12 @@ async function loadImage(file: File) {
   }
 }
 
-function canvasFor(image: CanvasImageSource, width: number, height: number) {
+function canvasFor(
+  image: CanvasImageSource,
+  width: number,
+  height: number,
+  backgroundColor?: string,
+) {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(width));
   canvas.height = Math.max(1, Math.round(height));
@@ -69,8 +77,22 @@ function canvasFor(image: CanvasImageSource, width: number, height: number) {
     throw new Error("Canvas processing is unavailable in this browser.");
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
+  // Formats without an alpha channel must be flattened first, or transparent regions
+  // encode as black instead of the chosen background.
+  if (backgroundColor) {
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
   return { canvas, context };
+}
+
+/** Keeps a file in the format it arrived in, so a resize never silently re-containers it. */
+function sourceFormatOf(file: File) {
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  if (file.type === "image/avif") return "avif";
+  return "jpg";
 }
 
 function canvasHasTransparency(context: CanvasRenderingContext2D) {
@@ -294,10 +316,14 @@ export default function ImageUtilityWorkbench({
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [width, setWidth] = useState(1600);
-  const [format, setFormat] = useState("webp");
+  const [height, setHeight] = useState(0);
+  const [format, setFormat] = useState(
+    slug === "bulk-image-resizer" ? "original" : "webp",
+  );
   const [quality, setQuality] = useState(84);
   const [watermark, setWatermark] = useState("© Webutilia");
   const [tolerance, setTolerance] = useState(52);
+  const [background, setBackground] = useState("#ffffff");
   const [ratio, setRatio] = useState("1:1");
   const [delay, setDelay] = useState(500);
   const [topText, setTopText] = useState("TOP TEXT");
@@ -407,14 +433,63 @@ export default function ImageUtilityWorkbench({
       for (let fileIndex = 0; fileIndex < files.length; fileIndex += 1) {
         if (canceledRef.current) throw new Error("Processing canceled.");
         const file = files[fileIndex];
+
+        if (slug === "metadata-stripper") {
+          // Container-level strip: the compressed image data is copied verbatim, so the
+          // result is bit-identical in appearance. A canvas re-encode would recompress.
+          const source = new Uint8Array(await file.arrayBuffer());
+          const stripped = stripImageMetadata(source);
+
+          if (stripped.lossless) {
+            const blob = new Blob([stripped.bytes.slice().buffer], { type: file.type });
+            next.push({
+              url: URL.createObjectURL(blob),
+              name: file.name,
+              size: blob.size,
+              type: file.type,
+              originalName: file.name,
+              originalSize: file.size,
+              removedMetadata: stripped.removed,
+            });
+            setProgress((fileIndex + 1) / files.length);
+            continue;
+          }
+        }
+
         const image = await loadImage(file);
+        // Resolved up front because a format without an alpha channel needs the canvas
+        // flattened onto a colour before the image is drawn, not after.
+        const outputFormat =
+          slug === "metadata-stripper"
+            ? sourceFormatOf(file)
+            : slug === "background-remover"
+              ? "png"
+              : slug === "watermarker"
+                ? sourceFormatOf(file)
+                : slug === "smart-image-cropper" || slug === "meme-generator"
+                  ? "jpg"
+                  : format === "original"
+                    ? sourceFormatOf(file)
+                    : format;
+        const flattenColor = outputFormat === "jpg" ? background : undefined;
         let targetWidth = image.naturalWidth,
           targetHeight = image.naturalHeight;
-        if (slug === "bulk-image-resizer" && targetWidth > width) {
-          targetHeight = Math.round(targetHeight * (width / targetWidth));
-          targetWidth = width;
+        if (slug === "bulk-image-resizer") {
+          const resolved = resolveOutputDimensions(
+            image.naturalWidth,
+            image.naturalHeight,
+            width > 0 ? width : undefined,
+            height > 0 ? height : undefined,
+          );
+          targetWidth = resolved.width;
+          targetHeight = resolved.height;
         }
-        let { canvas, context } = canvasFor(image, targetWidth, targetHeight);
+        let { canvas, context } = canvasFor(
+          image,
+          targetWidth,
+          targetHeight,
+          flattenColor,
+        );
         if (slug === "background-remover")
           removeEdgeBackground(context, tolerance);
         if (slug === "watermarker") {
@@ -506,24 +581,6 @@ export default function ImageUtilityWorkbench({
           draw(topText, true);
           draw(bottomText, false);
         }
-        const outputFormat =
-          slug === "metadata-stripper"
-            ? file.type === "image/png"
-              ? "png"
-              : "jpg"
-            : slug === "background-remover"
-              ? "png"
-              : slug === "watermarker"
-                ? file.type === "image/png"
-                  ? "png"
-                  : file.type === "image/webp"
-                    ? "webp"
-                    : "jpg"
-              : slug === "smart-image-cropper" || slug === "meme-generator"
-                ? "jpg"
-                : slug === "bulk-image-resizer"
-                  ? "webp"
-                  : format;
         const blob = await encodeCanvas(canvas, outputFormat, quality / 100);
         next.push({
           url: URL.createObjectURL(blob),
@@ -585,7 +642,12 @@ export default function ImageUtilityWorkbench({
     URL.revokeObjectURL(url);
   }
   const multiple = multiFileSlugs.has(slug);
-  const needsFormat = slug === "format-converter";
+  const needsFormat =
+    slug === "format-converter" || slug === "bulk-image-resizer";
+  const formatOptions =
+    slug === "bulk-image-resizer"
+      ? ["original", "webp", "avif", "jpg", "png"]
+      : ["webp", "avif", "jpg", "png"];
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
@@ -611,17 +673,33 @@ export default function ImageUtilityWorkbench({
           }}
         />
         {slug === "bulk-image-resizer" ? (
-          <label className="mt-4 block text-sm font-medium">
-            Maximum width
-            <Input
-              className="mt-2"
-              type="number"
-              min="64"
-              max="12000"
-              value={width}
-              onChange={(event) => setWidth(Number(event.target.value))}
-            />
-          </label>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="text-sm font-medium">
+              Maximum width
+              <Input
+                className="mt-2"
+                type="number"
+                min="0"
+                max="12000"
+                value={width}
+                onChange={(event) => setWidth(Number(event.target.value))}
+              />
+            </label>
+            <label className="text-sm font-medium">
+              Maximum height
+              <Input
+                className="mt-2"
+                type="number"
+                min="0"
+                max="12000"
+                value={height}
+                onChange={(event) => setHeight(Number(event.target.value))}
+              />
+              <span className="mt-1 block text-xs font-normal text-[var(--muted-foreground)]">
+                Leave at 0 to size by width alone. Images are never enlarged.
+              </span>
+            </label>
+          </div>
         ) : null}
         {needsFormat ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -632,8 +710,10 @@ export default function ImageUtilityWorkbench({
                 value={format}
                 onChange={(event) => setFormat(event.target.value)}
               >
-                {["webp", "avif", "jpg", "png"].map((value) => (
-                  <option key={value}>{value.toUpperCase()}</option>
+                {formatOptions.map((value) => (
+                  <option key={value} value={value}>
+                    {value === "original" ? "Keep original" : value.toUpperCase()}
+                  </option>
                 ))}
               </select>
             </label>
@@ -648,6 +728,24 @@ export default function ImageUtilityWorkbench({
                 onChange={(event) => setQuality(Number(event.target.value))}
               />
             </label>
+            {format === "jpg" ? (
+              <label className="text-sm font-medium sm:col-span-2">
+                Background for transparent areas
+                <span className="mt-2 flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={background}
+                    onChange={(event) => setBackground(event.target.value)}
+                    className="h-10 w-16 cursor-pointer rounded-lg border border-[var(--outline-soft)] bg-[var(--surface-raised)]"
+                    aria-label="Background colour for transparent areas"
+                  />
+                  <span className="text-xs font-normal text-[var(--muted-foreground)]">
+                    JPG has no transparency, so transparent pixels are filled with this
+                    colour.
+                  </span>
+                </span>
+              </label>
+            ) : null}
           </div>
         ) : null}
         {slug === "background-remover" ? (

@@ -701,7 +701,7 @@ export default function MetaTagGeneratorTool() {
                   {localPreview.fileName} · {localPreview.width} x {localPreview.height}
                 </p>
               ) : null}
-              {imageError ? <p className="mt-3 text-sm text-[var(--brand-600)]">{imageError}</p> : null}
+              {imageError ? <p className="mt-3 text-sm text-[var(--error-foreground)]">{imageError}</p> : null}
             </div>
           </div>
         </div>

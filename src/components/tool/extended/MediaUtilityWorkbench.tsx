@@ -336,7 +336,76 @@ export default function MediaUtilityWorkbench({
       setError(caught instanceof Error ? caught.message : "Media metadata could not be read.");
     }
   }
-  async function getFfmpeg() {
+  /** Returns null whenever the browser cannot handle the file, so callers fall back to ffmpeg. */
+async function captureFrameWithBrowser(file: File, timestamp: number) {
+  const url = URL.createObjectURL(file);
+
+  try {
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.src = url;
+
+    const ready = await new Promise<boolean>((resolve) => {
+      // A container the browser cannot demux may never fire either event, so cap the
+      // wait rather than leaving the user on a spinner forever.
+      const timer = window.setTimeout(() => resolve(false), 8000);
+      video.onloadeddata = () => {
+        window.clearTimeout(timer);
+        resolve(true);
+      };
+      video.onerror = () => {
+        window.clearTimeout(timer);
+        resolve(false);
+      };
+    });
+
+    if (!ready || !video.videoWidth || !video.videoHeight) {
+      return null;
+    }
+
+    video.currentTime = Math.min(timestamp, Math.max(0, video.duration - 0.01));
+
+    const seeked = await new Promise<boolean>((resolve) => {
+      const timer = window.setTimeout(() => resolve(false), 8000);
+      video.onseeked = () => {
+        window.clearTimeout(timer);
+        resolve(true);
+      };
+      video.onerror = () => {
+        window.clearTimeout(timer);
+        resolve(false);
+      };
+    });
+
+    if (!seeked) {
+      return null;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return null;
+    }
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(video, 0, 0);
+
+    return await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.94),
+    );
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function getFfmpeg() {
     if (ffmpegRef.current?.loaded) return ffmpegRef.current;
     const { FFmpeg } = await import("@ffmpeg/ffmpeg");
     const ffmpeg = new FFmpeg();
@@ -410,40 +479,19 @@ export default function MediaUtilityWorkbench({
         return;
       }
       if (slug === "thumbnail-grabber") {
-        const file = files[0],
-          url = URL.createObjectURL(file);
-        try {
-          const video = document.createElement("video");
-          video.preload = "metadata";
-          video.src = url;
-          await new Promise<void>((resolve, reject) => {
-            video.onloadedmetadata = () => resolve();
-            video.onerror = () =>
-              reject(new Error("Video metadata could not be read."));
-          });
-          video.currentTime = Math.min(
-            timestamp,
-            Math.max(0, video.duration - 0.01),
-          );
-          await new Promise<void>((resolve) => {
-            video.onseeked = () => resolve();
-          });
-          const canvas = document.createElement("canvas");
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          canvas.getContext("2d")?.drawImage(video, 0, 0);
-          const blob = await new Promise<Blob | null>((resolve) =>
-            canvas.toBlob(resolve, "image/jpeg", 0.94),
-          );
-          if (!blob) throw new Error("The frame could not be encoded.");
+        // Try the browser decoder first because it is near-instant, but it only handles
+        // what the browser can play. MKV, AVI and many HEVC MOV files fail here even
+        // though the dropzone accepts them, so those fall through to ffmpeg below.
+        const file = files[0];
+        const blob = await captureFrameWithBrowser(file, timestamp);
+
+        if (blob) {
           setBlob(
             blob,
             `${file.name.replace(/\.[^.]+$/, "")}-frame-${timestamp}s.jpg`,
           );
-        } finally {
-          URL.revokeObjectURL(url);
+          return;
         }
-        return;
       }
       const ffmpeg = await getFfmpeg();
       cleanupEngine = ffmpeg;
@@ -460,7 +508,23 @@ export default function MediaUtilityWorkbench({
       let args: string[] = [],
         outputName = "output.mp4",
         mime = "video/mp4";
-      if (slug === "video-compressor") {
+      if (slug === "thumbnail-grabber") {
+        // Seeking before -i uses the keyframe index, which is what makes this fast
+        // enough to be usable in single-threaded WASM.
+        args = [
+          "-ss",
+          String(timestamp),
+          "-i",
+          inputNames[0],
+          "-frames:v",
+          "1",
+          "-q:v",
+          "2",
+          "output.jpg",
+        ];
+        outputName = "output.jpg";
+        mime = "image/jpeg";
+      } else if (slug === "video-compressor") {
         const duration = end > 0 ? end : 60;
         const bitrate = Math.max(
           180,
@@ -532,15 +596,13 @@ export default function MediaUtilityWorkbench({
           outputName,
         ];
       } else if (slug === "video-muter") {
+        // Dropping the audio track needs no video work at all. Copying the stream is
+        // lossless and dramatically faster than the re-encode this used to do.
         args = [
           "-i",
           inputNames[0],
           "-c:v",
-          "libx264",
-          "-preset",
-          "veryfast",
-          "-crf",
-          "23",
+          "copy",
           "-an",
           "-movflags",
           "+faststart",

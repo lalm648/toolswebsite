@@ -9,24 +9,39 @@ import { trackEvent, trackToolFailure } from "@/lib/analytics";
 
 function encodeBase64(value: string) {
   const bytes = new TextEncoder().encode(value);
+  // Chunked so multi-megabyte input does not build one giant string byte by byte.
+  const chunkSize = 0x8000;
   let binary = "";
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
+
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+  }
+
   return btoa(binary);
 }
 
 function decodeBase64(value: string) {
   // Accept URL-safe Base64, stray whitespace/newlines, and missing padding.
   let normalized = value.trim().replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
+
+  // Reject anything outside the alphabet up front. atob is lenient enough that plain
+  // prose could slip through and come back as mojibake presented as a real decode.
+  if (!normalized.length || !/^[A-Za-z0-9+/]+={0,2}$/.test(normalized)) {
+    throw new Error("not-base64");
+  }
+
   const remainder = normalized.length % 4;
+  if (remainder === 1) {
+    throw new Error("not-base64");
+  }
   if (remainder) {
     normalized += "=".repeat(4 - remainder);
   }
 
   const binary = atob(normalized);
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
+  // fatal:true so invalid UTF-8 raises instead of yielding replacement characters.
+  return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
 
 export default function Base64EncoderTool() {
@@ -63,9 +78,13 @@ export default function Base64EncoderTool() {
         input_length: input.length,
         output_length: nextOutput.length,
       });
-    } catch {
+    } catch (caught) {
       setOutput("");
-      setError("This Base64 value could not be decoded.");
+      setError(
+        caught instanceof Error && caught.message === "not-base64"
+          ? "That is not valid Base64. Check for missing characters, or use Encode instead."
+          : "This decoded to data that is not valid UTF-8 text, so it is probably a binary file rather than text."
+      );
       trackToolFailure("base64-encoder", "decode", "decoding_failed", {
         input_length: input.length,
       });
@@ -91,7 +110,7 @@ export default function Base64EncoderTool() {
             Decode
           </Button>
         </div>
-        {error ? <p className="mt-4 text-sm text-(--brand-600)">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-[var(--error-foreground)]">{error}</p> : null}
       </div>
 
       <ToolResult title="Output">

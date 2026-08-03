@@ -85,7 +85,7 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
     useCases: ["Removing GPS data before posting online", "Cleaning photos before sending to clients", "Protecting privacy on shared images"],
     faq: [
       { question: "What metadata is removed?", answer: "Re-encoding drops embedded EXIF metadata such as GPS coordinates, camera settings, and capture timestamps." },
-      { question: "Does it change how the image looks?", answer: "Visual content is preserved; only the hidden metadata is removed during re-encoding." },
+      { question: "Does it change how the image looks?", answer: "No. For JPG and PNG files the compressed image data is copied through untouched, so the pixels and the colour profile are identical to the original and only the metadata is removed." },
     ],
     keywords: ["metadata stripper", "remove exif data", "strip image metadata", "remove gps from photo", "exif remover online"],
   },
@@ -645,7 +645,7 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
     ],
     useCases: ["Labeling inventory items", "Creating product barcodes", "Printing scannable codes for stock"],
     faq: [
-      { question: "Which barcode formats are supported?", answer: "Common industrial barcode formats are supported for encoding product numbers." },
+      { question: "Which barcode formats are supported?", answer: "Code 128, EAN-13, EAN-8, UPC-A, Code 39, ITF-14, MSI, and Pharmacode. Pick the symbology your scanner expects, because a product number encoded in the wrong one will not read correctly." },
       { question: "Is my data uploaded?", answer: "No, barcodes are generated locally in your browser." },
     ],
     keywords: ["barcode generator", "create barcode", "barcode maker online", "generate barcode", "product barcode generator"],

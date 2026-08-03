@@ -10,13 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
-  exportCanvasWithStrategy,
+  exportCanvasAtQuality,
+  exportCanvasToTargetSize,
   formatBytes,
+  getDrawingContext,
   getSizeDelta,
   imagePreviewBackgroundClassName,
   loadImageFromUrl,
   replaceFileExtension,
-  scaleDimensionsToFit,
+  resolveOutputDimensions,
   type ImageDimensions,
 } from "@/lib/image-conversion";
 
@@ -29,7 +31,13 @@ type ConvertedImage = {
   height: number;
   fileName: string;
   mimeType: string;
+  /** The quality actually used, so the panel can report it instead of implying the slider. */
+  appliedQuality?: number;
+  missedTarget?: boolean;
+  dimensionsClamped?: boolean;
 };
+
+type CompressionMode = "quality" | "size";
 
 const acceptedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
@@ -65,19 +73,6 @@ function getOutputConfig(format: OutputFormat, sourceMimeType: string) {
   }
 }
 
-function getSmartQualityCandidates(qualityPercent: number, mimeType: string) {
-  if (mimeType === "image/png") {
-    return undefined;
-  }
-
-  return Array.from(
-    new Set(
-      [qualityPercent, qualityPercent - 8, qualityPercent - 16, qualityPercent - 24]
-        .filter((value) => value >= 20)
-        .map((value) => Number((value / 100).toFixed(2)))
-    )
-  );
-}
 
 export default function ImageCompressorTool() {
   const fileInputId = "image-compressor-upload-input";
@@ -90,10 +85,12 @@ export default function ImageCompressorTool() {
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState("");
   const [qualityPercent, setQualityPercent] = useState(76);
+  const [compressionMode, setCompressionMode] = useState<CompressionMode>("quality");
+  const [targetSizeKbInput, setTargetSizeKbInput] = useState("200");
   const [maxWidthInput, setMaxWidthInput] = useState("");
   const [maxHeightInput, setMaxHeightInput] = useState("");
   const [isAspectRatioLocked, setIsAspectRatioLocked] = useState(true);
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>("webp");
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>("original");
 
   useEffect(() => {
     return () => {
@@ -196,14 +193,20 @@ export default function ImageCompressorTool() {
       const image = await loadImageFromUrl(previewUrl);
       const maxWidth = Number(maxWidthInput) || undefined;
       const maxHeight = Number(maxHeightInput) || undefined;
-      const nextDimensions = scaleDimensionsToFit(image.naturalWidth, image.naturalHeight, maxWidth, maxHeight);
+      const nextDimensions = resolveOutputDimensions(
+        image.naturalWidth,
+        image.naturalHeight,
+        maxWidth,
+        maxHeight,
+        { lockAspectRatio: isAspectRatioLocked }
+      );
       const outputConfig = getOutputConfig(outputFormat, file.type);
 
       const canvas = document.createElement("canvas");
       canvas.width = nextDimensions.width;
       canvas.height = nextDimensions.height;
 
-      const context = canvas.getContext("2d");
+      const context = getDrawingContext(canvas);
 
       if (!context) {
         setError("Your browser could not start image compression.");
@@ -222,16 +225,19 @@ export default function ImageCompressorTool() {
 
       context.drawImage(image, 0, 0, nextDimensions.width, nextDimensions.height);
 
-      const baseQuality = outputConfig.mimeType === "image/png" ? 1 : qualityPercent / 100;
-      const blob = await exportCanvasWithStrategy(canvas, {
-        outputMimeType: outputConfig.mimeType,
-        outputQuality: baseQuality,
-        qualityCandidates: getSmartQualityCandidates(qualityPercent, outputConfig.mimeType),
-        targetMaxSizeRatio: outputConfig.mimeType === "image/png" ? undefined : 0.65,
-        originalSize: file.size,
-      });
+      const isLossless = outputConfig.mimeType === "image/png";
+      const targetBytes = Math.max(1, Number(targetSizeKbInput) || 0) * 1024;
+      const useTargetSize = compressionMode === "size" && !isLossless;
 
-      if (!blob) {
+      const exported = useTargetSize
+        ? await exportCanvasToTargetSize(canvas, outputConfig.mimeType, targetBytes)
+        : await exportCanvasAtQuality(
+            canvas,
+            outputConfig.mimeType,
+            isLossless ? undefined : qualityPercent / 100
+          );
+
+      if (!exported) {
         setError(`This browser could not export ${outputConfig.label}. Try another format.`);
         setIsCompressing(false);
         trackToolFailure("image-compressor", "compress", "export_failed", {
@@ -241,6 +247,8 @@ export default function ImageCompressorTool() {
         });
         return;
       }
+
+      const { blob } = exported;
 
       if (converted?.url) URL.revokeObjectURL(converted.url);
 
@@ -252,6 +260,9 @@ export default function ImageCompressorTool() {
         height: nextDimensions.height,
         fileName: replaceFileExtension(file.name, outputConfig.extension),
         mimeType: outputConfig.mimeType,
+        appliedQuality: isLossless ? undefined : exported.appliedQuality,
+        missedTarget: useTargetSize && "withinTarget" in exported && !exported.withinTarget,
+        dimensionsClamped: nextDimensions.clamped,
       });
       trackEvent("compress_image", {
         tool_slug: "image-compressor",
@@ -260,6 +271,7 @@ export default function ImageCompressorTool() {
         input_size: file.size,
         output_size: blob.size,
         quality_percent: qualityPercent,
+        compression_mode: compressionMode,
         max_width: maxWidth || undefined,
         max_height: maxHeight || undefined,
       });
@@ -283,10 +295,12 @@ export default function ImageCompressorTool() {
     setConverted(null);
     setError("");
     setQualityPercent(76);
+    setCompressionMode("quality");
+    setTargetSizeKbInput("200");
     setMaxWidthInput("");
     setMaxHeightInput("");
     setIsAspectRatioLocked(true);
-    setOutputFormat("webp");
+    setOutputFormat("original");
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -337,34 +351,98 @@ export default function ImageCompressorTool() {
               </div>
 
               <div className="mt-5 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--ink-900)]">Quality</p>
-                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      Lower quality usually means a smaller file size.
-                    </p>
+                <p className="text-sm font-semibold text-[var(--ink-900)]">How to compress</p>
+                <div
+                  role="radiogroup"
+                  aria-label="Compression mode"
+                  className="mt-3 grid gap-2 sm:grid-cols-2"
+                >
+                  {(
+                    [
+                      {
+                        value: "quality" as CompressionMode,
+                        label: "Set quality",
+                        description: "Encode at exactly the quality you choose.",
+                      },
+                      {
+                        value: "size" as CompressionMode,
+                        label: "Target file size",
+                        description: "Find the best quality that fits a size limit.",
+                      },
+                    ]
+                  ).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={compressionMode === option.value}
+                      onClick={() => {
+                        setCompressionMode(option.value);
+                        setConverted(null);
+                      }}
+                      className={`rounded-xl border p-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-500)] ${
+                        compressionMode === option.value
+                          ? "border-[var(--accent-500)] bg-[var(--accent-50)]"
+                          : "border-[var(--outline-soft)] bg-[var(--surface-raised)] hover:border-[var(--outline-strong)]"
+                      }`}
+                    >
+                      <span className="block text-sm font-semibold text-[var(--ink-900)]">
+                        {option.label}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-[var(--muted-foreground)]">
+                        {option.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {compressionMode === "quality" ? (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs text-[var(--muted-foreground)]">
+                        The exported file uses this quality — nothing is adjusted behind the scenes.
+                      </p>
+                      <Badge variant="secondary" className="min-w-16 justify-center normal-case tracking-normal">
+                        {qualityPercent}%
+                      </Badge>
+                    </div>
+                    <input
+                      type="range"
+                      min={25}
+                      max={95}
+                      step={1}
+                      value={qualityPercent}
+                      onChange={(event) => {
+                        setQualityPercent(Number(event.target.value));
+                        setConverted(null);
+                      }}
+                      className="mt-3 h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--outline-soft)] accent-[var(--accent-500)]"
+                      aria-label="Compression quality"
+                    />
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--muted-foreground)]">
+                      <span>25%</span>
+                      <span>95%</span>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="min-w-16 justify-center normal-case tracking-normal">
-                    {qualityPercent}%
-                  </Badge>
-                </div>
-                <input
-                  type="range"
-                  min={25}
-                  max={95}
-                  step={1}
-                  value={qualityPercent}
-                  onChange={(event) => {
-                    setQualityPercent(Number(event.target.value));
-                    setConverted(null);
-                  }}
-                  className="mt-4 h-2 w-full cursor-pointer appearance-none rounded-full bg-[var(--outline-soft)] accent-[var(--accent-500)]"
-                  aria-label="Compression quality"
-                />
-                <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--muted-foreground)]">
-                  <span>25%</span>
-                  <span>95%</span>
-                </div>
+                ) : (
+                  <label className="mt-4 block text-sm font-medium text-[var(--ink-900)]">
+                    Maximum file size (KB)
+                    <Input
+                      className="mt-2"
+                      type="number"
+                      min="5"
+                      max="20000"
+                      value={targetSizeKbInput}
+                      onChange={(event) => {
+                        setTargetSizeKbInput(event.target.value);
+                        setConverted(null);
+                      }}
+                    />
+                    <span className="mt-1.5 block text-xs font-normal text-[var(--muted-foreground)]">
+                      PNG output is lossless, so this mode needs JPG or WebP.
+                    </span>
+                  </label>
+                )}
               </div>
 
               <div className="mt-4 rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4">
@@ -466,7 +544,7 @@ export default function ImageCompressorTool() {
             </div>
           ) : null}
 
-          {error ? <p className="mt-4 text-sm text-[var(--brand-600)]">{error}</p> : null}
+          {error ? <p className="mt-4 text-sm text-[var(--error-foreground)]">{error}</p> : null}
         </ToolUploader>
       </div>
 
@@ -527,7 +605,21 @@ export default function ImageCompressorTool() {
                     </p>
                     <p className="mt-1 text-xs text-[var(--muted-foreground)]">
                       {file ? getSizeDelta(converted.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
+                      {typeof converted.appliedQuality === "number"
+                        ? ` · encoded at ${Math.round(converted.appliedQuality * 100)}% quality`
+                        : ""}
                     </p>
+                    {converted.missedTarget ? (
+                      <p className="mt-2 text-xs font-medium text-[var(--error-foreground)]">
+                        This is the smallest result available at these dimensions. Lower the
+                        resize limits to reach your size target.
+                      </p>
+                    ) : null}
+                    {converted.dimensionsClamped ? (
+                      <p className="mt-2 text-xs font-medium text-[var(--error-foreground)]">
+                        Output was scaled down to stay within the browser&rsquo;s canvas limit.
+                      </p>
+                    ) : null}
                   </div>
                   <Button asChild>
                     <a

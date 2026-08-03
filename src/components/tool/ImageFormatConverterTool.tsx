@@ -9,12 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
-  exportCanvasWithStrategy,
+  exportCanvasAtQuality,
   formatBytes,
+  getDrawingContext,
   getSizeDelta,
   imagePreviewBackgroundClassName,
   loadImageFromUrl,
   replaceFileExtension,
+  resolveOutputDimensions,
   type ImageDimensions,
 } from "@/lib/image-conversion";
 
@@ -39,8 +41,6 @@ type ImageFormatConverterToolProps = {
   outputMimeType: string;
   outputExtension: string;
   outputQuality?: number;
-  outputQualityCandidates?: number[];
-  targetMaxSizeRatio?: number;
   qualityControl?: {
     min: number;
     max: number;
@@ -73,8 +73,6 @@ export default function ImageFormatConverterTool({
   outputMimeType,
   outputExtension,
   outputQuality,
-  outputQualityCandidates,
-  targetMaxSizeRatio,
   qualityControl,
   qualityNote,
   sizeDeltaText,
@@ -174,11 +172,14 @@ export default function ImageFormatConverterTool({
 
     try {
       const image = await loadImageFromUrl(previewUrl);
+      // Guard the pixel budget before allocating: an uncapped canvas from a large phone
+      // photo returns a blank bitmap on iOS and can exhaust memory on any device.
+      const safeDimensions = resolveOutputDimensions(image.naturalWidth, image.naturalHeight);
       const canvas = document.createElement("canvas");
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
+      canvas.width = safeDimensions.width;
+      canvas.height = safeDimensions.height;
 
-      const context = canvas.getContext("2d");
+      const context = getDrawingContext(canvas);
 
       if (!context) {
         setError("Your browser could not start image conversion.");
@@ -195,24 +196,18 @@ export default function ImageFormatConverterTool({
         context.fillRect(0, 0, canvas.width, canvas.height);
       }
 
-      context.drawImage(image, 0, 0);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
+      // The slider is the quality that gets used. Previously a hidden size-target search
+      // could return a file up to 24 points below the number on screen.
       const selectedQuality = qualityControl ? qualityPercent / 100 : outputQuality;
-      const selectedQualityCandidates =
-        qualityControl && targetMaxSizeRatio
-          ? Array.from(
-              new Set(
-                [qualityPercent, qualityPercent - 8, qualityPercent - 16, qualityPercent - 24]
-                  .filter((value) => value >= qualityControl.min)
-                  .map((value) => Number((value / 100).toFixed(2)))
-              )
-            )
-          : outputQualityCandidates;
 
       let blob: Blob | null;
 
       if (outputMimeType === "image/avif") {
         // AVIF can only be produced through the WASM encoder; canvas.toBlob cannot.
+        // A failure here is almost always the encoder failing to load, not a missing
+        // browser feature, so the message below says so rather than blaming the browser.
         try {
           const { encodeCanvasToAvif } = await import("@/lib/avif-encoder");
           const avifQuality = qualityControl ? qualityPercent : Math.round((outputQuality ?? 0.62) * 100);
@@ -221,13 +216,8 @@ export default function ImageFormatConverterTool({
           blob = null;
         }
       } else {
-        blob = await exportCanvasWithStrategy(canvas, {
-          outputMimeType,
-          outputQuality: selectedQuality,
-          qualityCandidates: selectedQualityCandidates,
-          targetMaxSizeRatio,
-          originalSize: file.size,
-        });
+        const exported = await exportCanvasAtQuality(canvas, outputMimeType, selectedQuality);
+        blob = exported?.blob ?? null;
       }
 
       if (!blob) {
@@ -372,7 +362,7 @@ export default function ImageFormatConverterTool({
             </div>
           ) : null}
 
-          {error ? <p className="mt-4 text-sm text-[var(--brand-600)]">{error}</p> : null}
+          {error ? <p className="mt-4 text-sm text-[var(--error-foreground)]">{error}</p> : null}
         </ToolUploader>
       </div>
 

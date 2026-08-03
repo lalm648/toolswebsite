@@ -213,6 +213,8 @@ export default function DataUtilityWorkbench({
   slug,
 }: DataUtilityWorkbenchProps) {
   const [input, setInput] = useState(examples[slug] ?? "");
+  const [diffContext, setDiffContext] = useState(3);
+  const [ignoreWhitespace, setIgnoreWhitespace] = useState(false);
   const [secondary, setSecondary] = useState(
     slug === "diff-checker" ? "const count = items.length;\nreturn count;" : "",
   );
@@ -269,23 +271,24 @@ export default function DataUtilityWorkbench({
             : "No matches found.",
         );
       } else if (slug === "diff-checker") {
-        const { diffLines } = await import("diff");
-        const changes = diffLines(input, secondary);
+        // createTwoFilesPatch emits a real unified diff with ---/+++ and @@ hunk headers,
+        // which is what the download filename (.diff) and the tool copy promise. The
+        // previous flat +/- list could not be applied by git apply or patch.
+        const { createTwoFilesPatch } = await import("diff");
+        const patch = createTwoFilesPatch(
+          "original",
+          "changed",
+          input,
+          secondary,
+          undefined,
+          undefined,
+          { context: diffContext, ignoreWhitespace: ignoreWhitespace },
+        );
+        const body = patch.split("\n").slice(1).join("\n");
         setOutput(
-          changes
-            .map((change) =>
-              change.value
-                .split("\n")
-                .filter(
-                  (line, index, lines) => line || index < lines.length - 1,
-                )
-                .map(
-                  (line) =>
-                    `${change.added ? "+" : change.removed ? "-" : " "} ${line}`,
-                )
-                .join("\n"),
-            )
-            .join("\n"),
+          body.includes("@@")
+            ? body
+            : "The two versions are identical, so there is nothing to diff.",
         );
       }
     } catch (caughtError) {
@@ -478,6 +481,31 @@ export default function DataUtilityWorkbench({
               onChange={(event) => setSecondary(event.target.value)}
               spellCheck={false}
             />
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="text-sm font-medium text-[var(--ink-900)]">
+                Context lines
+                <select
+                  className="mt-2 h-12 w-full rounded-2xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-4"
+                  value={diffContext}
+                  onChange={(event) => setDiffContext(Number(event.target.value))}
+                >
+                  {[0, 1, 3, 5, 10].map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-3 self-end text-sm font-medium text-[var(--ink-900)]">
+                <input
+                  type="checkbox"
+                  checked={ignoreWhitespace}
+                  onChange={(event) => setIgnoreWhitespace(event.target.checked)}
+                  className="h-4 w-4 accent-[var(--accent-500)]"
+                />
+                Ignore whitespace changes
+              </label>
+            </div>
           </>
         ) : null}
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">

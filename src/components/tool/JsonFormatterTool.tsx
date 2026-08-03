@@ -7,57 +7,46 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import { downloadTextFile } from "@/lib/download";
+import { findPrecisionRisks, reformatJson } from "@/lib/tools/json-format";
 
-function describeJsonError(error: unknown) {
-  const detail = error instanceof Error ? error.message : "";
-  return detail
-    ? `Invalid JSON: ${detail}`
-    : "Invalid JSON. Check commas, quotes, and brackets.";
-}
+const indentOptions = [
+  { value: "2", label: "2 spaces" },
+  { value: "4", label: "4 spaces" },
+  { value: "tab", label: "Tabs" },
+] as const;
 
 export default function JsonFormatterTool() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
+  const [indent, setIndent] = useState<(typeof indentOptions)[number]["value"]>("2");
+  const [preservedNumbers, setPreservedNumbers] = useState<string[]>([]);
 
-  function formatJson() {
-    try {
-      const parsed = JSON.parse(input);
-      const nextOutput = JSON.stringify(parsed, null, 2);
-      setOutput(nextOutput);
-      setError("");
-      trackEvent("format_json", {
-        tool_slug: "json-formatter",
-        input_length: input.length,
-        output_length: nextOutput.length,
-      });
-    } catch (caught) {
-      setOutput("");
-      setError(describeJsonError(caught));
-      trackToolFailure("json-formatter", "format", "invalid_json", {
-        input_length: input.length,
-      });
-    }
-  }
+  function run(mode: "format" | "minify") {
+    const indentUnit =
+      mode === "minify" ? "" : indent === "tab" ? "\t" : " ".repeat(Number(indent));
+    const result = reformatJson(input, indentUnit);
 
-  function minifyJson() {
-    try {
-      const parsed = JSON.parse(input);
-      const nextOutput = JSON.stringify(parsed);
-      setOutput(nextOutput);
-      setError("");
-      trackEvent("minify_json", {
-        tool_slug: "json-formatter",
-        input_length: input.length,
-        output_length: nextOutput.length,
-      });
-    } catch (caught) {
+    if (!result.ok) {
       setOutput("");
-      setError(describeJsonError(caught));
-      trackToolFailure("json-formatter", "minify", "invalid_json", {
+      setPreservedNumbers([]);
+      setError(
+        `Line ${result.error.line}, column ${result.error.column}: ${result.error.message}`
+      );
+      trackToolFailure("json-formatter", mode, "invalid_json", {
         input_length: input.length,
       });
+      return;
     }
+
+    setOutput(result.output);
+    setError("");
+    setPreservedNumbers(findPrecisionRisks(result.output));
+    trackEvent(mode === "format" ? "format_json" : "minify_json", {
+      tool_slug: "json-formatter",
+      input_length: input.length,
+      output_length: result.output.length,
+    });
   }
 
   return (
@@ -73,13 +62,36 @@ export default function JsonFormatterTool() {
           placeholder='{"name":"Webutilia","type":"formatter"}'
           className="mt-5 min-h-[360px] font-mono text-sm"
         />
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Button onClick={formatJson}>Format JSON</Button>
-          <Button variant="secondary" onClick={minifyJson}>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button onClick={() => run("format")}>Format JSON</Button>
+          <Button variant="secondary" onClick={() => run("minify")}>
             Minify JSON
           </Button>
+          <label className="ml-auto flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+            Indent
+            <select
+              value={indent}
+              onChange={(event) =>
+                setIndent(event.target.value as (typeof indentOptions)[number]["value"])
+              }
+              className="h-10 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] px-3 text-sm text-[var(--ink-900)]"
+            >
+              {indentOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-        {error ? <p className="mt-4 text-sm text-[var(--brand-600)]">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-[var(--error-foreground)]">{error}</p> : null}
+        {preservedNumbers.length ? (
+          <p className="mt-4 text-xs text-[var(--muted-foreground)]">
+            Kept {preservedNumbers.length} high-precision{" "}
+            {preservedNumbers.length === 1 ? "number" : "numbers"} exactly as written
+            (for example <code className="font-mono">{preservedNumbers[0]}</code>).
+          </p>
+        ) : null}
       </div>
 
       <ToolResult title="Formatted output">

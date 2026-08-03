@@ -15,9 +15,8 @@ export default function JpgToWebpTool() {
       outputMimeType="image/webp"
       outputExtension="webp"
       outputQuality={0.76}
-      targetMaxSizeRatio={0.6}
       qualityControl={{ min: 40, max: 95, defaultValue: 76 }}
-      unsupportedExportMessage="This browser could not export WebP from canvas. Try another browser or format."
+      unsupportedExportMessage="This browser could not export WebP. Try JPG or PNG instead."
     />
   );
 }
