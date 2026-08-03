@@ -533,20 +533,23 @@ export const extendedToolSeoContent: Record<string, ToolSeoContent> = {
   },
   "sql-schema-visualizer": {
     intro: [
-      "Reading raw CREATE TABLE statements is hard when you are trying to understand a database. This tool parses those statements into a readable, relationship-oriented view.",
-      "Parsing runs in the browser, so your schema stays on your device.",
+      "Turn PostgreSQL, MySQL, or SQLite CREATE TABLE statements into a clear database diagram. The SQL schema visualizer maps tables, columns, data types, primary keys, foreign keys, and references so you can understand a data model without tracing raw DDL by hand.",
+      "Start from a curated database schema template or paste your own SQL. Parsing runs entirely in the browser, so private database definitions stay on your device.",
     ],
     highlights: [
-      "Parse CREATE TABLE statements into visual table cards.",
-      "See column types, primary keys, foreign keys, and relationships at a glance.",
-      "Copy or download the generated Mermaid ER source.",
+      "Generate an organized database diagram from common CREATE TABLE syntax.",
+      "Search tables and inspect column types, primary keys, foreign keys, and relationships.",
+      "Use SaaS, e-commerce, content, project management, social, and authentication schema templates.",
+      "Copy Mermaid ER source or export the visible schema as an SVG diagram.",
     ],
-    useCases: ["Understanding an unfamiliar database", "Documenting a schema", "Reviewing table relationships"],
+    useCases: ["Planning a new relational database", "Understanding an unfamiliar SQL schema", "Documenting table relationships", "Creating an ER diagram for technical review"],
     faq: [
-      { question: "What SQL input does it accept?", answer: "It parses CREATE TABLE statements to build a structured view of tables and columns." },
+      { question: "What SQL input does the visualizer accept?", answer: "It parses common terminated CREATE TABLE statements used by PostgreSQL, MySQL, and SQLite. It is intended for schema exploration rather than full dialect validation, so procedures, triggers, and ALTER TABLE statements are not rendered." },
+      { question: "Can I export the database diagram?", answer: "Yes. You can export the current table diagram as SVG, copy its Mermaid ER source, or download the SQL definition." },
+      { question: "Are database schema templates included?", answer: "Yes. The starter library includes SaaS billing, e-commerce, content, project management, social network, and authentication data models." },
       { question: "Is my schema uploaded?", answer: "No, parsing runs locally in your browser." },
     ],
-    keywords: ["sql schema visualizer", "visualize sql schema", "create table parser", "database schema diagram", "sql structure viewer"],
+    keywords: ["sql schema visualizer", "database diagram tool", "database schema templates", "sql diagram online", "ER diagram from SQL", "PostgreSQL schema visualizer", "MySQL database diagram", "visualize sql schema"],
   },
   "code-minifier": {
     intro: [

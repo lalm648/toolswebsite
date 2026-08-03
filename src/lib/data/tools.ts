@@ -557,7 +557,7 @@ export const tools: ToolDefinition[] = [
   {
     slug: "sql-schema-visualizer",
     title: "SQL Schema Visualizer",
-    description: "Turn CREATE TABLE statements into visual table, key, and relationship cards with Mermaid export.",
+    description: "Create database diagrams from SQL, explore table relationships, and customize PostgreSQL, MySQL, or SQLite schema templates.",
     href: "/tools/developer/sql-schema-visualizer",
     category: "developer",
     meta: "Database utility",

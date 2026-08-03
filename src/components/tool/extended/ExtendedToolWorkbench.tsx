@@ -47,6 +47,10 @@ const DataUtilityWorkbench = dynamic(
   () => import("@/components/tool/extended/DataUtilityWorkbench"),
   { loading: WorkbenchSkeleton },
 );
+const SqlSchemaVisualizerTool = dynamic(
+  () => import("@/components/tool/SqlSchemaVisualizerTool"),
+  { loading: WorkbenchSkeleton },
+);
 const GeneratorUtilityWorkbench = dynamic(
   () => import("@/components/tool/extended/GeneratorUtilityWorkbench"),
   { loading: WorkbenchSkeleton },
@@ -63,6 +67,7 @@ export default function ExtendedToolWorkbench({
   category: ToolCategorySlug;
   slug: string;
 }) {
+  if (slug === "sql-schema-visualizer") return <SqlSchemaVisualizerTool />;
   if (category === "image") return <ImageUtilityWorkbench slug={slug} />;
   if (category === "video" || category === "audio")
     return <MediaUtilityWorkbench slug={slug} />;

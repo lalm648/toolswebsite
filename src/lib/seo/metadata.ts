@@ -118,8 +118,12 @@ export function buildToolMetadata(slug: string): Metadata {
     return buildMetadata("Webutilia", "Free browser-based tools for images, text, SEO, and developer workflows.");
   }
 
-  const title = `${tool.title} Online – Free Tool | Webutilia`;
-  const description = truncateAtWord(`${tool.description.replace(/\.$/, "")}. Use it free on Webutilia, review the result, and download or copy it without creating an account.`);
+  const title = slug === "sql-schema-visualizer"
+    ? "SQL Schema Visualizer & Database Diagram Tool | Webutilia"
+    : `${tool.title} Online – Free Tool | Webutilia`;
+  const description = slug === "sql-schema-visualizer"
+    ? "Visualize SQL schemas as database diagrams. Explore free PostgreSQL, MySQL, and SQLite templates, table relationships, keys, Mermaid source, and SVG export."
+    : truncateAtWord(`${tool.description.replace(/\.$/, "")}. Use it free on Webutilia, review the result, and download or copy it without creating an account.`);
 
   return buildMetadata(title, description, {
     path: tool.href,
