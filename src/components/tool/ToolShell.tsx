@@ -149,8 +149,8 @@ export default function ToolShell({
     : null;
 
   return (
-    <section className="py-10 sm:py-14">
-      <Container className="space-y-7 sm:space-y-8">
+    <section className="py-6 sm:py-9">
+      <Container className="space-y-6 sm:space-y-7">
         {breadcrumbJsonLd ? (
           <script
             type="application/ld+json"
@@ -162,11 +162,21 @@ export default function ToolShell({
           />
         ) : null}
 
+        {/*
+          The tool is the reason the page exists, so it comes straight after the heading.
+          It used to be the seventh block on the page — behind a breadcrumb, badge,
+          heading, three-line description, a three-up trust strip, and a panel explaining
+          the four steps the user was about to perform — which pushed the upload box to
+          roughly 1,030px on a laptop and past 1,000px on a phone.
+
+          Nothing was deleted: the trust claims are now one inline row, and the workflow
+          panel moved below the tool. All the same text is still in the document.
+        */}
         <div className="mx-auto max-w-3xl text-center">
           {category ? (
             <nav
               aria-label="Breadcrumb"
-              className="mb-4 flex flex-wrap items-center justify-center gap-2 text-sm text-[var(--muted-foreground)]"
+              className="mb-3 flex flex-wrap items-center justify-center gap-2 text-sm text-[var(--muted-foreground)]"
             >
               <Link href="/" className="hover:text-[var(--accent-700)]">
                 Home
@@ -183,56 +193,43 @@ export default function ToolShell({
             </nav>
           ) : null}
           <Badge variant="secondary">{eyebrow}</Badge>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-4xl">
+          <h1 className="mt-2.5 text-3xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-4xl">
             {title}
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg">
+          <p className="mx-auto mt-2.5 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
             {description}
           </p>
-        </div>
 
-        {tool && category ? (
-          <ul
-            aria-label="Tool access and privacy"
-            className="mx-auto grid max-w-3xl gap-2 rounded-[var(--radius-md)] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-2 sm:grid-cols-3"
-          >
-            {[
-              {
-                label: "Free to use",
-                detail: "No payment required",
-              },
-              {
-                label: "No account",
-                detail: "Start immediately",
-              },
-              processingSignal,
-            ].map((signal) => (
-              <li
-                key={signal.label}
-                className="flex min-w-0 items-center gap-3 rounded-xl bg-[var(--surface-raised)] px-3 py-2.5"
-              >
-                <span
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--accent-50)] text-xs font-bold text-[var(--accent-700)]"
-                  aria-hidden="true"
-                >
-                  ✓
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-xs font-bold text-[var(--ink-900)]">
+          {tool && category ? (
+            <ul
+              aria-label="Tool access and privacy"
+              className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[var(--muted-foreground)]"
+            >
+              {[
+                { label: "Free to use", detail: "No payment required" },
+                { label: "No account", detail: "Start immediately" },
+                processingSignal,
+              ].map((signal) => (
+                <li key={signal.label} className="flex items-center gap-1.5">
+                  <span
+                    className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[var(--accent-100)] text-[9px] font-bold text-[var(--accent-700)]"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                  <span className="font-semibold text-[var(--ink-900)]">
                     {signal.label}
                   </span>
-                  <span className="block truncate text-[11px] text-[var(--muted-foreground)]">
-                    {signal.detail}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {tool ? <ToolExperiencePanel tool={tool} /> : null}
+                  <span className="hidden sm:inline">· {signal.detail}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
 
         {children}
+
+        {tool ? <ToolExperiencePanel tool={tool} /> : null}
 
         {siteFlags.showAdSlots ? (
           <AdSlot

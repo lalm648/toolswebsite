@@ -16,30 +16,18 @@ export default function ToolResult({
 }: ToolResultProps) {
   return (
     <Card className={`bg-[var(--surface-raised)] ${isProcessing ? "motion-shimmer" : ""}`}>
-      <CardContent className="p-6 sm:p-7">
-        <div className="text-center">
-          <div
-            className={`mx-auto flex h-18 w-18 items-center justify-center rounded-[var(--radius-xl)] border border-[var(--outline-strong)] bg-[var(--surface-cta)] text-[var(--accent-300)] shadow-[var(--shadow-soft)] ${
-              isProcessing ? "motion-float" : ""
-            }`}
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="h-8 w-8"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <rect x="4" y="5" width="16" height="14" rx="3" />
-              <path d="M8 10.5h8" />
-              <path d="M8 14.5h5" />
-            </svg>
-          </div>
-          <h2 className="mt-4 text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
+      <CardContent className="p-5 sm:p-6">
+        {/*
+          This used to open with a 72px decorative document icon on every tool — including
+          the word counter, where a document icon preceded a word count. That was roughly
+          110px of chrome above the actual payload. The heading now leads, and the
+          processing state sits beside it instead of below a graphic.
+        */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
           {isProcessing ? (
-            <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-[var(--accent-50)] px-3 py-1 text-xs font-semibold text-[var(--accent-700)]">
-              <span className="h-2 w-2 rounded-full bg-current motion-status-dot" />
+            <p className="inline-flex items-center gap-2 rounded-full bg-[var(--accent-50)] px-3 py-1 text-xs font-semibold text-[var(--accent-700)]">
+              <span className="motion-status-dot h-2 w-2 rounded-full bg-current" />
               <span>{processingLabel}</span>
             </p>
           ) : null}

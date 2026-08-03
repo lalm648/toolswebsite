@@ -49,23 +49,32 @@ export default function ToolUploader({
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <CardContent className="p-6 sm:p-7">
-        <div className="flex flex-col items-center text-center">
+      <CardContent className="p-4 sm:p-5">
+        {/*
+          A real dashed drop target. The card previously accepted drops but drew no
+          boundary at all — the only cue was a sentence reading "or drag and drop an
+          image here". The tall icon tile and stacked text also pushed the primary
+          button roughly 180px into the card.
+        */}
+        <div
+          className={`flex flex-col items-center rounded-[var(--radius-lg)] border-2 border-dashed px-4 py-7 text-center transition-colors sm:py-9 ${
+            isDragActive
+              ? "border-[var(--accent-500)] bg-[var(--accent-50)]"
+              : "border-[var(--outline-strong)] bg-[var(--surface-panel)]"
+          }`}
+        >
           <div
-            className={`relative flex h-18 w-18 items-center justify-center rounded-[var(--radius-xl)] border border-[var(--outline-strong)] bg-[var(--surface-cta)] text-[var(--accent-300)] shadow-[var(--shadow-soft)] ${
+            className={`relative flex h-12 w-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--accent-100)] text-[var(--accent-700)] ${
               isDragActive || isProcessing ? "motion-float" : ""
             }`}
           >
             {isProcessing ? (
-              <>
-                <span className="pointer-events-none absolute inset-0 rounded-[var(--radius-xl)] border border-white/30 motion-pulse-ring" />
-                <span className="pointer-events-none absolute inset-0 rounded-[var(--radius-xl)] border border-white/20 motion-pulse-ring [animation-delay:240ms]" />
-              </>
+              <span className="motion-pulse-ring pointer-events-none absolute inset-0 rounded-[var(--radius-md)] border border-[var(--accent-500)]" />
             ) : null}
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
-              className="h-8 w-8"
+              className="h-6 w-6"
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
@@ -75,31 +84,41 @@ export default function ToolUploader({
               <path d="M5 18.5h14" />
             </svg>
           </div>
-          <div className="px-2 py-4 text-center">
-            <h2 className="text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
-            <p className="mt-2 max-w-md text-sm leading-6 text-[var(--muted-foreground)]">{description}</p>
-          </div>
-          {isProcessing ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-[var(--accent-50)] px-3 py-1 text-xs font-semibold text-[var(--accent-700)]">
-              <span className="h-2 w-2 rounded-full bg-current motion-status-dot" />
-              <span>{processingLabel}</span>
-            </div>
-          ) : null}
+
+          <h2 className="mt-3 text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
+
           {fileInputId ? (
-            <Button asChild size="lg" className="mt-4 min-w-36">
+            <Button asChild size="lg" className="mt-4 min-w-40">
               <label htmlFor={fileInputId} className="cursor-pointer">
                 {buttonLabel}
               </label>
             </Button>
           ) : (
-            <Button onClick={onButtonClick} size="lg" className="mt-4 min-w-36">
+            <Button onClick={onButtonClick} size="lg" className="mt-4 min-w-40">
               {buttonLabel}
             </Button>
           )}
-          {dropHint ? <p className="mt-2 text-sm text-[var(--muted-foreground)]">{dropHint}</p> : null}
-          {helperText ? <p className="mt-3 text-xs text-[var(--muted-foreground)]">{helperText}</p> : null}
-          {children ? <div className="mt-6 w-full">{children}</div> : null}
+
+          {dropHint ? (
+            <p className="mt-2.5 text-sm text-[var(--muted-foreground)]">{dropHint}</p>
+          ) : null}
+          {helperText ? (
+            <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">{helperText}</p>
+          ) : null}
+
+          {isProcessing ? (
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-[var(--accent-50)] px-3 py-1 text-xs font-semibold text-[var(--accent-700)]">
+              <span className="motion-status-dot h-2 w-2 rounded-full bg-current" />
+              <span>{processingLabel}</span>
+            </div>
+          ) : null}
         </div>
+
+        <p className="mt-3 text-center text-sm leading-6 text-[var(--muted-foreground)]">
+          {description}
+        </p>
+
+        {children ? <div className="mt-5 w-full">{children}</div> : null}
       </CardContent>
     </Card>
   );
