@@ -261,7 +261,7 @@ export default function GeneratorUtilityWorkbench({
 
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
         {slug === "password-generator" ? (
           <div className="mt-4 space-y-4">
@@ -382,7 +382,7 @@ export default function GeneratorUtilityWorkbench({
                 spellCheck={false}
               />
             </label>
-            {algorithm === "SHA-1" ? <p className="text-xs leading-5 text-amber-700">SHA-1 is provided for legacy compatibility, not for new security-sensitive designs.</p> : null}
+            {algorithm === "SHA-1" ? <p className="text-xs leading-5 text-[var(--warning-foreground)]">SHA-1 is provided for legacy compatibility, not for new security-sensitive designs.</p> : null}
           </div>
         ) : (
           <>
@@ -447,7 +447,7 @@ export default function GeneratorUtilityWorkbench({
         <WorkbenchError message={error} />
       </section>
 
-      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Result

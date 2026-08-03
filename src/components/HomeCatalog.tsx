@@ -141,7 +141,7 @@ export default function HomeCatalog() {
         <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[var(--outline-soft)] pt-4 text-xs font-semibold text-[var(--muted-foreground)] sm:text-sm">
           {["Runs in your browser", "No account required", "Files stay on your device where supported"].map((item) => (
             <span key={item} className="inline-flex items-center gap-2">
-              <span className="grid h-4 w-4 place-items-center rounded-full bg-emerald-500/15 text-[10px] text-emerald-700" aria-hidden="true">✓</span>
+              <span className="grid h-4 w-4 place-items-center rounded-full bg-[var(--accent-100)] text-[10px] text-[var(--accent-700)]" aria-hidden="true">✓</span>
               {item}
             </span>
           ))}
@@ -202,7 +202,7 @@ export default function HomeCatalog() {
                   aria-pressed={active}
                   className={`min-h-11 shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)] ${
                     active
-                      ? "bg-[var(--accent-500)] text-white"
+                      ? "bg-[var(--action-bg)] text-[var(--action-fg)]"
                       : "border border-[var(--outline-soft)] bg-[var(--surface-card)] text-[var(--muted-foreground)] hover:border-[var(--outline-strong)] hover:text-[var(--ink-900)]"
                   }`}
                 >

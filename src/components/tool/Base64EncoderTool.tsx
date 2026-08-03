@@ -93,7 +93,7 @@ export default function Base64EncoderTool() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-      <div className="rounded-[1.35rem] border border-(--outline-soft) bg-(--surface-card) p-6 shadow-(--shadow-soft)">
+      <div className="rounded-[var(--radius-xl)] border border-(--outline-soft) bg-(--surface-card) p-6 shadow-(--shadow-soft)">
         <h2 className="text-xl font-semibold text-(--ink-900)">Input</h2>
         <p className="mt-2 text-sm text-(--muted-foreground)">
           Encode plain text to Base64 or decode Base64 back to readable text.

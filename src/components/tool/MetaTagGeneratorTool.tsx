@@ -87,8 +87,8 @@ function scoreTitle(value: string) {
   const length = value.trim().length;
   if (length === 0) return { label: "Missing", tone: "text-[var(--brand-700)]" };
   if (length < 30) return { label: "Too short", tone: "text-[var(--brand-700)]" };
-  if (length <= 60) return { label: "Strong", tone: "text-emerald-700" };
-  if (length <= 70) return { label: "Acceptable", tone: "text-amber-700" };
+  if (length <= 60) return { label: "Strong", tone: "text-[var(--success-foreground)]" };
+  if (length <= 70) return { label: "Acceptable", tone: "text-[var(--warning-foreground)]" };
   return { label: "Too long", tone: "text-[var(--brand-700)]" };
 }
 
@@ -96,8 +96,8 @@ function scoreDescription(value: string) {
   const length = value.trim().length;
   if (length === 0) return { label: "Missing", tone: "text-[var(--brand-700)]" };
   if (length < 70) return { label: "Too short", tone: "text-[var(--brand-700)]" };
-  if (length <= 160) return { label: "Strong", tone: "text-emerald-700" };
-  if (length <= 175) return { label: "Acceptable", tone: "text-amber-700" };
+  if (length <= 160) return { label: "Strong", tone: "text-[var(--success-foreground)]" };
+  if (length <= 175) return { label: "Acceptable", tone: "text-[var(--warning-foreground)]" };
   return { label: "Too long", tone: "text-[var(--brand-700)]" };
 }
 
@@ -357,7 +357,7 @@ export default function MetaTagGeneratorTool() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
       <div className="space-y-4">
-        <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+        <div className="rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-[var(--ink-900)]">Preset mode</h2>
@@ -378,7 +378,7 @@ export default function MetaTagGeneratorTool() {
                 key={key}
                 type="button"
                 onClick={() => applyPreset(key)}
-                className={`rounded-[1.1rem] border px-4 py-4 text-left shadow-[var(--shadow-soft)] ${
+                className={`rounded-[var(--radius-lg)] border px-4 py-4 text-left shadow-[var(--shadow-soft)] ${
                   preset === key
                     ? "border-[var(--accent-500)] bg-[var(--accent-50)]"
                     : "border-[var(--outline-soft)] bg-[var(--surface-raised)]"
@@ -391,7 +391,7 @@ export default function MetaTagGeneratorTool() {
           </div>
         </div>
 
-        <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+        <div className="rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-[var(--ink-900)]">SEO fields</h2>
@@ -404,7 +404,7 @@ export default function MetaTagGeneratorTool() {
             </Badge>
           </div>
 
-          <div className="mt-5 grid gap-4 rounded-[1.2rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 sm:p-5">
+          <div className="mt-5 grid gap-4 rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 sm:p-5">
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-full bg-[var(--accent-50)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-700)]">
                 Core SEO
@@ -486,7 +486,7 @@ export default function MetaTagGeneratorTool() {
           </div>
         </div>
 
-        <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+        <div className="rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-[var(--ink-900)]">
@@ -501,7 +501,7 @@ export default function MetaTagGeneratorTool() {
             </Badge>
           </div>
 
-          <div className="mt-5 grid gap-4 rounded-[1.2rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 sm:p-5">
+          <div className="mt-5 grid gap-4 rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 sm:p-5">
             {preset === "article" ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="text-sm font-medium text-[var(--ink-900)]">
@@ -619,7 +619,7 @@ export default function MetaTagGeneratorTool() {
           </div>
         </div>
 
-        <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+        <div className="rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-[var(--ink-900)]">SEO image</h2>
@@ -632,7 +632,7 @@ export default function MetaTagGeneratorTool() {
             </Badge>
           </div>
 
-          <div className="mt-5 grid gap-4 rounded-[1.2rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 sm:p-5">
+          <div className="mt-5 grid gap-4 rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 sm:p-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-[var(--brand-50)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-700)]">
                 Social Image
@@ -677,7 +677,7 @@ export default function MetaTagGeneratorTool() {
               <Input value={twitterCreator} onChange={(event) => setTwitterCreator(event.target.value)} className="mt-2" />
             </label>
 
-            <div className="rounded-[1.2rem] border border-dashed border-[var(--outline-strong)] bg-[var(--surface-panel)] p-4">
+            <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--outline-strong)] bg-[var(--surface-panel)] p-4">
               <input
                 ref={imageInputRef}
                 type="file"
@@ -714,7 +714,7 @@ export default function MetaTagGeneratorTool() {
               warnings.map((item) => (
                 <div
                   key={item.message}
-                  className={`rounded-[1.1rem] border px-4 py-3 text-sm leading-6 ${
+                  className={`rounded-[var(--radius-lg)] border px-4 py-3 text-sm leading-6 ${
                     item.level === "error"
                       ? "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/20 dark:text-red-100"
                       : item.level === "warning"
@@ -726,7 +726,7 @@ export default function MetaTagGeneratorTool() {
                 </div>
               ))
             ) : (
-              <div className="rounded-[1.1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--accent-200)] bg-[var(--success-surface)] px-4 py-3 text-sm font-medium text-[var(--success-foreground)]">
                 Core SEO fields look solid. You have the minimum data needed for a strong snippet and social card.
               </div>
             )}
@@ -734,7 +734,7 @@ export default function MetaTagGeneratorTool() {
         </ToolResult>
 
         <ToolResult title="Search preview">
-          <div className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 text-left">
+          <div className="rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 text-left">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
@@ -750,7 +750,7 @@ export default function MetaTagGeneratorTool() {
         </ToolResult>
 
         <ToolResult title="Social preview">
-          <div className="overflow-hidden rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] text-left shadow-[var(--shadow-soft)]">
+          <div className="overflow-hidden rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] text-left shadow-[var(--shadow-soft)]">
             <div className="aspect-[1200/630] w-full bg-[var(--surface-panel)]">
               {previewImageSource ? (
                 // eslint-disable-next-line @next/next/no-img-element

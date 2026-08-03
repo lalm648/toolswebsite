@@ -17,7 +17,7 @@ export default function ToolExperiencePanel({
   return (
     <section
       aria-labelledby="tool-workflow-title"
-      className="overflow-hidden rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] shadow-[var(--shadow-soft)]"
+      className="overflow-hidden rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-panel)] shadow-[var(--shadow-soft)]"
     >
       <div className="flex flex-col gap-4 border-b border-[var(--outline-soft)] bg-[linear-gradient(120deg,var(--accent-50),var(--surface-raised)_52%,var(--surface-panel))] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>

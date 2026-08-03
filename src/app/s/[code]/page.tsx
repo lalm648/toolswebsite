@@ -32,7 +32,7 @@ export default function LocalShortLinkPage() {
   return (
     <section className="py-24">
       <Container>
-        <div className="mx-auto max-w-lg rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-8 text-center shadow-[var(--shadow-soft)]">
+        <div className="mx-auto max-w-lg rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-8 text-center shadow-[var(--shadow-soft)]">
           <h1 className="text-2xl font-semibold text-[var(--ink-900)]">
             Local short link
           </h1>

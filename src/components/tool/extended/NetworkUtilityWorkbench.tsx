@@ -642,7 +642,7 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
 
   return (
     <div className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
-      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent-700)]">
@@ -711,7 +711,7 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
         <WorkbenchError message={error} />
       </section>
 
-      <section className="min-w-0 rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="min-w-0 rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent-700)]">

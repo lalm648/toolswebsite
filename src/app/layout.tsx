@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
@@ -6,6 +7,25 @@ import CookieConsent from "@/components/CookieConsent";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { buildMetadata, siteUrl } from "@/lib/seo/metadata";
+
+/**
+ * The stylesheet has always declared Plus Jakarta Sans, but nothing ever loaded it, so
+ * every visitor read the site in their OS default. Next self-hosts these at build time,
+ * so there is no runtime request to a font CDN.
+ */
+const sans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
+});
+
+// The font-mono utility pointed at an undefined variable, so hashes, JSON, DNS records
+// and diffs were all rendering in proportional type.
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = buildMetadata(
   "Free Online Tools for Images, PDF, Video & More | Webutilia",
@@ -47,7 +67,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${sans.variable} ${mono.variable}`}
+    >
       <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"
@@ -72,7 +96,7 @@ export default function RootLayout({
         />
         <a
           href="#main-content"
-          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-[var(--accent-500)] px-4 py-3 font-semibold text-white shadow-[var(--shadow-lift)] focus:translate-y-0"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-[var(--action-bg)] px-4 py-3 font-semibold text-[var(--action-fg)] shadow-[var(--shadow-lift)] focus:translate-y-0"
         >
           Skip to main content
         </a>

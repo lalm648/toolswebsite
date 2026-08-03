@@ -52,14 +52,14 @@ export default function ToolUploader({
       <CardContent className="p-6 sm:p-7">
         <div className="flex flex-col items-center text-center">
           <div
-            className={`relative flex h-18 w-18 items-center justify-center rounded-[1.4rem] border border-[var(--outline-strong)] bg-[var(--surface-cta)] text-[var(--accent-300)] shadow-[var(--shadow-soft)] ${
+            className={`relative flex h-18 w-18 items-center justify-center rounded-[var(--radius-xl)] border border-[var(--outline-strong)] bg-[var(--surface-cta)] text-[var(--accent-300)] shadow-[var(--shadow-soft)] ${
               isDragActive || isProcessing ? "motion-float" : ""
             }`}
           >
             {isProcessing ? (
               <>
-                <span className="pointer-events-none absolute inset-0 rounded-[1.4rem] border border-white/30 motion-pulse-ring" />
-                <span className="pointer-events-none absolute inset-0 rounded-[1.4rem] border border-white/20 motion-pulse-ring [animation-delay:240ms]" />
+                <span className="pointer-events-none absolute inset-0 rounded-[var(--radius-xl)] border border-white/30 motion-pulse-ring" />
+                <span className="pointer-events-none absolute inset-0 rounded-[var(--radius-xl)] border border-white/20 motion-pulse-ring [animation-delay:240ms]" />
               </>
             ) : null}
             <svg

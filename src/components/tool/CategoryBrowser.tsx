@@ -126,7 +126,7 @@ export default function CategoryBrowser({
       ) : null}
 
       {siteFlags.showWaitlistBlock ? (
-        <div className="relative overflow-hidden rounded-[1.35rem] bg-[var(--surface-panel)] p-5 sm:p-6">
+        <div className="relative overflow-hidden rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 sm:p-6">
           <span className="absolute inset-x-0 top-0 h-0.5 bg-[var(--brand-500)]" aria-hidden="true" />
           <WaitlistBlock
             compact

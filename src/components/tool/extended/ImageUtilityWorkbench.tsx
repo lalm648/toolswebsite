@@ -650,7 +650,7 @@ export default function ImageUtilityWorkbench({
       : ["webp", "avif", "jpg", "png"];
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">
           Images and settings
         </h2>
@@ -842,7 +842,7 @@ export default function ImageUtilityWorkbench({
         <PrivacyNotice />
         <WorkbenchError message={error} />
       </section>
-      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Results
@@ -874,8 +874,8 @@ export default function ImageUtilityWorkbench({
           <div className={`mt-5 grid gap-4 ${results.length > 1 ? "sm:grid-cols-2" : ""}`}>
             {results.length === 1 && results[0].type.startsWith("image/") ? (
               <div className="flex justify-end gap-1">
-                <button type="button" className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${fitPreview ? "bg-[var(--accent-500)] text-white" : "border border-[var(--outline-soft)]"}`} onClick={() => setFitPreview(true)}>Fit</button>
-                <button type="button" className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${!fitPreview ? "bg-[var(--accent-500)] text-white" : "border border-[var(--outline-soft)]"}`} onClick={() => setFitPreview(false)}>1:1</button>
+                <button type="button" className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${fitPreview ? "bg-[var(--action-bg)] text-[var(--action-fg)]" : "border border-[var(--outline-soft)]"}`} onClick={() => setFitPreview(true)}>Fit</button>
+                <button type="button" className={`min-h-10 rounded-lg px-3 text-xs font-semibold ${!fitPreview ? "bg-[var(--action-bg)] text-[var(--action-fg)]" : "border border-[var(--outline-soft)]"}`} onClick={() => setFitPreview(false)}>1:1</button>
               </div>
             ) : null}
             {results.map((result) => (

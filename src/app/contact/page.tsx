@@ -24,7 +24,7 @@ export default function ContactPage() {
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <ContactForm />
 
-          <div className="rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+          <div className="rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">What to include</h2>
             <div className="mt-4 space-y-4 text-sm leading-7 text-[var(--muted-foreground)]">
               <p>For bug reports: include the tool name, browser, device, and the exact action that caused the issue.</p>

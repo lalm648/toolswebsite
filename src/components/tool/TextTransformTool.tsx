@@ -35,7 +35,7 @@ export default function TextTransformTool({
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-      <div className="rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+      <div className="rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold text-[var(--ink-900)]">{title}</h2>

@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* The theme toggle writes data-theme onto <html>, but Tailwind's stock `dark:` variant
+   keys off prefers-color-scheme. That meant all 52 dark: utilities in the codebase
+   followed the OS preference and ignored the user's actual choice — so anyone on a
+   light OS who switched to dark got dark tokens with light utility overrides. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --background: #f5f7fb;
   --foreground: #475569;
@@ -21,32 +27,62 @@
   --accent-200: #a7f3d0;
   --accent-300: #6ee7b7;
   --accent-500: #047857;
-  --accent-600: #065f46;
-  --accent-700: #065f46;
+  --accent-600: #036249;
+  --accent-700: #024c39;
+
+  /* The primary action carries its own foreground so each theme can pick a readable
+     pairing. Hardcoding white text meant a bright dark-theme accent would fail
+     contrast, which is why the dark accent was previously left almost black. */
+  --action-bg: #047857;
+  --action-bg-hover: #036249;
+  --action-fg: #ffffff;
 
   --ink-900: #0f172a;
+
+  /* Surfaces step upward: page → panel (recessed) → card → raised → strong.
+     Six of these used to be the same #ffffff, so nested cards were indistinguishable
+     and the whole interface read as one flat plane. */
   --surface: #ffffff;
   --surface-strong: #ffffff;
   --surface-raised: #ffffff;
   --surface-card: #ffffff;
   --surface-hero: #ffffff;
-  --surface-panel: #f8fafc;
+  --surface-panel: #f1f4f9;
   --surface-cta: #0f172a;
   --header-bg: rgba(255, 255, 255, 0.85);
   --footer-bg: #0f172a;
-  --surface-card-hover: #f4f7fc;
-  --outline-soft: #e6e9ef;
-  --outline-strong: #cbd5e1;
+  --surface-card-hover: #f7f9fc;
+  --outline-soft: #dde3ec;
+  --outline-strong: #c2cbd8;
   --ring-soft: rgba(5, 150, 105, 0.28);
   --page-glow: rgba(5, 150, 105, 0.065);
   --error-foreground: #b91c1c;
-  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.035), 0 8px 18px -16px rgba(15, 23, 42, 0.14);
-  --shadow-lift: 0 14px 30px -24px rgba(15, 23, 42, 0.22);
+  --error-surface: #fef2f2;
+  --error-outline: #fecaca;
+  --warning-foreground: #92590c;
+  --warning-surface: #fffbeb;
+  --success-foreground: #15803d;
+  --success-surface: #f0fdf4;
 
-  /* Unified radius scale */
+  /* Three elevation levels. The old soft shadow opened at 3.5% alpha, which against a
+     near-white border on a near-white page was effectively invisible. */
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 16px -10px rgba(15, 23, 42, 0.1);
+  --shadow-lift: 0 2px 4px rgba(15, 23, 42, 0.06), 0 14px 30px -18px rgba(15, 23, 42, 0.22);
+  --shadow-overlay: 0 4px 8px rgba(15, 23, 42, 0.08), 0 24px 48px -24px rgba(15, 23, 42, 0.32);
+
+  /* Unified radius scale. Every rounded surface resolves to one of these five, which
+     replaced eleven hand-written rem values (0.7 through 1.75rem) that produced
+     non-concentric corners on nested cards. Steps were chosen so no existing radius
+     moves by more than about 2px. */
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+
+  /* Section rhythm, so surfaces stop inventing their own vertical padding. */
+  --space-section: 2.5rem;
+  --space-section-lg: 3.5rem;
 }
 
 :root[data-theme="dark"] {
@@ -64,39 +100,56 @@
   --brand-600: #bef264;
   --brand-700: #d9f99d;
 
-  --accent-50: rgba(52, 211, 153, 0.1);
-  --accent-100: rgba(52, 211, 153, 0.16);
-  --accent-200: rgba(52, 211, 153, 0.24);
-  --accent-300: #34d399;
-  --accent-500: #047857;
-  --accent-600: #065f46;
-  --accent-700: #6ee7b7;
+  --accent-50: rgba(52, 211, 153, 0.12);
+  --accent-100: rgba(52, 211, 153, 0.18);
+  --accent-200: rgba(52, 211, 153, 0.26);
+  --accent-300: #6ee7b7;
+  /* These were byte-identical to the light theme, so the primary button was a
+     near-black green pill on a dark card and did not read as an action at all. */
+  --accent-500: #34d399;
+  --accent-600: #6ee7b7;
+  --accent-700: #a7f3d0;
+
+  /* Bright fill with dark text — about 9:1, versus 2.2:1 for white on this green. */
+  --action-bg: #34d399;
+  --action-bg-hover: #6ee7b7;
+  --action-fg: #052e21;
 
   --ink-900: #f7f9fc;
-  --surface: #111a27;
-  --surface-strong: #152131;
-  --surface-raised: #111a27;
-  --surface-card: #111a27;
-  --surface-card-hover: #152131;
+  --surface: #141d2b;
+  --surface-strong: #1b2637;
+  --surface-raised: #172131;
+  --surface-card: #141d2b;
+  --surface-card-hover: #1b2637;
   --surface-hero: #0d1420;
-  --surface-panel: #0d1420;
-  --surface-cta: #152131;
+  --surface-panel: #0f1723;
+  --surface-cta: #1b2637;
   --header-bg: rgba(8, 13, 21, 0.82);
   --footer-bg: #060a11;
-  --outline-soft: rgba(255, 255, 255, 0.075);
-  --outline-strong: rgba(255, 255, 255, 0.16);
+  --outline-soft: rgba(255, 255, 255, 0.1);
+  --outline-strong: rgba(255, 255, 255, 0.2);
   --ring-soft: rgba(52, 211, 153, 0.3);
   --page-glow: rgba(52, 211, 153, 0.045);
   --error-foreground: #fca5a5;
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.25), 0 10px 20px -18px rgba(0, 0, 0, 0.5);
-  --shadow-lift: 0 16px 34px -26px rgba(0, 0, 0, 0.72);
+  --error-surface: rgba(248, 113, 113, 0.12);
+  --error-outline: rgba(248, 113, 113, 0.32);
+  --warning-foreground: #fcd34d;
+  --warning-surface: rgba(252, 211, 77, 0.12);
+  --success-foreground: #6ee7b7;
+  --success-surface: rgba(110, 231, 183, 0.12);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 18px -12px rgba(0, 0, 0, 0.55);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.35), 0 16px 34px -20px rgba(0, 0, 0, 0.7);
+  --shadow-overlay: 0 4px 10px rgba(0, 0, 0, 0.45), 0 28px 56px -28px rgba(0, 0, 0, 0.8);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* These are set by next/font in the root layout. They previously pointed at
+     --font-geist-* variables that were never defined, which silently broke every
+     font-mono utility on the site. */
+  --font-sans: var(--font-sans), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
 body {
@@ -104,19 +157,35 @@ body {
     radial-gradient(circle at 50% -12rem, var(--page-glow), transparent 36rem),
     var(--background);
   color: var(--foreground);
-  font-family:
-    "Plus Jakarta Sans",
-    "Inter",
-    "Segoe UI",
-    sans-serif;
+  font-family: var(--font-sans), "Segoe UI", system-ui, sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-:where(a, button, input, textarea, select, summary):focus-visible {
-  outline: none;
+/* A visible focus ring on every interactive element. This rule used to set
+   `outline: none` with only ~20 replacement rings across the codebase, which left
+   footer links, the tool index, mobile navigation and several controls invisible to
+   keyboard users. */
+:where(a, button, input, textarea, select, summary, [role="radio"], [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 a,
@@ -170,6 +239,59 @@ textarea {
   50% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* ToolResult has always applied `motion-shimmer` while processing, but the class was
+   never defined — so there was no loading feedback anywhere on the site. */
+@keyframes shimmer-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.motion-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.motion-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    var(--accent-50) 42%,
+    var(--accent-100) 50%,
+    var(--accent-50) 58%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 1.5s linear infinite;
+}
+
+/* A reusable skeleton block for content that has not arrived yet. */
+.skeleton {
+  background-image: linear-gradient(
+    100deg,
+    var(--surface-panel) 30%,
+    var(--surface-card-hover) 50%,
+    var(--surface-panel) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 1.4s linear infinite;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-shimmer::after,
+  .skeleton {
+    animation: none;
   }
 }
 

@@ -142,7 +142,7 @@ export default function CategoryToolDirectory({
             {groups.map(([label, groupTools]) => (
               <section
                 key={label}
-                className={`min-w-0 rounded-[1.25rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 shadow-[var(--shadow-soft)] ${
+                className={`min-w-0 rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-3 shadow-[var(--shadow-soft)] ${
                   groupTools.length > 4 ? "lg:col-span-2" : ""
                 }`}
               >

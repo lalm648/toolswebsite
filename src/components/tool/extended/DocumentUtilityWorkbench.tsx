@@ -469,7 +469,7 @@ export default function DocumentUtilityWorkbench({
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">Source</h2>
         {slug === "markdown-to-html" ? (
           <Textarea
@@ -624,7 +624,7 @@ export default function DocumentUtilityWorkbench({
         <PrivacyNotice />
         <WorkbenchError message={error} />
       </section>
-      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Result
@@ -698,7 +698,7 @@ export default function DocumentUtilityWorkbench({
             {result.type === "application/pdf" ? (
               <iframe title={`Preview of ${result.name}`} src={result.url} className="mb-4 h-96 w-full rounded-xl border border-[var(--outline-soft)] bg-white" />
             ) : null}
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-800">
+            <div className="rounded-xl border border-[var(--accent-200)] bg-[var(--success-surface)] p-5 text-[var(--success-foreground)]">
               <p className="font-semibold">{result.name} is ready</p>
               <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
                 {totalInputSize ? <div><dt className="text-xs opacity-70">Original size</dt><dd className="mt-0.5 font-semibold tabular-nums">{formatDocumentBytes(totalInputSize)}</dd></div> : null}

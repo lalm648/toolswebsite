@@ -39,7 +39,7 @@ export default function NewsletterSignup({ source, compact = false }: Newsletter
   }
 
   return (
-    <section className={compact ? "h-full p-1" : "rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)] sm:p-7"}>
+    <section className={compact ? "h-full p-1" : "rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)] sm:p-7"}>
       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent-50)] text-[var(--accent-700)]">
         <svg
           viewBox="0 0 24 24"
@@ -66,7 +66,7 @@ export default function NewsletterSignup({ source, compact = false }: Newsletter
         improvements ship.
       </p>
 
-      <div className={compact ? "mt-5" : "mt-6 rounded-[1.2rem] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4 sm:p-5"}>
+      <div className={compact ? "mt-5" : "mt-6 rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4 sm:p-5"}>
         <form
           action={config.action || undefined}
           method={config.method}
@@ -129,7 +129,7 @@ export default function NewsletterSignup({ source, compact = false }: Newsletter
         </div>
 
         {submitted ? (
-          <p aria-live="polite" className="mt-3 rounded-[0.95rem] border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+          <p aria-live="polite" className="mt-3 rounded-[var(--radius-md)] border border-[var(--accent-200)] bg-[var(--success-surface)] px-3 py-2 text-sm font-medium text-[var(--success-foreground)]">
             {config.hasProvider
               ? config.target === "_blank"
                 ? "Thanks. The signup form has been opened in a new tab."

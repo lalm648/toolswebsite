@@ -25,8 +25,8 @@ export default function SponsoredBlock({
   }
 
   return (
-    <section className="overflow-hidden rounded-[1.55rem] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--outline-soft)] bg-[rgba(255,255,255,0.58)] px-5 py-3 backdrop-blur-sm">
+    <section className="overflow-hidden rounded-[var(--radius-xl)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--outline-soft)] bg-[var(--surface-panel)] px-5 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">{eyebrow}</p>
           <span className="inline-flex h-2 w-2 rounded-full bg-[var(--brand-500)]" aria-hidden="true" />
@@ -67,8 +67,8 @@ export default function SponsoredBlock({
             </div>
           </div>
 
-          <div className="rounded-[1.25rem] border border-[var(--outline-soft)] bg-[rgba(255,255,255,0.8)] p-4 shadow-[var(--shadow-soft)] backdrop-blur-sm">
-            <div className="rounded-[1rem] bg-[var(--surface-panel)] p-4">
+          <div className="rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 shadow-[var(--shadow-soft)] backdrop-blur-sm">
+            <div className="rounded-[var(--radius-md)] bg-[var(--surface-panel)] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Recommended next step</p>
               <p className="mt-2 text-sm font-semibold text-[var(--ink-900)]">Keep the commercial message aligned with the user’s current task.</p>
               <p className="mt-2 text-sm leading-6 text-[var(--foreground)]">

@@ -911,7 +911,7 @@ async function getFfmpeg() {
               : "Process media";
   if (slug === "voice-recorder")
     return (
-      <section className="mx-auto max-w-3xl overflow-hidden rounded-[1.35rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
+      <section className="mx-auto max-w-3xl overflow-hidden rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
         <div className="bg-[linear-gradient(145deg,var(--surface-cta),var(--accent-700))] p-6 text-center text-white sm:p-8">
           <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em]">
             <span className={`h-2 w-2 rounded-full ${recording && !recordingPaused ? "motion-pulse-ring bg-red-400" : "bg-white/60"}`} />
@@ -996,7 +996,7 @@ async function getFfmpeg() {
     );
   return (
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="rounded-[1.35rem] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">
           Media source
         </h2>
@@ -1261,7 +1261,7 @@ async function getFfmpeg() {
         <PrivacyNotice />
         <WorkbenchError message={error} />
       </section>
-      <section className="rounded-[1.35rem] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
+      <section className="rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-[var(--ink-900)]">
             Result

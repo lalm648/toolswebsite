@@ -42,7 +42,7 @@ export default function CategoryHero({
 }: CategoryHeroProps) {
   return (
     <Card
-      className={`relative isolate overflow-hidden rounded-[1.75rem] border-0 bg-gradient-to-br ${heroStyles[category.slug]} text-white shadow-[0_28px_70px_-38px_rgba(15,23,42,0.8)]`}
+      className={`relative isolate overflow-hidden rounded-[var(--radius-2xl)] border-0 bg-gradient-to-br ${heroStyles[category.slug]} text-white shadow-[0_28px_70px_-38px_rgba(15,23,42,0.8)]`}
     >
       <span
         className="pointer-events-none absolute -right-24 -top-32 -z-10 h-80 w-80 rounded-full border border-white/10 bg-white/5"
@@ -86,7 +86,7 @@ export default function CategoryHero({
           </div>
         </div>
 
-        <div className="rounded-[1.35rem] border border-white/12 bg-white/[0.075] p-3.5 shadow-2xl backdrop-blur-sm sm:p-4">
+        <div className="rounded-[var(--radius-xl)] border border-white/12 bg-white/[0.075] p-3.5 shadow-2xl backdrop-blur-sm sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-3 px-1">
             <div>
               <p className="text-sm font-semibold text-white">

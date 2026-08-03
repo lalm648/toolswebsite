@@ -12,7 +12,7 @@ export default function CookieConsent() {
   }
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-[1.25rem] border border-[var(--outline-strong)] bg-[var(--surface-raised)] shadow-[var(--shadow-lift)] backdrop-blur sm:inset-x-4 sm:bottom-4">
+    <div className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-[var(--radius-lg)] border border-[var(--outline-strong)] bg-[var(--surface-raised)] shadow-[var(--shadow-lift)] backdrop-blur sm:inset-x-4 sm:bottom-4">
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

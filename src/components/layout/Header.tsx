@@ -155,7 +155,7 @@ export default function Header() {
             <ThemeToggle />
             <Link
               href="/#premium"
-              className="inline-flex h-9 items-center rounded-full bg-[var(--accent-500)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent-600)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+              className="inline-flex h-9 items-center rounded-full bg-[var(--action-bg)] px-4 text-sm font-semibold text-[var(--action-fg)] shadow-[var(--shadow-soft)] transition-all hover:-translate-y-0.5 hover:bg-[var(--action-bg-hover)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
             >
               Early access
             </Link>
@@ -202,7 +202,7 @@ export default function Header() {
         {isMobileMenuOpen ? (
           <div
             id="mobile-navigation"
-            className="mt-3 rounded-[1.4rem] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3 shadow-[var(--shadow-soft)] lg:hidden"
+            className="mt-3 rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3 shadow-[var(--shadow-soft)] lg:hidden"
           >
             <nav aria-label="Mobile navigation" className="grid gap-1">
               {links.map((link) => {
@@ -214,7 +214,7 @@ export default function Header() {
                     href={link.href}
                     aria-current={isActive ? "page" : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`rounded-[1rem] px-4 py-3 text-sm font-medium ${
+                    className={`rounded-[var(--radius-md)] px-4 py-3 text-sm font-medium ${
                       isActive
                         ? "bg-[var(--accent-50)] text-[var(--accent-700)]"
                         : "text-[var(--foreground)] hover:bg-[var(--surface-panel)]"

@@ -271,7 +271,7 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
         className="group flex min-h-20 min-w-0 max-w-full items-center gap-3 rounded-xl border border-transparent bg-[var(--surface-raised)] p-3 transition-all hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
       >
         <span
-          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.7rem] p-2.5 transition-all group-hover:scale-105 ${accentStyle}`}
+          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] p-2.5 transition-all group-hover:scale-105 ${accentStyle}`}
         >
           {icon}
         </span>

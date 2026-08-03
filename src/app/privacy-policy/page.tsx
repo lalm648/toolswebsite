@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
           </p>
         </div>
 
-        <div className="space-y-6 rounded-[1.5rem] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
+        <div className="space-y-6 rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-6 shadow-[var(--shadow-soft)]">
           <section className="space-y-2">
             <h2 className="text-2xl font-semibold text-[var(--ink-900)]">Browser-side processing</h2>
             <p className="text-sm leading-7 text-[var(--muted-foreground)]">
