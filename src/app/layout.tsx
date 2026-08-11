@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
@@ -7,6 +8,7 @@ import CookieConsent from "@/components/CookieConsent";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { buildMetadata, siteUrl } from "@/lib/seo/metadata";
+import { analyticsConfig } from "@/lib/site-flags";
 
 /**
  * The stylesheet has always declared Plus Jakarta Sans, but nothing ever loaded it, so
@@ -72,6 +74,31 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${sans.variable} ${mono.variable}`}
     >
+      <head>
+        {/*
+          Ahrefs Web Analytics, loaded from <head> as the vendor requires so early
+          pageviews are not lost. Hardening notes:
+          - `beforeInteractive` is what puts a next/script tag in <head> rather than
+            appending it to <body> after hydration.
+          - `async` keeps it off the render-blocking path.
+          - `crossOrigin="anonymous"` sends no credentials with the request and gives
+            us real error reporting instead of an opaque failure.
+          - `referrerPolicy="strict-origin-when-cross-origin"` leaks the origin only,
+            never the full tool URL (which can carry user-entered query strings).
+          - No `integrity` hash: Ahrefs ships a mutable analytics.js with no published
+            SRI digest, so pinning one would break measurement on their next deploy.
+        */}
+        {analyticsConfig.ahrefsKey ? (
+          <Script
+            src="https://analytics.ahrefs.com/analytics.js"
+            data-key={analyticsConfig.ahrefsKey}
+            strategy="beforeInteractive"
+            async
+            crossOrigin="anonymous"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        ) : null}
+      </head>
       <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"
