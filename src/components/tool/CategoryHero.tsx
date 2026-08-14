@@ -20,6 +20,7 @@ const heroStyles: Record<CategoryDefinition["slug"], string> = {
   security: "from-green-950 via-emerald-950 to-slate-950",
   network: "from-teal-950 via-cyan-950 to-slate-950",
   seo: "from-fuchsia-950 via-purple-950 to-slate-950",
+  dictionary: "from-indigo-950 via-blue-950 to-slate-950",
 };
 
 const searchSuggestions: Record<CategoryDefinition["slug"], string[]> = {
@@ -32,6 +33,7 @@ const searchSuggestions: Record<CategoryDefinition["slug"], string[]> = {
   security: ["password", "hash", "QR", "UUID"],
   network: ["latency", "broken links", "DNS", "sitemap"],
   seo: ["meta tags", "Open Graph", "JSON-LD"],
+  dictionary: ["Brahui", "براہوی", "pronunciation", "flashcards"],
 };
 
 export default function CategoryHero({
@@ -70,11 +72,16 @@ export default function CategoryHero({
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             {[
-              `${toolCount} focused tools`,
+              // Reads "1 focused tools" otherwise, which the SEO and dictionary
+              // categories both hit.
+              `${toolCount} focused tool${toolCount === 1 ? "" : "s"}`,
               "No account needed",
               category.slug === "network"
                 ? "Protected diagnostics"
-                : "Files stay local",
+                : // A reference tool takes no file, so there are none to keep local.
+                  category.slug === "dictionary"
+                  ? "Search works offline"
+                  : "Files stay local",
             ].map((item) => (
               <span
                 key={item}

@@ -47,6 +47,23 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
     window.localStorage.setItem("theme", theme);
   }, [mounted, theme]);
 
+  /*
+    A storage event fires on every same-origin document except the one that did the
+    writing. The Brahui dictionary is a self-contained page framed by its tool page
+    and it carries its own theme button, so without this the two controls disagreed:
+    switching inside the app left the site around it in the old theme until a reload.
+  */
+  useEffect(() => {
+    function followExternalChange(event: StorageEvent) {
+      if (event.key !== "theme") return;
+      if (event.newValue !== "light" && event.newValue !== "dark") return;
+      setTheme(event.newValue);
+    }
+
+    window.addEventListener("storage", followExternalChange);
+    return () => window.removeEventListener("storage", followExternalChange);
+  }, []);
+
   if (!mounted) {
     return (
       <Button type="button" variant="secondary" size="sm" className={compact ? "h-11 w-11 p-0" : "min-w-24 gap-2"} aria-label="Theme toggle">

@@ -62,10 +62,19 @@ export default function ToolShell({
           label: "Protected request",
           detail: "Only the public destination is sent",
         }
-      : {
-          label: "Browser processing",
-          detail: "Files stay local where supported",
-        };
+      : category?.slug === "dictionary"
+        ? // A reference tool takes no file, so "files stay local" would claim
+          // nothing. Precisely: the word list is in the page, so search and
+          // browsing need no connection. Senses and examples are fetched once, on
+          // the first word opened, which is why this does not say "works offline".
+          {
+            label: "Search works offline",
+            detail: "The word list loads with the page",
+          }
+        : {
+            label: "Browser processing",
+            detail: "Files stay local where supported",
+          };
   const breadcrumbJsonLd =
     tool && category
       ? {
@@ -250,6 +259,11 @@ export default function ToolShell({
             internalLinks={tool ? getContextualInternalLinks(tool) : []}
             externalLinks={tool ? trustedResources[tool.category] : []}
             faq={resolvedSeoContent.faq}
+            faqIntro={
+              category?.slug === "dictionary"
+                ? "How the entries were sourced, how the spelling works, and what stays on your device."
+                : undefined
+            }
           />
         ) : null}
 

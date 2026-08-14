@@ -21,6 +21,7 @@ const categoryInputs: Record<ToolCategorySlug, string> = {
   security: "Enter source or settings",
   network: "Enter a public destination",
   seo: "Enter page and brand details",
+  dictionary: "Search a word in either language",
 };
 
 const experienceBySlug: Record<string, ExperienceSeed> = {
@@ -493,6 +494,19 @@ const experienceBySlug: Record<string, ExperienceSeed> = {
     preview: "Review status, dates, and nameservers",
     output: "Download the complete RDAP record",
     capabilities: ["RDAP lookup", "Key dates", "Raw record access"],
+  },
+  "brahui-dictionary": {
+    intent: "Read, hear, and learn Brahui vocabulary from a cited published glossary",
+    input: "Search in English, Brahui, or Urdu script",
+    controls: "Browse A–Z, filter by word class, or open a study deck",
+    preview: "Read senses, part of speech, and glossed example sentences",
+    output: "Hear the word spoken and track what you have learned",
+    capabilities: [
+      "3,473 entries",
+      "Cited examples",
+      "Pronunciation",
+      "Spaced-repetition practice",
+    ],
   },
 };
 

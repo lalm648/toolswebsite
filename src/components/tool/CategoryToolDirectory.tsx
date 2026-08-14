@@ -24,6 +24,7 @@ const featuredSlugs: Record<CategoryDefinition["slug"], string[]> = {
   security: ["password-generator", "hash-calculator", "qr-code-generator"],
   network: ["ping-monitor", "broken-link-checker", "dns-inspector"],
   seo: ["meta-tag-generator"],
+  dictionary: ["brahui-dictionary"],
 };
 
 function categoryNoun(category: CategoryDefinition) {
@@ -100,7 +101,7 @@ export default function CategoryToolDirectory({
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
-            {tools.length} tools in this collection
+            {tools.length} tool{tools.length === 1 ? "" : "s"} in this collection
           </Badge>
         </div>
 

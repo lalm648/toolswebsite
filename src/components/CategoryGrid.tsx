@@ -82,6 +82,14 @@ const categoryIcons: Record<ToolCategorySlug, ReactNode> = {
       <path d="m20 20-4.3-4.3" />
     </svg>
   ),
+  // An open book with a ribbon marker — a reference work, not a text file.
+  dictionary: (
+    <svg {...iconProps}>
+      <path d="M12 6.5C10.3 5.2 8.2 4.5 5.5 4.5v12c2.7 0 4.8.7 6.5 2 1.7-1.3 3.8-2 6.5-2v-12c-2.7 0-4.8.7-6.5 2Z" />
+      <path d="M12 6.5v12" />
+      <path d="M15.5 4.8v4l1.5-1.2 1.5 1.2v-4" />
+    </svg>
+  ),
 };
 
 const categoryTileStyles: Record<ToolCategorySlug, string> = {
@@ -94,6 +102,7 @@ const categoryTileStyles: Record<ToolCategorySlug, string> = {
   security: "bg-green-500/12 text-green-500 ring-1 ring-green-500/20 group-hover:bg-green-500/20",
   network: "bg-teal-500/12 text-teal-500 ring-1 ring-teal-500/20 group-hover:bg-teal-500/20",
   seo: "bg-fuchsia-500/12 text-fuchsia-500 ring-1 ring-fuchsia-500/20 group-hover:bg-fuchsia-500/20",
+  dictionary: "bg-indigo-500/12 text-indigo-500 ring-1 ring-indigo-500/20 group-hover:bg-indigo-500/20",
 };
 
 const categorySurfaceStyles: Record<ToolCategorySlug, string> = {
@@ -106,6 +115,7 @@ const categorySurfaceStyles: Record<ToolCategorySlug, string> = {
   security: "bg-green-500/[0.055] hover:bg-green-500/[0.09]",
   network: "bg-teal-500/[0.055] hover:bg-teal-500/[0.09]",
   seo: "bg-fuchsia-500/[0.055] hover:bg-fuchsia-500/[0.09]",
+  dictionary: "bg-indigo-500/[0.055] hover:bg-indigo-500/[0.09]",
 };
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {

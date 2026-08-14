@@ -21,6 +21,7 @@ const columns = [
       { href: "/tools/security", label: "Security & Generators" },
       { href: "/tools/network", label: "Web & Network" },
       { href: "/tools/seo", label: "SEO Tools" },
+      { href: "/tools/dictionary", label: "Dictionary & Language" },
     ],
   },
   {

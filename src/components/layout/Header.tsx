@@ -20,6 +20,7 @@ const moreDesktopLinks = [
   { href: "/tools/security", label: "Security & Generators" },
   { href: "/tools/network", label: "Web & Network Tools" },
   { href: "/tools/seo", label: "SEO Tools" },
+  { href: "/tools/dictionary", label: "Dictionary & Language" },
 ];
 
 // Full list for the mobile menu.
@@ -33,6 +34,7 @@ const links = [
   { href: "/tools/security", label: "Security" },
   { href: "/tools/network", label: "Network" },
   { href: "/tools/seo", label: "SEO" },
+  { href: "/tools/dictionary", label: "Dictionary" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

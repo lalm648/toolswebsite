@@ -76,6 +76,14 @@ const workflowSlugs: Record<ToolCategorySlug, string[]> = {
     "image-compressor",
     "favicon-generator",
   ],
+  // One tool in the category, so the useful neighbours are the text utilities a
+  // reader of a bilingual glossary actually reaches for next.
+  dictionary: [
+    "brahui-dictionary",
+    "word-counter",
+    "case-converter",
+    "remove-duplicate-lines",
+  ],
 };
 
 export const trustedResources: Record<ToolCategorySlug, SeoLink[]> = {
@@ -205,6 +213,21 @@ export const trustedResources: Record<ToolCategorySlug, SeoLink[]> = {
       external: true,
     },
   ],
+  dictionary: [
+    {
+      href: "https://iso639-3.sil.org/code/brh",
+      label: "ISO 639-3: brh",
+      description: "The registered language code for Brahui, used to tag Brahui text on the page.",
+      external: true,
+    },
+    {
+      href: "https://creativecommons.org/licenses/by/4.0/",
+      label: "CC BY 4.0 licence",
+      description:
+        "The licence the source glossary is published under, which is what allows this extraction to be redistributed with attribution.",
+      external: true,
+    },
+  ],
 };
 
 const categorySteps: Record<ToolCategorySlug, [string, string, string]> = {
@@ -217,16 +240,43 @@ const categorySteps: Record<ToolCategorySlug, [string, string, string]> = {
   security: ["Enter the non-sensitive input or choose the generation settings.", "Generate or calculate the result in your browser.", "Copy or download the output and store it appropriately."],
   network: ["Enter a public URL, domain, or authorized host.", "Choose the diagnostic you need and confirm authorization where requested.", "Review the returned records, status, or response details."],
   seo: ["Add the page title, description, canonical URL, and sharing details.", "Review the search and social previews for missing or weak fields.", "Copy the generated tags into the page head and validate the live URL."],
+  dictionary: ["Search a word in English, romanised Brahui, or Urdu script — or browse the A–Z list.", "Open an entry to read its senses, part of speech, and cited example sentences.", "Play the pronunciation, and add the word to a study deck to practise it."],
+};
+
+// "Add content to…", "Configure the result", "Review and export" describes a file
+// converter. A reference tool is looked up, read and practised, and the HowTo
+// structured data built from these names is published, so it has to be accurate.
+const categoryStepNames: Partial<Record<ToolCategorySlug, [string, string, string]>> = {
+  dictionary: ["Find the word", "Read the entry", "Hear it and practise it"],
 };
 
 export function getToolSteps(tool: ToolDefinition) {
+  const names = categoryStepNames[tool.category];
+
   return categorySteps[tool.category].map((text, index) => ({
-    name: index === 0 ? `Add content to ${tool.title}` : index === 1 ? "Configure the result" : "Review and export",
+    name:
+      names?.[index] ??
+      (index === 0
+        ? `Add content to ${tool.title}`
+        : index === 1
+          ? "Configure the result"
+          : "Review and export"),
     text,
   }));
 }
 
 export function getToolTips(tool: ToolDefinition) {
+  // The generic tips are written for a file-in, file-out utility. A dictionary has
+  // no input file, no output size and nothing to publish, so the fallbacks below
+  // would have printed three sentences of nonsense on the page.
+  if (tool.category === "dictionary") {
+    return [
+      "Search with plain ASCII if the diacritics are awkward to type — 'tuus' finds 'tús'.",
+      "Read the example sentences, not only the gloss: they show which sense is actually used.",
+      "Learn the frequency-ordered decks first. The commonest words are the ones you cannot read a sentence without.",
+    ];
+  }
+
   const privacyTip = ["network"].includes(tool.category)
     ? "Only run network diagnostics against public systems you own or are authorized to test."
     : "Keep the original input until you have checked the downloaded or copied result.";

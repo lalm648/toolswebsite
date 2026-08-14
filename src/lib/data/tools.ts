@@ -7,7 +7,8 @@ export type ToolCategorySlug =
   | "developer"
   | "security"
   | "network"
-  | "seo";
+  | "seo"
+  | "dictionary";
 
 export type CategoryDefinition = {
   slug: ToolCategorySlug;
@@ -90,6 +91,15 @@ export const categories: CategoryDefinition[] = [
     href: "/tools/seo",
     eyebrow: "Search optimization",
     badge: "Growth toolkit",
+  },
+  {
+    slug: "dictionary",
+    title: "Dictionary & Language Tools",
+    description:
+      "Look up words, read real example sentences, hear pronunciation, and study vocabulary.",
+    href: "/tools/dictionary",
+    eyebrow: "Language workflows",
+    badge: "Reference library",
   },
 ];
 
@@ -706,6 +716,16 @@ export const tools: ToolDefinition[] = [
     category: "network",
     meta: "Domain intelligence",
     icon: "network",
+  },
+  {
+    slug: "brahui-dictionary",
+    title: "Brahui Dictionary & Learning App",
+    description:
+      "Look up 3,473 Brahui words with English meanings, Urdu script, cited example sentences, pronunciation, and vocabulary practice.",
+    href: "/tools/dictionary/brahui-dictionary",
+    category: "dictionary",
+    meta: "Brahui language",
+    icon: "dictionary",
   },
 ];
 

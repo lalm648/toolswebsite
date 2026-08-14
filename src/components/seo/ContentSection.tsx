@@ -13,6 +13,9 @@ type ContentSectionProps = {
   internalLinks?: SeoLink[];
   externalLinks?: SeoLink[];
   faq?: Array<{ question: string; answer: string }>;
+  /* FAQSection's default subtitle talks about processing files, which is wrong for
+     a tool that takes none. Passed through so such a page can say what it means. */
+  faqIntro?: string;
   compact?: boolean;
 };
 
@@ -27,6 +30,7 @@ export default function ContentSection({
   internalLinks = [],
   externalLinks = [],
   faq = [],
+  faqIntro,
   compact = false,
 }: ContentSectionProps) {
   return (
@@ -133,7 +137,7 @@ export default function ContentSection({
         </section>
       ) : null}
 
-      {faq.length ? <FAQSection items={faq} /> : null}
+      {faq.length ? <FAQSection items={faq} intro={faqIntro} /> : null}
     </div>
   );
 }

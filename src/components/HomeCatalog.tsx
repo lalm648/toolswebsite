@@ -35,6 +35,7 @@ const tabs = [
   { id: "security", label: "Security" },
   { id: "network", label: "Network" },
   { id: "seo", label: "SEO" },
+  { id: "dictionary", label: "Dictionary" },
   { id: "all", label: "All Tools" },
 ] as const;
 

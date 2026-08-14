@@ -35,6 +35,7 @@ const categoryAccentStyles: Record<ToolDefinition["category"], string> = {
   security: "bg-green-500/12 text-green-500 ring-1 ring-green-500/20 group-hover:bg-green-500 group-hover:text-white group-hover:ring-green-500/40",
   network: "bg-teal-500/12 text-teal-500 ring-1 ring-teal-500/20 group-hover:bg-teal-500 group-hover:text-white group-hover:ring-teal-500/40",
   seo: "bg-fuchsia-500/12 text-fuchsia-500 ring-1 ring-fuchsia-500/20 group-hover:bg-fuchsia-500 group-hover:text-white group-hover:ring-fuchsia-500/40",
+  dictionary: "bg-indigo-500/12 text-indigo-500 ring-1 ring-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white group-hover:ring-indigo-500/40",
 };
 
 const variedAccentStyles = [
@@ -240,6 +241,7 @@ const categoryIconMap: Record<ToolDefinition["category"], ReactNode> = {
   security: <svg {...iconProps}><path d="M12 3.5 19 6v5.5c0 4.2-2.8 7.5-7 9-4.2-1.5-7-4.8-7-9V6Z" /><path d="m9.2 12 1.8 1.8 3.8-4" /></svg>,
   network: <svg {...iconProps}><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.1 3.3 8.5s-1.1 6.2-3.3 8.5C9.8 18.2 8.7 15.4 8.7 12S9.8 5.8 12 3.5Z" /></svg>,
   seo: <svg {...iconProps}><circle cx="11" cy="11" r="6" /><path d="m20 20-4.3-4.3" /></svg>,
+  dictionary: <svg {...iconProps}><path d="M12 6.5C10.3 5.2 8.2 4.5 5.5 4.5v12c2.7 0 4.8.7 6.5 2 1.7-1.3 3.8-2 6.5-2v-12c-2.7 0-4.8.7-6.5 2Z" /><path d="M12 6.5v12" /><path d="M15.5 4.8v4l1.5-1.2 1.5 1.2v-4" /></svg>,
 };
 
 const categoryLabels: Record<ToolDefinition["category"], string> = {
@@ -252,6 +254,7 @@ const categoryLabels: Record<ToolDefinition["category"], string> = {
   security: "Security",
   network: "Network",
   seo: "SEO",
+  dictionary: "Dictionary",
 };
 
 export default function ToolCard({ tool, variant = "standard", badge }: ToolCardProps) {

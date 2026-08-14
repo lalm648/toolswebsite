@@ -190,10 +190,76 @@ export const categorySeoContent: Record<ToolCategorySlug, CategorySeoContent> = 
     ],
     keywords: ["seo tools", "meta tag generator", "open graph generator", "twitter card tags", "technical seo tools"],
   },
+  dictionary: {
+    intro: [
+      "The dictionary section covers languages that are widely spoken but thinly served online. A search box is only useful if the entries behind it are real, so every headword here comes from a published, citable source rather than from crowd-sourced guesses or machine translation.",
+      "Each entry is built to be read as well as searched: the word in its own script, a romanised spelling, its part of speech, its senses, and example sentences taken from running text with the page they came from. Pronunciation and vocabulary practice sit alongside the lookup, so the same data supports both a quick check and sustained study."
+    ],
+    highlights: [
+      "Search in English or in the language itself, including its own script.",
+      "Read senses, word class, and example sentences that cite their source page.",
+      "Hear pronunciation and practise vocabulary with spaced-repetition decks."
+    ],
+    faq: [
+      {
+        question: "Where do the dictionary entries come from?",
+        answer: "From published, openly licensed scholarly sources, cited on the tool page. Example sentences carry the text and printed page they were taken from, so any entry can be checked against the original."
+      },
+      {
+        question: "Does the dictionary work offline?",
+        answer: "The full word list loads with the page, so searching, browsing, and vocabulary practice keep working without a connection. Senses and example sentences are fetched once, the first time you open a word, and recorded pronunciation clips are fetched as they are played — both are then cached."
+      }
+    ],
+    keywords: ["online dictionary", "language learning", "vocabulary practice", "pronunciation", "example sentences"],
+  },
 };
 
 export const toolSeoContent: Record<string, ToolSeoContent> = {
   ...extendedToolSeoContent,
+  "brahui-dictionary": {
+    intro: [
+      "Brahui is a Dravidian language spoken by several million people, mostly in Balochistan, and it is surrounded by Indo-Iranian languages rather than related ones. That isolation is what makes it interesting and also what makes it badly served online: most Brahui word lists you find are short, unsourced, and inconsistent about how the language is spelled.",
+      "This dictionary takes a different starting point. Its 3,473 headwords are extracted from the glossary of a published academic edition, and 3,261 of them carry example sentences pulled from that edition's own interlinear texts, each one citing the text and printed page it came from. A further 234 entries — numerals and copula forms the glossary leaves out — bring the total to 3,707.",
+      "The lookup, the pronunciation, and the vocabulary decks all read from that same set of entries, so what you study is what you can verify."
+    ],
+    highlights: [
+      "Search in English, in romanised Brahui, or in Urdu script — results match across all three.",
+      "Every entry shows its senses, part of speech, loanword source, corpus frequency, and glossary page.",
+      "Example sentences appear in Brahui script, romanisation, morpheme-by-morpheme gloss, and English translation.",
+      "Hear words spoken from 1,000 prepared recordings, with a device voice as the fallback.",
+      "Learn decks are ordered by how often each word actually occurs in the source texts, so the most useful words come first.",
+      "Practice uses spaced repetition: cards you miss return sooner, cards you know are spaced further apart."
+    ],
+    useCases: [
+      "Check what a Brahui word means, how it is spelled in Urdu script, and how it is used in a real sentence.",
+      "Build a working vocabulary from the frequency-ordered Core decks rather than from an arbitrary word list.",
+      "Look up a form you met in a text and find the headword it belongs to, including irregular and suppletive forms.",
+      "Study or teach Brahui with citable entries, since every example names its source text and page."
+    ],
+    faq: [
+      {
+        question: "Where do the Brahui entries come from?",
+        answer: "From the glossary and 28 interlinear texts of Ali, Liaquat & Masato Kobayashi (2024), Brahui Texts: Glossed and Translated Short Stories and Folktales, Asian and African Lexicon 66, ILCAA, Tokyo University of Foreign Studies. It is published under CC BY 4.0, which is what allows the extraction to be redistributed with attribution. Nothing was transliterated or invented."
+      },
+      {
+        question: "Which spelling system does it use?",
+        answer: "The Brolikva Latin romanisation used by the source edition — á í ú, ŧ đ ŕ ń, ļ, ş ź ģ. Urdu script and Devanagari are generated from it. Searching works with plain ASCII too, so typing 'tuus' finds 'tús'."
+      },
+      {
+        question: "Why does pronunciation sometimes use a different voice?",
+        answer: "Urdu text-to-speech is not installed by default on any platform and does not exist at all on Apple devices. The app plays a prepared recording where one exists, and otherwise ranks the voices actually installed on your device and sends each the script it can read — Urdu script, Devanagari for Hindi voices, or an English respelling."
+      },
+      {
+        question: "Do my saved words and progress leave my device?",
+        answer: "No. The published dictionary is a read-only layer that loads with the page. Only the words you add, the entries you hide, and your practice progress are written to your browser's local storage, and Reset clears those without touching the source data."
+      },
+      {
+        question: "How reliable is the link between an example and its headword?",
+        answer: "97.1% of the 38,861 word tokens in the source texts were linked to a headword, and each link records which rule made it. Links made because the authors' own English gloss agreed with a sense are the strongest; 'suppletive' links, where no spelling rule could reach the form, are the weakest and worth a glance before relying on one."
+      }
+    ],
+    keywords: ["brahui dictionary", "brahui to english", "english to brahui", "brahui words", "brahui language", "براہوی", "brahui vocabulary", "learn brahui"],
+  },
   "jpg-to-png": {
     intro: [
       "JPG to PNG is useful when you need a clean export for design handoff, layered editing, or workflows where a PNG file is easier to reuse. It is especially practical for screenshots, logos placed on simple backgrounds, and assets moving into design tools.",

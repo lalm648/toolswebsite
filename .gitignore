@@ -37,6 +37,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# The Brahui learning app keeps its own git repository, its 3.8 MB source lexicon
+# and its generator here. Only the build outputs belong to this site, and they are
+# committed under public/brahui/ by `npm run sync:brahui`. Committing this folder
+# would add a broken gitlink, not the files.
+/Brahui-to-EN-URDU-Dictionary/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -34,6 +34,7 @@ const dedicatedToolSlugs = new Set([
   "json-formatter",
   "base64-encoder",
   "meta-tag-generator",
+  "brahui-dictionary",
 ]);
 
 export function generateStaticParams() {
