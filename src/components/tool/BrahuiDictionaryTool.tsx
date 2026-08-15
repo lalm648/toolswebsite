@@ -33,8 +33,8 @@ const APP_SRC = "/brahui/index.html";
 
 export default function BrahuiDictionaryTool() {
   return (
-    <div className="space-y-3">
-      <div className="grid overflow-hidden rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
+    <div className="space-y-2">
+      <div className="grid overflow-hidden rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]">
         <p className="col-start-1 row-start-1 self-center justify-self-center px-6 text-center text-sm text-[var(--muted-foreground)]">
           Loading 3,473 Brahui entries…
         </p>
@@ -50,7 +50,7 @@ export default function BrahuiDictionaryTool() {
             tall on a large display. There is page above and below it either way,
             so the outer page is always scrollable past it.
           */
-          className="col-start-1 row-start-1 block h-[min(max(82svh,32rem),56rem)] w-full border-0 bg-transparent"
+          className="col-start-1 row-start-1 block h-[min(max(84svh,32rem),58rem)] w-full border-0 bg-transparent"
           /*
             Deliberately not sandboxed. The document is first-party, same-origin and
             loads nothing from anywhere else, and `allow-scripts allow-same-origin`
@@ -64,7 +64,7 @@ export default function BrahuiDictionaryTool() {
         />
       </div>
 
-      <p className="text-center text-xs text-[var(--muted-foreground)]">
+      <p className="px-2 text-center text-[11px] leading-5 text-[var(--muted-foreground)] sm:text-xs">
         Entries extracted from Ali &amp; Kobayashi (2024), <em>Brahui Texts</em>,
         ILCAA Asian and African Lexicon 66, published under CC BY 4.0.{" "}
         <a

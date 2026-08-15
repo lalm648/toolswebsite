@@ -36,6 +36,7 @@ export default function ToolShell({
 }: ToolShellProps) {
   const tool = getToolByTitle(title);
   const category = tool ? getCategoryBySlug(tool.category) : null;
+  const isDictionary = category?.slug === "dictionary";
   const seoContent = tool ? toolSeoContent[tool.slug] : null;
   const resolvedSeoContent =
     seoContent ??
@@ -157,9 +158,18 @@ export default function ToolShell({
       }
     : null;
 
+  const accessSignals =
+    tool && category
+      ? [
+          { label: "Free to use", detail: "No payment required" },
+          { label: "No account", detail: "Start immediately" },
+          processingSignal,
+        ]
+      : [];
+
   return (
-    <section className="py-6 sm:py-9">
-      <Container className="space-y-6 sm:space-y-7">
+    <section className={isDictionary ? "py-3 sm:py-5" : "py-6 sm:py-9"}>
+      <Container className={isDictionary ? "space-y-3 sm:space-y-4" : "space-y-6 sm:space-y-7"}>
         {breadcrumbJsonLd ? (
           <script
             type="application/ld+json"
@@ -185,7 +195,7 @@ export default function ToolShell({
           {category ? (
             <nav
               aria-label="Breadcrumb"
-              className="mb-3 flex flex-wrap items-center justify-center gap-2 text-sm text-[var(--muted-foreground)]"
+              className={`${isDictionary ? "mb-1.5 text-xs sm:mb-2" : "mb-3 text-sm"} flex flex-wrap items-center justify-center gap-2 text-[var(--muted-foreground)]`}
             >
               <Link href="/" className="hover:text-[var(--accent-700)]">
                 Home
@@ -197,28 +207,35 @@ export default function ToolShell({
               >
                 {category.title}
               </Link>
-              <span aria-hidden="true">›</span>
-              <span className="font-medium text-[var(--ink-900)]">{title}</span>
+              <span
+                aria-hidden="true"
+                className={isDictionary ? "hidden sm:inline" : undefined}
+              >
+                ›
+              </span>
+              <span
+                className={`${isDictionary ? "hidden sm:inline" : ""} font-medium text-[var(--ink-900)]`}
+              >
+                {title}
+              </span>
             </nav>
           ) : null}
-          <Badge variant="secondary">{eyebrow}</Badge>
-          <h1 className="mt-2.5 text-3xl font-semibold tracking-tight text-[var(--ink-900)] sm:text-4xl">
+          {!isDictionary ? <Badge variant="secondary">{eyebrow}</Badge> : null}
+          <h1 className={`${isDictionary ? "text-xl sm:text-3xl" : "mt-2.5 text-3xl sm:text-4xl"} font-semibold tracking-tight text-[var(--ink-900)]`}>
             {title}
           </h1>
-          <p className="mx-auto mt-2.5 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-            {description}
-          </p>
+          {!isDictionary ? (
+            <p className="mx-auto mt-2.5 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
+              {description}
+            </p>
+          ) : null}
 
-          {tool && category ? (
+          {tool && category && !isDictionary ? (
             <ul
               aria-label="Tool access and privacy"
               className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[var(--muted-foreground)]"
             >
-              {[
-                { label: "Free to use", detail: "No payment required" },
-                { label: "No account", detail: "Start immediately" },
-                processingSignal,
-              ].map((signal) => (
+              {accessSignals.map((signal) => (
                 <li key={signal.label} className="flex items-center gap-1.5">
                   <span
                     className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[var(--accent-100)] text-[9px] font-bold text-[var(--accent-700)]"
@@ -237,6 +254,39 @@ export default function ToolShell({
         </div>
 
         {children}
+
+        {isDictionary && accessSignals.length ? (
+          <section
+            aria-label="About this dictionary"
+            className="rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-4 py-3 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-5"
+          >
+            <div className="min-w-0">
+              <Badge variant="secondary">{eyebrow}</Badge>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+                {description}
+              </p>
+            </div>
+            <ul
+              aria-label="Tool access and privacy"
+              className="mt-3 flex shrink-0 flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--muted-foreground)] sm:mt-0 sm:max-w-64"
+            >
+              {accessSignals.map((signal) => (
+                <li key={signal.label} className="flex items-center gap-1.5">
+                  <span
+                    className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[var(--accent-100)] text-[9px] font-bold text-[var(--accent-700)]"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                  <span className="font-semibold text-[var(--ink-900)]">
+                    {signal.label}
+                  </span>
+                  <span className="sr-only">: {signal.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {tool ? <ToolExperiencePanel tool={tool} /> : null}
 
