@@ -1,7 +1,7 @@
 "use client";
 
 import type { DragEventHandler, ReactNode } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 type ToolUploaderProps = {
@@ -88,11 +88,7 @@ export default function ToolUploader({
           <h2 className="mt-3 text-lg font-semibold text-[var(--ink-900)]">{title}</h2>
 
           {fileInputId ? (
-            <Button asChild size="lg" className="mt-4 min-w-40">
-              <label htmlFor={fileInputId} className="cursor-pointer">
-                {buttonLabel}
-              </label>
-            </Button>
+            <label htmlFor={fileInputId} className={buttonVariants({ size: "lg", className: "mt-4 min-w-40 cursor-pointer" })}>{buttonLabel}</label>
           ) : (
             <Button onClick={onButtonClick} size="lg" className="mt-4 min-w-40">
               {buttonLabel}

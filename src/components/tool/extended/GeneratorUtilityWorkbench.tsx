@@ -349,6 +349,7 @@ export default function GeneratorUtilityWorkbench({
               ))}
             </select>
             <Textarea
+              className="resize-none"
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder="Enter text, or choose a file below"
@@ -411,7 +412,7 @@ export default function GeneratorUtilityWorkbench({
               </label>
             ) : null}
             <Textarea
-              className="mt-4 min-h-40"
+              className="mt-4 min-h-40 resize-none"
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder={
@@ -527,7 +528,7 @@ export default function GeneratorUtilityWorkbench({
             ) : null}
           </div>
         ) : (
-          <pre aria-live="polite" className="mt-4 min-h-56 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
+          <pre aria-live="polite" className="tool-output-scroll mt-4 min-h-56 whitespace-pre-wrap break-all rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
             {output || "Your generated result will appear here."}
           </pre>
         )}

@@ -74,6 +74,7 @@ export default function WaitlistBlock({
 
       <div className={compact ? "mt-5" : "mt-6 rounded-[var(--radius-lg)] border border-[var(--outline-soft)] bg-[var(--surface-panel)] p-4 sm:p-5"}>
         <form
+          noValidate
           action={config.action || undefined}
           method={config.method}
           target={config.hasProvider ? config.target : undefined}

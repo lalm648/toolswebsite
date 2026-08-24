@@ -60,7 +60,7 @@ export default function JsonFormatterTool() {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder='{"name":"Webutilia","type":"formatter"}'
-          className="mt-5 min-h-[360px] font-mono text-sm"
+          className="mt-5 min-h-[360px] resize-none font-mono text-sm"
         />
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button onClick={() => run("format")}>Format JSON</Button>
@@ -95,7 +95,7 @@ export default function JsonFormatterTool() {
       </div>
 
       <ToolResult title="Formatted output">
-        <Textarea readOnly value={output} placeholder="Formatted JSON will appear here..." className="min-h-[360px] font-mono text-sm" />
+        <Textarea readOnly value={output} placeholder="Formatted JSON will appear here..." className="tool-output-scroll resize-none font-mono text-sm" />
         <div className="mt-4 flex flex-wrap gap-3">
           <CopyButton value={output} label="Copy JSON" disabled={!output} />
           <Button

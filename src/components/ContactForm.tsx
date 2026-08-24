@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -46,14 +46,12 @@ export default function ContactForm() {
 
         <label className="text-sm font-medium text-[var(--ink-900)]">
           Message
-          <Textarea value={message} onChange={(event) => setMessage(event.target.value)} className="mt-2 min-h-40" />
+          <Textarea value={message} onChange={(event) => setMessage(event.target.value)} className="mt-2 min-h-40 resize-none" />
         </label>
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <Button asChild>
-          <a href={mailtoHref}>Open email draft</a>
-        </Button>
+        <a href={mailtoHref} className={buttonVariants()}>Open email draft</a>
         <p className="text-sm text-[var(--muted-foreground)]">Direct email: {contactEmail}</p>
       </div>
     </div>

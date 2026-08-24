@@ -421,7 +421,7 @@ export default function MetaTagGeneratorTool() {
 
             <label className="text-sm font-medium text-[var(--ink-900)]">
               Description
-              <Textarea value={description} onChange={(event) => setDescription(event.target.value)} className="mt-2 min-h-28" placeholder="Describe the page accurately in one or two useful sentences." />
+              <Textarea value={description} onChange={(event) => setDescription(event.target.value)} className="mt-2 min-h-28 resize-none" placeholder="Describe the page accurately in one or two useful sentences." />
               <span className={`mt-2 block text-xs ${descriptionScore.tone}`}>
                 {description.length} characters · {descriptionScore.label}
               </span>
@@ -795,7 +795,7 @@ export default function MetaTagGeneratorTool() {
           <Textarea
             readOnly
             value={output}
-            className="min-h-[360px] border-[var(--outline-strong)] bg-[var(--surface-panel)] font-mono text-sm leading-6 text-[var(--foreground)]"
+            className="tool-output-scroll resize-none border-[var(--outline-strong)] bg-[var(--surface-panel)] font-mono text-sm leading-6 text-[var(--foreground)]"
           />
         </ToolResult>
 
@@ -809,7 +809,7 @@ export default function MetaTagGeneratorTool() {
           <Textarea
             readOnly
             value={`<script type="application/ld+json">\n${jsonLd}\n</script>`}
-            className="min-h-[320px] border-[var(--outline-strong)] bg-[var(--surface-panel)] font-mono text-sm leading-6 text-[var(--foreground)]"
+            className="tool-output-scroll resize-none border-[var(--outline-strong)] bg-[var(--surface-panel)] font-mono text-sm leading-6 text-[var(--foreground)]"
           />
         </ToolResult>
       </div>

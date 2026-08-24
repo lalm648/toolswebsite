@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   exportCanvasAtQuality,
@@ -432,8 +432,7 @@ export default function ImageFormatConverterTool({
                       ) : null;
                     })()}
                   </div>
-                  <Button asChild>
-                    <a
+                  <a className={buttonVariants()}
                       href={converted.url}
                       download={converted.fileName}
                       onClick={() =>
@@ -445,8 +444,7 @@ export default function ImageFormatConverterTool({
                       }
                     >
                       {`Download ${outputLabel}`}
-                    </a>
-                  </Button>
+                  </a>
                 </div>
               </div>
             ) : null}

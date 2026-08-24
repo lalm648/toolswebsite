@@ -473,7 +473,7 @@ export default function DocumentUtilityWorkbench({
         <h2 className="text-lg font-semibold text-[var(--ink-900)]">Source</h2>
         {slug === "markdown-to-html" ? (
           <Textarea
-            className="mt-4 min-h-80 font-mono text-sm"
+            className="mt-4 min-h-80 resize-none font-mono text-sm"
             value={text}
             onChange={(event) => setText(event.target.value)}
           />
@@ -689,7 +689,7 @@ export default function DocumentUtilityWorkbench({
                 ))}
               </dl>
             ) : null}
-            <pre className="mt-4 min-h-72 overflow-auto whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
+            <pre className="tool-output-scroll mt-4 min-h-72 whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-7">
               {output}
             </pre>
           </>

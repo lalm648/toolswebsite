@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import Container from "@/components/Container";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 /**
  * A render error used to take the whole page down to Next's default screen. This keeps
@@ -39,9 +39,7 @@ export default function GlobalError({
             <Button type="button" onClick={reset}>
               Try again
             </Button>
-            <Button asChild variant="secondary">
-              <Link href="/#tool-library">Browse all tools</Link>
-            </Button>
+            <Link href="/#tool-library" className={buttonVariants({ variant: "secondary" })}>Browse all tools</Link>
           </div>
           {error.digest ? (
             <p className="mt-6 font-mono text-xs text-[var(--muted-foreground)]">

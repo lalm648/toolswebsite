@@ -139,7 +139,7 @@ export default function SqlSchemaVisualizerTool() {
                 <Input className="h-10 bg-[var(--surface-card)] pl-9 text-sm" value={tableQuery} onChange={(event) => setTableQuery(event.target.value)} placeholder="Find a table…" />
               </label>
               <div className="mt-5 flex items-center justify-between"><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Tables</p><span className="rounded-full bg-[var(--surface-card)] px-2 py-0.5 text-[10px] font-bold tabular-nums">{schema.tables.length}</span></div>
-              <nav className="mt-2 space-y-1" aria-label="Schema tables">
+              <nav className="tool-output-scroll mt-2 space-y-1" aria-label="Schema tables">
                 {visibleTables.map((table, index) => <a key={table.name} href={`#table-${index}`} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-card)] hover:text-[var(--accent-700)]"><span className="h-2 w-2 rounded-sm bg-[var(--accent-500)]" />{table.name}<span className="ml-auto text-[10px] tabular-nums opacity-60">{table.columns.length}</span></a>)}
               </nav>
               <dl className="mt-6 grid grid-cols-2 gap-2 border-t border-[var(--outline-soft)] pt-4">
@@ -155,7 +155,7 @@ export default function SqlSchemaVisualizerTool() {
                 <button className="grid h-8 w-8 place-items-center rounded-lg text-sm font-bold hover:bg-[var(--surface-panel)]" type="button" aria-label="Zoom in" onClick={() => setZoom((value) => Math.min(140, value + 10))}>+</button>
                 <button className="grid h-8 w-8 place-items-center rounded-lg hover:bg-[var(--surface-panel)]" type="button" aria-label="Fit diagram" onClick={() => setZoom(100)}><Icon name="fit" /></button>
               </div>
-              <div className="max-h-[650px] min-h-[570px] overflow-auto p-7 pt-16 sm:p-10 sm:pt-16">
+              <div className="tool-output-scroll min-h-0 p-7 pt-16 sm:p-10 sm:pt-16">
                 <div className="grid min-w-[560px] grid-cols-2 items-start gap-6 xl:grid-cols-3" style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top left", width: `${10000 / zoom}%` }}>
                   {visibleTables.map((table, index) => (
                     <article id={`table-${index}`} key={table.name} className="overflow-hidden rounded-xl border border-[var(--outline-strong)] bg-[var(--surface-card)] shadow-[var(--shadow-lift)]">
@@ -175,7 +175,7 @@ export default function SqlSchemaVisualizerTool() {
             <div className="p-4 sm:p-6">
               <label className="text-sm font-bold text-[var(--ink-900)]" htmlFor="schema-sql">Paste SQL DDL</label>
               <p className="mt-1 text-xs text-[var(--muted-foreground)]">Supports common PostgreSQL, MySQL, and SQLite CREATE TABLE statements.</p>
-              <Textarea id="schema-sql" className="mt-3 min-h-[420px] resize-y font-mono text-xs leading-6" value={input} onChange={(event) => setInput(event.target.value)} spellCheck={false} />
+              <Textarea id="schema-sql" className="mt-3 min-h-[420px] resize-none font-mono text-xs leading-6" value={input} onChange={(event) => setInput(event.target.value)} spellCheck={false} />
               {error ? <p role="alert" className="mt-3 rounded-xl border border-[var(--error-outline)] bg-[var(--error-surface)] p-3 text-sm text-[var(--error-foreground)]">{error}</p> : null}
               <div className="mt-4 flex flex-wrap gap-2"><Button onClick={processSchema}>Generate diagram <Icon name="arrow" className="ml-2 h-4 w-4" /></Button><CopyButton value={input} label="Copy SQL" /><Button variant="secondary" onClick={() => downloadTextFile(input, "database-schema.sql", "application/sql")}><Icon name="download" className="mr-1.5 h-4 w-4" />Download SQL</Button></div>
             </div>

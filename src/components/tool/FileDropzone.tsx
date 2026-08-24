@@ -93,7 +93,7 @@ export default function FileDropzone({
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragActive(false);
       }}
       onDrop={handleDrop}
-      className={`mt-4 rounded-[var(--radius-md)] border border-dashed p-4 text-center transition-colors ${
+      className={`tool-upload-soft-3d mt-4 rounded-[var(--radius-md)] border border-dashed p-4 text-center transition-all ${
         dragActive
           ? "border-[var(--accent-500)] bg-[var(--accent-50)]"
           : "border-[var(--outline-strong)] bg-[var(--surface-panel)]"

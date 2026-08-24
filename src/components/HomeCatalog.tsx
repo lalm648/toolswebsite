@@ -12,6 +12,7 @@ import {
   getPopularTools,
   tools,
 } from "@/lib/data/tools";
+import { toolSeoContent } from "@/lib/seo/content";
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
@@ -62,7 +63,7 @@ export default function HomeCatalog() {
     const normalized = normalize(query);
     if (!normalized) return [];
     return tools.filter((tool) =>
-      [tool.title, tool.description, tool.meta, tool.category].some((value) =>
+      [tool.title, tool.description, tool.meta, tool.category, ...(toolSeoContent[tool.slug]?.keywords ?? [])].some((value) =>
         value.toLowerCase().includes(normalized),
       ),
     );

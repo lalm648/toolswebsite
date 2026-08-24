@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import CopyButton from "@/components/tool/CopyButton";
 import {
-  PrivacyNotice,
   ProcessingProgress,
   WorkbenchError,
 } from "@/components/tool/WorkbenchStatus";
@@ -17,6 +16,7 @@ type BrokenLinkResult = {
   url: string;
   status: number;
   ok: boolean;
+  state?: "working" | "broken" | "unverified";
   error?: string;
 };
 type PortResult = { port: number; open: boolean };
@@ -124,13 +124,8 @@ function EmptyOverview() {
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[var(--accent-100)] text-xl text-[var(--accent-700)]">
           ↗
         </div>
-        <p className="mt-4 font-semibold text-[var(--ink-900)]">
-          Ready for a controlled diagnostic
-        </p>
-        <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
-          Run the check to see a visual summary. The complete machine-readable
-          response remains available in the Raw data view.
-        </p>
+        <p className="mt-4 font-semibold text-[var(--ink-900)]">Results appear here</p>
+        <p className="mt-1 text-sm text-[var(--muted-foreground)]">Enter a public URL and run the check.</p>
       </div>
     </div>
   );
@@ -278,15 +273,17 @@ function ResultOverview({
       ? result.results
       : []) as BrokenLinkResult[];
     const broken = typeof result.broken === "number" ? result.broken : 0;
+    const unverified = typeof result.unverified === "number" ? result.unverified : 0;
     return (
       <div className="space-y-4">
-        <dl className="grid grid-cols-2 gap-3">
+        <dl className="grid grid-cols-3 gap-3">
           <SummaryMetric label="Links checked" value={String(results.length)} />
           <SummaryMetric
             label="Broken"
             value={String(broken)}
             tone={broken ? "warning" : "good"}
           />
+          <SummaryMetric label="Unverified" value={String(unverified)} tone={unverified ? "warning" : "good"} />
         </dl>
         <div className="max-h-96 overflow-auto rounded-xl border border-[var(--outline-soft)]">
           <table className="w-full min-w-[560px] border-collapse text-left text-xs">
@@ -298,26 +295,29 @@ function ResultOverview({
               </tr>
             </thead>
             <tbody>
-              {results.map((item) => (
-                <tr
+              {results.map((item) => {
+                const state = item.state ?? (item.ok ? "working" : "broken");
+                return <tr
                   key={item.url}
                   className="border-t border-[var(--outline-soft)] bg-[var(--surface-raised)]"
                 >
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-1 font-bold ${
-                        item.ok
+                        state === "working"
                           ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"
-                          : "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
+                          : state === "broken"
+                            ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
+                            : "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"
                       }`}
                     >
-                      {item.ok ? "Working" : "Broken"}
+                      {state === "working" ? "Working" : state === "broken" ? "Broken" : "Unverified"}
                     </span>
                   </td>
                   <td className="max-w-md break-all px-4 py-3 text-[var(--ink-900)]">
                     {item.url}
                     {item.error ? (
-                      <span className="mt-1 block text-red-600 dark:text-red-300">
+                      <span className="mt-1 block text-amber-700 dark:text-amber-300">
                         {item.error}
                       </span>
                     ) : null}
@@ -325,8 +325,8 @@ function ResultOverview({
                   <td className="px-4 py-3 font-semibold tabular-nums">
                     {item.status || "—"}
                   </td>
-                </tr>
-              ))}
+                </tr>;
+              })}
             </tbody>
           </table>
         </div>
@@ -485,7 +485,7 @@ function ResultOverview({
               </span>
             ) : null}
           </div>
-          <pre className="mt-4 max-h-96 overflow-auto whitespace-pre-wrap font-sans text-sm leading-7 text-[var(--ink-900)]">
+          <pre className="tool-output-scroll mt-4 whitespace-pre-wrap font-sans text-sm leading-7 text-[var(--ink-900)]">
             {content || "No readable heading or paragraph content was found."}
           </pre>
         </div>
@@ -643,19 +643,8 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
   return (
     <div className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
       <section className="rounded-[var(--radius-xl)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent-700)]">
-              Controlled public check
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-[var(--ink-900)]">
-              {labels.title}
-            </h2>
-          </div>
-          <span className="rounded-full bg-[var(--surface-panel)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">
-            Safe limits
-          </span>
-        </div>
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent-700)]">Public URL check</p>
+        <h2 className="mt-1 text-lg font-semibold text-[var(--ink-900)]">{labels.title}</h2>
         <label className="mt-4 block text-sm font-medium">
           {domainOnly.has(slug) ? "Domain name" : "HTTP or HTTPS URL"}
           <Input
@@ -702,25 +691,18 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
           label="Running controlled checks"
           onCancel={cancelRequest}
         />
-        <p className="mt-3 text-xs leading-5 text-[var(--muted-foreground)]">
-          Private, loopback, link-local, and reserved IP ranges are blocked.
-          Crawls and responses use strict page, size, redirect, and timeout
-          limits.
-        </p>
-        <PrivacyNotice serverRequired />
+        <details className="mt-3 rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
+          <summary className="font-semibold text-[var(--ink-900)]">Request safety and privacy</summary>
+          <p className="mt-2 leading-5">
+            Only the public URL is sent to the protected checker. Private and reserved network addresses are blocked.
+          </p>
+        </details>
         <WorkbenchError message={error} />
       </section>
 
       <section className="min-w-0 rounded-[var(--radius-xl)] bg-[var(--surface-panel)] p-5 shadow-[var(--shadow-soft)] sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent-700)]">
-              Visual diagnostic
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-[var(--ink-900)]">
-              {labels.result}
-            </h2>
-          </div>
+          <h2 className="text-lg font-semibold text-[var(--ink-900)]">{labels.result}</h2>
           <div className="flex flex-wrap items-center gap-2">
             <div
               className="flex rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-1"
@@ -768,13 +750,13 @@ export default function NetworkUtilityWorkbench({ slug }: { slug: string }) {
             ) : null}
           </div>
         </div>
-        <div className="mt-4" role="tabpanel">
+        <div className="tool-output-scroll mt-4" role="tabpanel">
           {view === "overview" ? (
             <ResultOverview slug={slug} result={result} />
           ) : (
             <pre
               aria-live="polite"
-              className="min-h-80 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-xs leading-6"
+              className="min-h-80 whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-xs leading-6"
             >
               {rawOutput || "The complete diagnostic response will appear here."}
             </pre>

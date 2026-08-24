@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { trackCtaClick } from "@/lib/analytics";
 
@@ -20,16 +20,7 @@ export default function CTABlock({ title, description, href, label }: CTABlockPr
           <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{description}</p>
         </div>
-        <Button asChild className="shrink-0 self-start lg:self-auto">
-          <Link
-            href={href}
-            onClick={() => {
-              trackCtaClick(label, href, title);
-            }}
-          >
-            {label}
-          </Link>
-        </Button>
+        <Link href={href} className={buttonVariants({ className: "shrink-0 self-start lg:self-auto" })} onClick={() => { trackCtaClick(label, href, title); }}>{label}</Link>
       </CardContent>
     </Card>
   );

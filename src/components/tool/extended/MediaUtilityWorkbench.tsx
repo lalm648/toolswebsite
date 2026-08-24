@@ -1322,7 +1322,7 @@ async function getFfmpeg() {
               </p>
             </div>
           ) : (
-            <pre className="mt-4 whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-5 text-sm leading-7">
+            <pre className="tool-output-scroll mt-4 whitespace-pre-wrap rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-5 text-sm leading-7">
               {analysis}
             </pre>
           )

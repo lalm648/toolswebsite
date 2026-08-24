@@ -465,7 +465,7 @@ export default function DataUtilityWorkbench({
           {current.input}
         </label>
         <Textarea
-          className="mt-2 min-h-72 font-mono text-sm"
+          className="mt-2 min-h-72 resize-none font-mono text-sm"
           value={input}
           onChange={(event) => setInput(event.target.value)}
           spellCheck={false}
@@ -476,7 +476,7 @@ export default function DataUtilityWorkbench({
               Changed text
             </label>
             <Textarea
-              className="mt-2 min-h-52 font-mono text-sm"
+              className="mt-2 min-h-52 resize-none font-mono text-sm"
               value={secondary}
               onChange={(event) => setSecondary(event.target.value)}
               spellCheck={false}
@@ -596,13 +596,13 @@ export default function DataUtilityWorkbench({
               <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
                 JSON output
               </summary>
-              <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-[var(--outline-soft)] p-4 text-xs leading-6">
+              <pre className="tool-output-scroll whitespace-pre-wrap border-t border-[var(--outline-soft)] p-4 text-xs leading-6">
                 {output}
               </pre>
             </details>
           </div>
         ) : slug === "sql-schema-visualizer" && schema ? (
-          <div className="mt-4 space-y-4">
+          <div className="tool-output-scroll mt-4 space-y-4 pr-1">
             <dl className="grid grid-cols-3 gap-2">
               <div className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3">
                 <dt className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)]">Tables</dt>
@@ -653,11 +653,11 @@ export default function DataUtilityWorkbench({
             ) : null}
             <details className="rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)]">
               <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[var(--ink-900)]">Mermaid ER source</summary>
-              <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-[var(--outline-soft)] p-4 text-xs leading-6">{schema.mermaid}</pre>
+              <pre className="tool-output-scroll whitespace-pre-wrap break-words border-t border-[var(--outline-soft)] p-4 text-xs leading-6">{schema.mermaid}</pre>
             </details>
           </div>
         ) : (
-          <pre className="mt-4 min-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--foreground)]">
+          <pre className="tool-output-scroll mt-4 min-h-72 whitespace-pre-wrap break-words rounded-xl border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-4 text-sm leading-6 text-[var(--foreground)]">
             {slug === "diff-checker" && output
               ? output.split("\n").map((line, index) => (
                   <span key={index} className={`block px-1 ${line.startsWith("+") ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200" : line.startsWith("-") ? "bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-200" : ""}`}>{line || " "}</span>

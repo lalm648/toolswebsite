@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
@@ -530,8 +530,7 @@ export default function ImageResizerTool() {
                       {file ? getSizeDelta(resized.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
                     </p>
                   </div>
-                  <Button asChild>
-                    <a
+                  <a className={buttonVariants()}
                       href={resized.url}
                       download={resized.fileName}
                       onClick={() =>
@@ -543,8 +542,7 @@ export default function ImageResizerTool() {
                       }
                     >
                       Download image
-                    </a>
-                  </Button>
+                  </a>
                 </div>
               </div>
             ) : null}

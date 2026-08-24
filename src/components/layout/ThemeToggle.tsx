@@ -66,7 +66,7 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
 
   if (!mounted) {
     return (
-      <Button type="button" variant="secondary" size="sm" className={compact ? "h-11 w-11 p-0" : "min-w-24 gap-2"} aria-label="Theme toggle">
+      <Button type="button" variant="secondary" size="sm" className={compact ? "h-11 w-11 p-0" : "min-w-24 gap-2"} aria-label="Theme toggle" disabled>
         <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center">
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="12" cy="12" r="4.5" />

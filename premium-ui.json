@@ -1,0 +1,11 @@
+{
+  "profile": "product",
+  "sourceRoots": ["src"],
+  "locale": "en",
+  "ownership": {
+    "Select/Listbox": "native",
+    "Date": "native",
+    "Form": "shared",
+    "Scrollbar": "global"
+  }
+}

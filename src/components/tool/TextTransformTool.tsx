@@ -49,7 +49,7 @@ export default function TextTransformTool({
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="Paste text here..."
-          className="mt-5 min-h-[360px]"
+          className="mt-5 min-h-[360px] resize-none"
         />
         <p className="mt-2 text-xs text-[var(--muted-foreground)]">
           {wordCount.toLocaleString()} words · {characterCount.toLocaleString()} characters · {lineCount.toLocaleString()} lines
@@ -57,7 +57,7 @@ export default function TextTransformTool({
       </div>
 
       <ToolResult title={outputTitle}>
-        <Textarea readOnly value={output} placeholder="Processed text will appear here..." className="min-h-[360px]" />
+        <Textarea readOnly value={output} placeholder="Processed text will appear here..." className="tool-output-scroll resize-none" />
         <p className="mt-2 text-xs text-[var(--muted-foreground)]">
           {outputWordCount.toLocaleString()} words · {outputCharacterCount.toLocaleString()} characters · {outputLineCount.toLocaleString()} lines
         </p>

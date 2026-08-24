@@ -10,19 +10,6 @@ type CategoryHeroProps = {
   onChange: (value: string) => void;
 };
 
-const heroStyles: Record<CategoryDefinition["slug"], string> = {
-  image: "from-emerald-950 via-emerald-900 to-cyan-900",
-  video: "from-violet-950 via-indigo-950 to-slate-950",
-  audio: "from-fuchsia-950 via-rose-950 to-slate-950",
-  document: "from-orange-950 via-amber-950 to-slate-950",
-  text: "from-amber-950 via-stone-900 to-slate-950",
-  developer: "from-cyan-950 via-slate-950 to-blue-950",
-  security: "from-green-950 via-emerald-950 to-slate-950",
-  network: "from-teal-950 via-cyan-950 to-slate-950",
-  seo: "from-fuchsia-950 via-purple-950 to-slate-950",
-  dictionary: "from-indigo-950 via-blue-950 to-slate-950",
-};
-
 const searchSuggestions: Record<CategoryDefinition["slug"], string[]> = {
   image: ["compress", "background", "convert", "crop"],
   video: ["compress", "extract audio", "trim", "captions"],
@@ -44,7 +31,8 @@ export default function CategoryHero({
 }: CategoryHeroProps) {
   return (
     <Card
-      className={`relative isolate overflow-hidden rounded-[var(--radius-2xl)] border-0 bg-gradient-to-br ${heroStyles[category.slug]} text-white shadow-[0_28px_70px_-38px_rgba(15,23,42,0.8)]`}
+      data-category={category.slug}
+      className="category-hero-card relative isolate overflow-hidden rounded-[var(--radius-2xl)] border-0 text-white shadow-[0_28px_70px_-38px_rgba(15,23,42,0.8)]"
     >
       <span
         className="pointer-events-none absolute -right-24 -top-32 -z-10 h-80 w-80 rounded-full border border-white/10 bg-white/5"

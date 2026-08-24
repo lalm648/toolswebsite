@@ -77,15 +77,29 @@ export default function SearchBar({
           onChange={(event) => onChange?.(event.target.value)}
           onBlur={(event) => maybeTrackQuery(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter") {
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
               maybeTrackQuery(event.currentTarget.value);
             }
           }}
           placeholder={placeholder}
           aria-label={inputLabel}
-          className={large ? "h-16 rounded-2xl border-[var(--outline-strong)] pl-14 pr-16 text-base shadow-[var(--shadow-soft)] sm:text-lg" : "pl-14 pr-6"}
+          className={large ? "h-16 rounded-2xl border-[var(--outline-strong)] pl-14 pr-16 text-base shadow-[var(--shadow-soft)] sm:text-lg" : "pl-14 pr-12"}
         />
-        {large ? (
+        {value ? (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={() => {
+              onChange?.("");
+              inputRef.current?.focus();
+            }}
+            className={`absolute top-1/2 grid -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-[var(--outline-soft)] bg-[var(--surface-panel)] text-[var(--muted-foreground)] hover:border-[var(--accent-300)] hover:bg-[var(--accent-50)] hover:text-[var(--accent-700)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)] ${large ? "right-4 h-9 w-9" : "right-3 h-8 w-8"}`}
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m7 7 10 10M17 7 7 17" />
+            </svg>
+          </button>
+        ) : large ? (
           <span className="pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-2 py-1 text-xs font-semibold text-[var(--muted-foreground)] sm:inline-flex">
             /
           </span>

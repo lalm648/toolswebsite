@@ -114,7 +114,7 @@ export default function Base64EncoderTool() {
       </div>
 
       <ToolResult title="Output">
-        <Textarea readOnly value={output} placeholder="Encoded or decoded output will appear here..." className="min-h-90" />
+        <Textarea readOnly value={output} placeholder="Encoded or decoded output will appear here..." className="tool-output-scroll" />
         <div className="mt-4 flex flex-wrap gap-3">
           <CopyButton value={output} label="Copy output" disabled={!output} />
         </div>

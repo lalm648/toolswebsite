@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
@@ -621,8 +621,7 @@ export default function ImageCompressorTool() {
                       </p>
                     ) : null}
                   </div>
-                  <Button asChild>
-                    <a
+                  <a className={buttonVariants()}
                       href={converted.url}
                       download={converted.fileName}
                       onClick={() =>
@@ -634,8 +633,7 @@ export default function ImageCompressorTool() {
                       }
                     >
                       Download image
-                    </a>
-                  </Button>
+                  </a>
                 </div>
               </div>
             ) : null}

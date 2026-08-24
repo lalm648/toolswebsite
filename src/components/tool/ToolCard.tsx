@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ToolDefinition } from "@/lib/data/tools";
 import { trackToolOpen } from "@/lib/analytics";
@@ -258,6 +259,7 @@ const categoryLabels: Record<ToolDefinition["category"], string> = {
 };
 
 export default function ToolCard({ tool, variant = "standard", badge }: ToolCardProps) {
+  const reduceMotion = useReducedMotion();
   const featured = variant === "featured";
   const compact = variant === "compact";
   const spotlight = variant === "spotlight";
@@ -271,7 +273,7 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
         href={tool.href}
         onClick={() => trackToolOpen(tool.slug, tool.category)}
         aria-label={`Open ${tool.title}, ${categoryLabels[tool.category]} tool`}
-        className="group flex min-h-20 min-w-0 max-w-full items-center gap-3 rounded-xl border border-transparent bg-[var(--surface-raised)] p-3 transition-all hover:-translate-y-0.5 hover:border-[var(--outline-strong)] hover:shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
+        className="soft-3d-card group flex min-h-20 min-w-0 max-w-full items-center gap-3 rounded-xl border border-transparent bg-[var(--surface-raised)] p-3 transition-all hover:-translate-y-0.5 hover:border-[var(--outline-strong)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
       >
         <span
           className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] p-2.5 transition-all group-hover:scale-105 ${accentStyle}`}
@@ -305,11 +307,18 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
       aria-label={`Open ${tool.title}, ${categoryLabels[tool.category]} tool`}
       className="group block h-full rounded-[var(--radius-md)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
     >
+      <motion.div
+        className="h-full"
+        whileHover={reduceMotion ? undefined : { y: -7, scale: 1.012 }}
+        whileTap={reduceMotion ? undefined : { y: -1, scale: 0.992 }}
+        transition={{ type: "spring", stiffness: 320, damping: 24, mass: 0.55 }}
+      >
       <Card
-        className={`relative h-full overflow-hidden transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-[var(--shadow-lift)] ${
+        data-category={tool.category}
+        className={`relative h-full overflow-hidden transition-all duration-200 ${
           spotlight
-            ? "border-0 bg-[var(--surface-cta)] shadow-[0_24px_55px_-36px_rgba(15,23,42,0.9)]"
-            : "border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)] group-hover:border-[var(--outline-strong)]"
+            ? "soft-3d-contrast-card border-0 bg-[var(--surface-cta)] shadow-[0_24px_55px_-36px_rgba(15,23,42,0.9)]"
+            : "tool-card-interactive border border-[var(--outline-soft)] bg-[var(--surface-card)] shadow-[var(--shadow-soft)]"
         }`}
       >
         {spotlight ? (
@@ -335,7 +344,7 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
         >
           <div className="flex items-start justify-between gap-3">
             <span
-              className={`inline-flex items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-105 ${
+              className={`inline-flex items-center justify-center rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_9px_20px_-13px_currentColor] transition-all duration-200 group-hover:scale-105 ${
                 spotlight
                   ? "h-14 w-14 bg-white/10 p-3 text-white ring-1 ring-white/15"
                   : featured
@@ -413,6 +422,7 @@ export default function ToolCard({ tool, variant = "standard", badge }: ToolCard
           </span>
         </CardContent>
       </Card>
+      </motion.div>
     </Link>
   );
 }

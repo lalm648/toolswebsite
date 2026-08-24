@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   clamp,
@@ -974,8 +974,7 @@ export default function CropImageTool() {
                       {file ? getSizeDelta(cropped.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
                     </p>
                   </div>
-                  <Button asChild>
-                    <a
+                  <a className={buttonVariants()}
                       href={cropped.url}
                       download={cropped.fileName}
                       onClick={() =>
@@ -987,8 +986,7 @@ export default function CropImageTool() {
                       }
                     >
                       Download image
-                    </a>
-                  </Button>
+                  </a>
                 </div>
               </div>
             ) : null}

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { spawn, spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
@@ -10,8 +11,15 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const port = 3210;
 const origin = `http://127.0.0.1:${port}`;
-const chromePath =
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const chromePath = [
+  process.env.CHROME_PATH,
+  process.env.LOCALAPPDATA
+    ? join(process.env.LOCALAPPDATA, "ms-playwright", "chromium-1228", "chrome-win64", "chrome.exe")
+    : undefined,
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/usr/bin/google-chrome",
+  "/usr/bin/chromium",
+].find((candidate) => candidate && existsSync(candidate));
 
 async function createFixtures(directory) {
   const firstAudio = join(directory, "first.wav");
@@ -202,7 +210,7 @@ async function waitForNamedResult(page, name, timeout = 60_000) {
 
 async function runBrowserChecks(fixtures) {
   const browser = await chromium.launch({
-    executablePath: chromePath,
+    ...(chromePath ? { executablePath: chromePath } : {}),
     headless: true,
     args: ["--no-sandbox", "--disable-background-networking"],
   });
@@ -319,9 +327,13 @@ async function runBrowserChecks(fixtures) {
 }
 
 const temporaryDirectory = await mkdtemp(join(tmpdir(), "webutilia-output-"));
+const npmCommand = process.platform === "win32" ? process.env.ComSpec || "cmd.exe" : "npm";
+const npmArgs = process.platform === "win32"
+  ? ["/d", "/s", "/c", "npm", "run", "start", "--", "-p", String(port), "-H", "127.0.0.1"]
+  : ["run", "start", "--", "-p", String(port), "-H", "127.0.0.1"];
 const server = spawn(
-  "npm",
-  ["run", "start", "--", "-p", String(port), "-H", "127.0.0.1"],
+  npmCommand,
+  npmArgs,
   {
     cwd: projectRoot,
     env: { ...process.env, NODE_ENV: "production" },
@@ -358,6 +370,12 @@ try {
   console.error(serverOutput);
   throw error;
 } finally {
-  server.kill("SIGTERM");
+  if (server.exitCode === null && !server.killed) {
+    try {
+      server.kill("SIGTERM");
+    } catch (error) {
+      if (!(error instanceof Error) || error.code !== "EINVAL") throw error;
+    }
+  }
   await rm(temporaryDirectory, { recursive: true, force: true });
 }

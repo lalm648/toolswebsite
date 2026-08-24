@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import ToolResult from "@/components/tool/ToolResult";
 import ToolUploader from "@/components/tool/ToolUploader";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { trackEvent, trackToolFailure } from "@/lib/analytics";
 import {
   formatBytes,
@@ -482,8 +482,7 @@ export default function RotateImageTool() {
                       {file ? getSizeDelta(rotated.size, file.size) ?? "Size comparison unavailable" : "Size comparison unavailable"}
                     </p>
                   </div>
-                  <Button asChild>
-                    <a
+                  <a className={buttonVariants()}
                       href={rotated.url}
                       download={rotated.fileName}
                       onClick={() =>
@@ -495,8 +494,7 @@ export default function RotateImageTool() {
                       }
                     >
                       Download image
-                    </a>
-                  </Button>
+                  </a>
                 </div>
               </div>
             ) : null}

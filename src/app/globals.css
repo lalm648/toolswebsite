@@ -69,6 +69,10 @@
   --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 16px -10px rgba(15, 23, 42, 0.1);
   --shadow-lift: 0 2px 4px rgba(15, 23, 42, 0.06), 0 14px 30px -18px rgba(15, 23, 42, 0.22);
   --shadow-overlay: 0 4px 8px rgba(15, 23, 42, 0.08), 0 24px 48px -24px rgba(15, 23, 42, 0.32);
+  --shadow-soft-3d: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 2px 5px rgba(15, 23, 42, 0.06), 0 18px 42px -28px rgba(15, 23, 42, 0.34);
+  --shadow-soft-3d-hover: inset 0 1px 0 rgba(255, 255, 255, 0.98), 0 8px 18px -10px rgba(15, 23, 42, 0.18), 0 30px 54px -30px rgba(15, 23, 42, 0.42);
+  --shadow-input-inset: inset 0 2px 5px rgba(15, 23, 42, 0.075), 0 1px 0 rgba(255, 255, 255, 0.9);
+  --workbench-glow: rgba(5, 150, 105, 0.11);
 
   /* Unified radius scale. Every rounded surface resolves to one of these five, which
      replaced eleven hand-written rem values (0.7 through 1.75rem) that produced
@@ -83,6 +87,10 @@
   /* Section rhythm, so surfaces stop inventing their own vertical padding. */
   --space-section: 2.5rem;
   --space-section-lg: 3.5rem;
+  --scrollbar-track: #eef2f7;
+  --scrollbar-thumb: #a8b5c5;
+  --scrollbar-thumb-hover: #718096;
+  --scrollbar-thumb-active: #526176;
 }
 
 :root[data-theme="dark"] {
@@ -140,6 +148,14 @@
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 18px -12px rgba(0, 0, 0, 0.55);
   --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.35), 0 16px 34px -20px rgba(0, 0, 0, 0.7);
   --shadow-overlay: 0 4px 10px rgba(0, 0, 0, 0.45), 0 28px 56px -28px rgba(0, 0, 0, 0.8);
+  --shadow-soft-3d: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 3px 8px rgba(0, 0, 0, 0.32), 0 22px 42px -28px rgba(0, 0, 0, 0.85);
+  --shadow-soft-3d-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 22px -12px rgba(0, 0, 0, 0.62), 0 32px 60px -30px rgba(0, 0, 0, 0.95);
+  --shadow-input-inset: inset 0 2px 7px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.04);
+  --workbench-glow: rgba(52, 211, 153, 0.1);
+  --scrollbar-track: #0b121d;
+  --scrollbar-thumb: #46556a;
+  --scrollbar-thumb-hover: #6b7d94;
+  --scrollbar-thumb-active: #8b9bb0;
 }
 
 @theme inline {
@@ -162,6 +178,243 @@ body {
 
 html {
   scroll-behavior: smooth;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid var(--scrollbar-track);
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+}
+
+*::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+*::-webkit-scrollbar-thumb:active { background: var(--scrollbar-thumb-active); }
+
+/* Keep generated text useful without letting a large result take over the page. */
+.tool-output-scroll {
+  max-height: min(60dvh, 36rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+textarea.tool-output-scroll {
+  height: min(22.5rem, 50dvh);
+  min-height: min(22.5rem, 50dvh);
+}
+
+:where(button:not(:disabled), summary) { cursor: pointer; }
+:where(button:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
+
+@media (forced-colors: active) {
+  html { scrollbar-color: auto; }
+}
+
+/* Shared category hue: quiet at rest, visible on interaction, and identical everywhere
+   a tool is represented. */
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card) {
+  --category-color: var(--accent-500);
+  --category-wash: var(--accent-50);
+}
+
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="image"] { --category-color: #10b981; --category-wash: rgba(16, 185, 129, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="video"] { --category-color: #8b5cf6; --category-wash: rgba(139, 92, 246, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="audio"] { --category-color: #ec4899; --category-wash: rgba(236, 72, 153, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="document"] { --category-color: #f97316; --category-wash: rgba(249, 115, 22, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="text"] { --category-color: #d97706; --category-wash: rgba(217, 119, 6, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="developer"] { --category-color: #0891b2; --category-wash: rgba(8, 145, 178, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="security"] { --category-color: #16a34a; --category-wash: rgba(22, 163, 74, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="network"] { --category-color: #0d9488; --category-wash: rgba(13, 148, 136, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="seo"] { --category-color: #c026d3; --category-wash: rgba(192, 38, 211, 0.08); }
+:where(.tool-card-interactive, .category-card-interactive, .tool-workbench-frame, .category-hero-card)[data-category="dictionary"] { --category-color: #4f46e5; --category-wash: rgba(79, 70, 229, 0.08); }
+
+/* Category heroes are intentionally dark. Card's shared Soft-3D surface otherwise
+   replaces their gradient with a white card background while their text stays white. */
+.soft-3d-card.category-hero-card {
+  border-color: color-mix(in srgb, var(--category-color) 20%, transparent);
+  background-color: var(--surface-cta);
+  background-image:
+    radial-gradient(circle at 72% 18%, color-mix(in srgb, var(--category-color) 18%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--category-color) 20%, var(--surface-cta)), var(--surface-cta) 58%, #08111f);
+  box-shadow: 0 28px 70px -38px rgba(15, 23, 42, 0.8);
+}
+
+.tool-card-interactive::before {
+  content: "";
+  position: absolute;
+  top: -4.5rem;
+  right: -3.5rem;
+  width: 11rem;
+  height: 11rem;
+  border: 1px solid color-mix(in srgb, var(--category-color) 12%, transparent);
+  border-radius: 999px;
+  background: radial-gradient(circle at 42% 58%, var(--category-wash), transparent 68%);
+  opacity: 0.72;
+  transform: scale(0.82);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.group:hover .tool-card-interactive,
+.group:focus-visible .tool-card-interactive,
+.category-card-interactive:hover,
+.category-card-interactive:focus-visible {
+  border-color: color-mix(in srgb, var(--category-color) 34%, var(--outline-soft));
+  background-image: linear-gradient(135deg, var(--category-wash), transparent 58%);
+}
+
+.group:hover .tool-card-interactive::before,
+.group:focus-visible .tool-card-interactive::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.group:active .tool-card-interactive,
+.category-card-interactive:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Soft instrument-console surfaces. The highlight is directional, so the depth reads
+   as a physical tray instead of a generic drop shadow around every rectangle. */
+.soft-3d-card,
+.tool-workbench-content :where(section, div)[class*="shadow-[var(--shadow-soft)]"] {
+  border-color: color-mix(in srgb, var(--outline-soft) 82%, white);
+  background-image: linear-gradient(145deg, color-mix(in srgb, var(--surface-card) 96%, white), var(--surface-card));
+  box-shadow: var(--shadow-soft-3d);
+}
+
+.soft-3d-card:hover {
+  box-shadow: var(--shadow-soft-3d-hover);
+}
+
+.soft-3d-card.soft-3d-contrast-card,
+.soft-3d-card.soft-3d-contrast-card:hover {
+  border-color: transparent;
+  background: var(--surface-cta);
+  box-shadow: 0 24px 55px -36px rgba(15, 23, 42, 0.9);
+}
+
+.tool-field-soft-3d {
+  border-color: color-mix(in srgb, var(--outline-strong) 72%, transparent);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 82%, var(--surface-raised)), var(--surface-raised));
+  box-shadow: var(--shadow-input-inset);
+}
+
+.tool-field-soft-3d:focus-visible {
+  background-image: none;
+  box-shadow: var(--shadow-input-inset), 0 0 0 4px var(--ring-soft);
+}
+
+.tool-upload-soft-3d {
+  background-image:
+    radial-gradient(circle at 50% 0, var(--category-wash, var(--accent-50)), transparent 58%),
+    linear-gradient(145deg, var(--surface-raised), var(--surface-panel));
+  box-shadow: var(--shadow-input-inset);
+}
+
+.tool-workbench-frame {
+  position: relative;
+  isolation: isolate;
+  padding: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--category-color) 16%, var(--outline-soft));
+  border-radius: calc(var(--radius-2xl) + 6px);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--category-wash) 64%, var(--surface-panel)), var(--surface-panel) 58%, var(--surface-card));
+  box-shadow: var(--shadow-soft-3d), 0 28px 70px -54px var(--category-color);
+}
+
+.tool-workbench-content {
+  position: relative;
+  z-index: 1;
+}
+
+.workbench-flow {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+  padding: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--outline-soft) 78%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 72%, transparent), 0 10px 24px -22px rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.workbench-flow-step {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-md);
+}
+
+.workbench-flow-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -0.35rem;
+  width: 0.7rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--category-color) 38%, var(--outline-soft));
+}
+
+.workbench-flow-index {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--category-color) 30%, var(--outline-soft));
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--category-wash) 72%, var(--surface-card));
+  color: var(--category-color);
+  font-size: 0.68rem;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 80%, transparent), 0 4px 10px -7px var(--category-color);
+}
+
+.workbench-orb {
+  position: absolute;
+  z-index: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+.workbench-orb-one {
+  top: 2.5rem;
+  right: 7%;
+  width: 9rem;
+  height: 9rem;
+  background: radial-gradient(circle, color-mix(in srgb, var(--category-color) 14%, transparent), transparent 68%);
+}
+
+.workbench-orb-two {
+  bottom: 1rem;
+  left: 4%;
+  width: 7rem;
+  height: 7rem;
+  border: 1px solid color-mix(in srgb, var(--category-color) 12%, transparent);
+}
+
+@media (min-width: 640px) {
+  .tool-workbench-frame { padding: 0.75rem; }
+  .workbench-flow { margin-bottom: 0.75rem; }
 }
 
 /* A visible focus ring on every interactive element. This rule used to set

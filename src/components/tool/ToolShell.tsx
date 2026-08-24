@@ -4,6 +4,7 @@ import Container from "@/components/Container";
 import ContentSection from "@/components/seo/ContentSection";
 import RelatedTools from "@/components/tool/RelatedTools";
 import ToolExperiencePanel from "@/components/tool/ToolExperiencePanel";
+import WorkbenchFrame from "@/components/tool/WorkbenchFrame";
 import AdSlot from "@/components/monetization/AdSlot";
 import { Badge } from "@/components/ui/badge";
 import { siteFlags } from "@/lib/site-flags";
@@ -52,6 +53,7 @@ export default function ToolShell({
               : "Keep source files and content within the current browser session.",
           ],
           faq: categorySeoContent[category.slug].faq,
+          keywords: categorySeoContent[category.slug].keywords,
         }
       : null);
   const relatedTools = tool ? getRelatedTools(tool.slug, tool.category) : [];
@@ -118,7 +120,13 @@ export default function ToolShell({
           publisher: {
             "@id": `${siteUrl}/#organization`,
           },
+          isAccessibleForFree: true,
+          keywords: resolvedSeoContent?.keywords?.join(", "),
           breadcrumb: { "@id": `${canonicalUrl}#breadcrumb` },
+          hasPart: [
+            ...(steps.length ? [{ "@id": `${canonicalUrl}#howto` }] : []),
+            ...(resolvedSeoContent?.faq?.length ? [{ "@id": `${canonicalUrl}#faq` }] : []),
+          ],
           about: {
             "@type": "Thing",
             name: tool.title,
@@ -246,14 +254,13 @@ export default function ToolShell({
                   <span className="font-semibold text-[var(--ink-900)]">
                     {signal.label}
                   </span>
-                  <span className="hidden sm:inline">· {signal.detail}</span>
                 </li>
               ))}
             </ul>
           ) : null}
         </div>
 
-        {children}
+        <WorkbenchFrame category={category?.slug}>{children}</WorkbenchFrame>
 
         {isDictionary && accessSignals.length ? (
           <section

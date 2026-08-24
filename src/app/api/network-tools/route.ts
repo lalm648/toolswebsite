@@ -15,6 +15,7 @@ import {
   extractPageLinks,
   extractReadableHtml,
 } from "@/lib/server/html-tools";
+import { classifyLinkStatus } from "@/lib/server/link-status";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -161,8 +162,16 @@ async function safeRequest(
             "text/html,application/xhtml+xml,application/json;q=0.8,*/*;q=0.5",
           "accept-encoding": "identity",
         },
-        lookup: (_hostname, _options, callback) =>
-          callback(null, resolved.address, resolved.family),
+        // Node enables auto-family selection for some requests and then asks custom
+        // lookup functions for an address array. Returning the legacy single-address
+        // shape in that case makes Node validate `undefined` as the IP address.
+        lookup: (_hostname, options, callback) => {
+          if (typeof options === "object" && options.all) {
+            callback(null, [resolved]);
+            return;
+          }
+          callback(null, resolved.address, resolved.family);
+        },
       },
       (incoming) => {
         const chunks: Buffer[] = [];
@@ -280,25 +289,31 @@ export async function POST(request: Request) {
       const page = await safeRequest(input);
       const links = extractPageLinks(page.body, page.url, 30);
       const results = [];
-      for (let index = 0; index < links.length; index += 5) {
+      // Keep per-origin pressure low. Five parallel HEAD requests followed by five
+      // GET fallbacks caused healthy Shopify collection pages to rate-limit the
+      // checker with 429 responses.
+      for (let index = 0; index < links.length; index += 2) {
         results.push(
           ...(await Promise.all(
-            links.slice(index, index + 5).map(async (url) => {
+            links.slice(index, index + 2).map(async (url) => {
               try {
                 let response = await safeRequest(url, "HEAD");
-                if (response.status >= 400) {
+                if (response.status >= 400 && response.status !== 429) {
                   response = await safeRequest(url, "GET");
                 }
+                const state = classifyLinkStatus(response.status);
                 return {
                   url,
                   status: response.status,
-                  ok: response.status > 0 && response.status < 400,
+                  ok: state === "working",
+                  state,
                 };
               } catch (error) {
                 return {
                   url,
                   status: 0,
                   ok: false,
+                  state: "unverified",
                   error:
                     error instanceof Error ? error.message : "Request failed",
                 };
@@ -306,10 +321,14 @@ export async function POST(request: Request) {
             }),
           )),
         );
+        if (index + 2 < links.length) {
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
       }
       return NextResponse.json({
         checked: results.length,
-        broken: results.filter((item) => !item.ok).length,
+        broken: results.filter((item) => item.state === "broken").length,
+        unverified: results.filter((item) => item.state === "unverified").length,
         results,
       });
     }

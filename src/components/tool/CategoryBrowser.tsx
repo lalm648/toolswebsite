@@ -6,7 +6,7 @@ import ContentSection from "@/components/seo/ContentSection";
 import CategoryHero from "@/components/tool/CategoryHero";
 import CategoryToolDirectory from "@/components/tool/CategoryToolDirectory";
 import type { CategoryDefinition, ToolDefinition } from "@/lib/data/tools";
-import { categorySeoContent } from "@/lib/seo/content";
+import { categorySeoContent, toolSeoContent } from "@/lib/seo/content";
 import { siteUrl } from "@/lib/seo/metadata";
 import { siteFlags } from "@/lib/site-flags";
 import { getCategoryInternalLinks, trustedResources } from "@/lib/seo/links";
@@ -83,7 +83,7 @@ export default function CategoryBrowser({
     }
 
     return tools.filter((tool) =>
-      [tool.title, tool.description, tool.meta].some((value) =>
+      [tool.title, tool.description, tool.meta, ...(toolSeoContent[tool.slug]?.keywords ?? [])].some((value) =>
         value.toLowerCase().includes(normalized),
       ),
     );

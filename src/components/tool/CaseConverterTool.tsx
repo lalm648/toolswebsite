@@ -134,7 +134,7 @@ export default function CaseConverterTool() {
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="Paste text here..."
-          className="mt-5 min-h-[360px]"
+          className="mt-5 min-h-[360px] resize-none"
         />
         <p className="mt-2 text-xs text-[var(--muted-foreground)]">{(text.trim().match(/\S+/g)?.length ?? 0).toLocaleString()} words · {text.length.toLocaleString()} characters · {text ? text.split(/\r?\n/).length.toLocaleString() : 0} lines</p>
       </div>
@@ -152,7 +152,7 @@ export default function CaseConverterTool() {
                   </Button>
                 </div>
               </div>
-              <Textarea readOnly value={value} className="mt-3 min-h-20" />
+              <Textarea readOnly value={value} className="mt-3 min-h-20 resize-none" />
             </div>
           ))}
         </div>

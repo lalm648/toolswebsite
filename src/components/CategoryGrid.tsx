@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { tools, type CategoryDefinition, type ToolCategorySlug } from "@/lib/data/tools";
 import { trackCategoryOpen } from "@/lib/analytics";
 
 type CategoryGridProps = {
   categories: CategoryDefinition[];
 };
+
+const MotionLink = motion.create(Link);
 
 const iconProps = {
   "aria-hidden": "true",
@@ -119,18 +122,24 @@ const categorySurfaceStyles: Record<ToolCategorySlug, string> = {
 };
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {categories.map((category) => {
         const toolCount = tools.filter((tool) => tool.category === category.slug).length;
         return (
-        <Link
+        <MotionLink
           key={category.slug}
           href={category.href}
+          data-category={category.slug}
           onClick={() => {
             trackCategoryOpen(category.slug);
           }}
-          className={`group flex min-h-40 items-start gap-3.5 rounded-[var(--radius-md)] border border-transparent p-4 transition-all hover:-translate-y-0.5 hover:border-[var(--outline-soft)] hover:shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)] ${categorySurfaceStyles[category.slug]}`}
+          whileHover={reduceMotion ? undefined : { y: -6, scale: 1.01 }}
+          whileTap={reduceMotion ? undefined : { y: -1, scale: 0.99 }}
+          transition={{ type: "spring", stiffness: 320, damping: 24, mass: 0.55 }}
+          className={`soft-3d-card category-card-interactive group flex min-h-40 items-start gap-3.5 rounded-[var(--radius-md)] border border-transparent p-4 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)] ${categorySurfaceStyles[category.slug]}`}
         >
           <span
             className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl p-2.5 transition-all duration-200 group-hover:scale-105 ${categoryTileStyles[category.slug]}`}
@@ -149,7 +158,7 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
               <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
             </span>
           </div>
-        </Link>
+        </MotionLink>
         );
       })}
     </div>

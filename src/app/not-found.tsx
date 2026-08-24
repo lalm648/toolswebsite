@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Container from "@/components/Container";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { categories, getToolsByCategory } from "@/lib/data/tools";
 
 /**
@@ -30,12 +30,8 @@ export default function NotFound() {
             still here — pick a category below, or start from the home page.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild>
-              <Link href="/">Go to the home page</Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link href="/#tool-library">Browse all tools</Link>
-            </Button>
+            <Link href="/" className={buttonVariants()}>Go to the home page</Link>
+            <Link href="/#tool-library" className={buttonVariants({ variant: "secondary" })}>Browse all tools</Link>
           </div>
         </div>
 

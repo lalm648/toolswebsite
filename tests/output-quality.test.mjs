@@ -17,6 +17,18 @@ import {
   buildMetaTags,
 } from "../src/lib/tools/meta-tags.ts";
 import { parseCsv } from "../src/lib/tools/csv.ts";
+import { classifyLinkStatus } from "../src/lib/server/link-status.ts";
+
+test("link checks distinguish confirmed missing pages from temporary access failures", () => {
+  assert.equal(classifyLinkStatus(200), "working");
+  assert.equal(classifyLinkStatus(301), "working");
+  assert.equal(classifyLinkStatus(404), "broken");
+  assert.equal(classifyLinkStatus(410), "broken");
+  assert.equal(classifyLinkStatus(403), "unverified");
+  assert.equal(classifyLinkStatus(429), "unverified");
+  assert.equal(classifyLinkStatus(500), "unverified");
+  assert.equal(classifyLinkStatus(0), "unverified");
+});
 
 test("HTML extraction uses document structure and excludes navigation noise", () => {
   const html = `<!doctype html>

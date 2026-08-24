@@ -41,6 +41,11 @@ function extractInternalLinks(html) {
     const url = new URL(href, baseUrl);
     if (url.origin !== baseUrl.origin && url.origin !== canonicalOrigin) continue;
     if (url.pathname.startsWith("/_next/") || url.pathname.startsWith("/api/")) continue;
+    // The Brahui dictionary is an intentional same-origin iframe implementation,
+    // not a standalone indexable route. Its public assets inherit the canonical
+    // identity of /tools/dictionary/brahui-dictionary and should not be treated as
+    // additional pages discovered from the iframe src.
+    if (url.pathname.startsWith("/brahui/")) continue;
     links.add(normalizePath(url));
   }
   return links;
@@ -68,7 +73,10 @@ if (!sitemapResponse.ok) issues.push(`/sitemap.xml returned ${sitemapResponse.st
 const sitemapPaths = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) =>
   normalizePath(decodeHtml(match[1])),
 );
-const expectedSitemapEntries = extractToolDefinitions().length + 14;
+// Five static pages plus every category collection. There are currently ten
+// categories; keep this named so a future registry audit change is obvious.
+const expectedNonToolEntries = 15;
+const expectedSitemapEntries = extractToolDefinitions().length + expectedNonToolEntries;
 if (sitemapPaths.length !== expectedSitemapEntries) {
   issues.push(`sitemap has ${sitemapPaths.length} URLs; expected ${expectedSitemapEntries}`);
 }
