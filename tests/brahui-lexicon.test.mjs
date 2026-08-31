@@ -142,3 +142,21 @@ test("the word index marks the Brahui script with language and direction", () =>
   assert.match(component, /\\u2069|⁩/, "and a matching pop-directional-isolate");
   assert.match(component, /lang="brh"/);
 });
+
+test("ToolShell exposes a slot after the workbench without breaking callers", () => {
+  const shell = source("src/components/tool/ToolShell.tsx");
+
+  assert.match(shell, /afterWorkbench\?: ReactNode/, "the slot must be optional");
+  assert.match(shell, /\{afterWorkbench\}/);
+});
+
+test("the Brahui route renders the word list into its own HTML", () => {
+  const page = source("src/app/tools/dictionary/brahui-dictionary/page.tsx");
+
+  assert.match(page, /from "@\/components\/tool\/BrahuiWordIndex"/);
+  assert.match(page, /parseBrahuiEntries/);
+  assert.match(page, /groupByLetter/);
+  assert.match(page, /readFileSync/, "the lexicon is read at build time");
+  // A client component here would ship 900 KB of words as JavaScript.
+  assert.doesNotMatch(page, /"use client"/);
+});

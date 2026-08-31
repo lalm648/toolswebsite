@@ -27,6 +27,10 @@ type ToolShellProps = {
   title: string;
   description: string;
   children: ReactNode;
+  /* Rendered directly after the workbench. Used by the Brahui route to put its
+     word list into the page's own HTML, since iframe content is not attributed
+     to the parent document. Optional: every other tool omits it. */
+  afterWorkbench?: ReactNode;
 };
 
 export default function ToolShell({
@@ -34,6 +38,7 @@ export default function ToolShell({
   title,
   description,
   children,
+  afterWorkbench,
 }: ToolShellProps) {
   const tool = getToolByTitle(title);
   const category = tool ? getCategoryBySlug(tool.category) : null;
@@ -261,6 +266,8 @@ export default function ToolShell({
         </div>
 
         <WorkbenchFrame category={category?.slug}>{children}</WorkbenchFrame>
+
+        {afterWorkbench}
 
         {isDictionary && accessSignals.length ? (
           <section
