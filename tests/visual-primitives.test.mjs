@@ -13,6 +13,7 @@ function source(relativePath) {
 const PRIMITIVES = [
   "src/components/visual/BrandBloom.tsx",
   "src/components/visual/ResultMeter.tsx",
+  "src/components/visual/DeviceFrame.tsx",
 ];
 
 test("no visual primitive uses a blur filter", () => {
@@ -53,4 +54,13 @@ test("ResultMeter exposes a labelled progressbar and clamps its fill", () => {
   // An unclamped ratio would overflow the track when value exceeds max.
   assert.match(meter, /Math\.min/);
   assert.match(meter, /Math\.max/);
+});
+
+test("DeviceFrame chrome is decorative and its URL is not a link", () => {
+  const frame = source("src/components/visual/DeviceFrame.tsx");
+
+  assert.match(frame, /aria-hidden/);
+  // Chrome that looked clickable but was not would be a usability trap.
+  assert.doesNotMatch(frame, /<a\b|next\/link/);
+  assert.match(frame, /children/);
 });
