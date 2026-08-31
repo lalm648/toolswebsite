@@ -45,7 +45,7 @@
     transparent 70%
   );
 
-  /* Legacy ramp names retained: 223 var(--accent-*) references across the
+  /* Legacy ramp names retained: 227 var(--accent-*) references across the
      components resolve through these, so the whole site follows the new brand
      without touching a single component in this task. */
   --brand-50: #f7ffe6;
@@ -60,6 +60,7 @@
   --accent-100: #c9ffe9;
   --accent-200: #93f9d1;
   --accent-300: #4ef0b0;
+  --accent-400: #13a170;
   --accent-500: #0f9c6b;
   --accent-600: #0a8659;
   --accent-700: #067A52;
@@ -74,8 +75,10 @@
   --ink-900: #0f172a;
 
   /* Surfaces step upward: page → panel (recessed) → card → raised → strong.
-     Six of these used to be the same #ffffff, so nested cards were indistinguishable
-     and the whole interface read as one flat plane. */
+     Five of these (--surface, --surface-strong, --surface-raised, --surface-card,
+     --surface-hero) are still all #ffffff today, so nested cards are indistinguishable
+     and the whole interface reads as one flat plane. Giving them real tonal steps
+     is outstanding work, not yet done. */
   --surface: #ffffff;
   --surface-strong: #ffffff;
   --surface-raised: #ffffff;
@@ -107,7 +110,6 @@
   --shadow-soft-3d: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 2px 5px rgba(15, 23, 42, 0.06), 0 18px 42px -28px rgba(15, 23, 42, 0.34);
   --shadow-soft-3d-hover: inset 0 1px 0 rgba(255, 255, 255, 0.98), 0 8px 18px -10px rgba(15, 23, 42, 0.18), 0 30px 54px -30px rgba(15, 23, 42, 0.42);
   --shadow-input-inset: inset 0 2px 5px rgba(15, 23, 42, 0.075), 0 1px 0 rgba(255, 255, 255, 0.9);
-  --workbench-glow: rgba(0, 231, 160, 0.12);
 
   /* Unified radius scale. Every rounded surface resolves to one of these five, which
      replaced eleven hand-written rem values (0.7 through 1.75rem) that produced
@@ -173,6 +175,7 @@
   --accent-100: rgba(0, 231, 160, 0.18);
   --accent-200: rgba(0, 231, 160, 0.26);
   --accent-300: #4EF0B0;
+  --accent-400: #27ECA8;
   --accent-500: #00E7A0;
   --accent-600: #47F170;
   --accent-700: #93F9D1;
@@ -209,7 +212,6 @@
   --shadow-soft-3d: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 3px 8px rgba(0, 0, 0, 0.32), 0 22px 42px -28px rgba(0, 0, 0, 0.85);
   --shadow-soft-3d-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 22px -12px rgba(0, 0, 0, 0.62), 0 32px 60px -30px rgba(0, 0, 0, 0.95);
   --shadow-input-inset: inset 0 2px 7px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.04);
-  --workbench-glow: rgba(52, 211, 153, 0.1);
   --scrollbar-track: #0b121d;
   --scrollbar-thumb: #46556a;
   --scrollbar-thumb-hover: #6b7d94;

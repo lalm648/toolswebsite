@@ -34,6 +34,8 @@ export default function HeroVisual({
   children,
   className = "",
 }: HeroVisualProps) {
+  const gradientId = `hero-${slot.replace(/[^a-z0-9-]/gi, "-")}`;
+
   return (
     <div
       data-hero-slot={slot}
@@ -66,7 +68,7 @@ export default function HeroVisual({
                 is ever made to depend on `slot`, switch to a guaranteed-unique id
                 first.
               */}
-              <linearGradient id={`hero-${slot}`} x1="0" y1="0" x2="1" y2="1">
+              <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stopColor="var(--brand-mint)" />
                 <stop offset="0.5" stopColor="var(--brand-spring)" />
                 <stop offset="1" stopColor="var(--brand-lime)" />
@@ -78,7 +80,7 @@ export default function HeroVisual({
               width="160"
               height="160"
               rx="36"
-              fill={`url(#hero-${slot})`}
+              fill={`url(#${gradientId})`}
             />
           </svg>
         )
