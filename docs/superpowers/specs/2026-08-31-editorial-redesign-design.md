@@ -373,13 +373,13 @@ then `find .next/static` for byte totals and `.next/prerender-manifest.json` for
 route count. The baseline column is a REBUILD of commit `a3e2aaa` performed after
 phase 1-2 finished, specifically so the comparison uses one method rather than two.
 
-| Metric | Baseline (rebuilt `a3e2aaa`) | Phase 1-2 (`75476d0`) | Delta |
+| Metric | Baseline (rebuilt `a3e2aaa`) | Phase 1-2 (`75476d0`) | Phase 3-4 |
 | --- | --- | --- | --- |
-| Static JS | 102 files, 3.39 MB | 102 files, 3.39 MB | **0** |
-| Static CSS | 2 files, 109.1 KB | 2 files, 109.9 KB | +0.8 KB |
-| Routes prerendered | 91 | 91 | **0** |
-| `npm run build` | exit 0 | exit 0 | — |
-| External web font requests | 0 | 0 | **0** |
+| Static JS | 102 files, 3.39 MB | 102 files, 3.39 MB | 101 files, 3.43 MB |
+| Static CSS | 2 files, 109.1 KB | 2 files, 109.9 KB | 2 files, 110.4 KB |
+| Routes prerendered | 91 | 91 | 91 |
+| `npm run build` | exit 0 | exit 0 | exit 0 |
+| External web font requests | 0 | 0 | 0 |
 
 **Analysis.** Static JS did not grow at all: the six visual primitives are not yet
 imported by any route, so webpack does not pull them into a chunk. They will land in
