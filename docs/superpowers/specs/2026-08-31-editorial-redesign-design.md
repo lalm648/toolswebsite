@@ -350,19 +350,27 @@ materially. Health-score regression blocks the phase.
    prioritise entry pages without it.
 3. Owner image links for `HeroVisual` slots, whenever available.
 
-## 11. Phase-0 baseline
+## 11. Phase-0 baseline and Phase 1-2 measurement
 
-Captured August 31, 2026 from a clean `npm run build` (exit code 0).
+Baseline captured August 31, 2026 from a clean `npm run build` (exit code 0).
+Phase 1-2 re-measured after implementation of token layer and visual primitives.
 
-| Metric | Baseline |
-| --- | --- |
-| Static JS | 102 files, 3.39 MB uncompressed |
-| Static CSS | 2 files, 108.7 KB uncompressed |
-| Routes prerendered | 78 |
-| `npm run build` | exit 0 |
-| Web font requests | 0 external (`next/font` self-hosts both families) |
+| Metric | Baseline | Phase 1–2 |
+| --- | --- | --- |
+| Static JS | 102 files, 3.39 MB uncompressed | 102 files, 3.39 MB uncompressed |
+| Static CSS | 2 files, 108.7 KB uncompressed | 2 files, 109.9 KB uncompressed |
+| Routes prerendered | 78 | 93 |
+| `npm run build` | exit 0 | exit 0 |
+| Web font requests | 0 external (`next/font` self-hosts both families) | 0 external |
 
-Each phase re-measures these. Growth in CSS is expected and acceptable. New components
+**Phase 1–2 analysis:**
+- Static JS: **0 MB growth** (3.39 MB → 3.39 MB); well under 3.56 MB ceiling ✓
+- Static CSS: +1.2 KB growth (108.7 KB → 109.9 KB); unconstrained budget ✓
+- Routes: 93 generated (+15 from baseline); source requires clarification (may reflect build output methodology change)
+- Lint, tests, registry audit: all pass ✓
+- Output audit: blocked by missing ffmpeg system dependency (not a code quality issue)
+
+Each subsequent phase re-measures these. Growth in CSS is expected and acceptable. New components
 do add JS, so the budget is **+5% total static JS across all phases** (3.39 MB to no more
 than 3.56 MB); no new runtime dependency may be added at all. Exceeding the JS budget
 blocks the phase.
