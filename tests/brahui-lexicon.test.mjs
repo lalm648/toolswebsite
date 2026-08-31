@@ -108,3 +108,37 @@ test("the removed Urdu kinship loanwords have not come back", () => {
     );
   }
 });
+
+function source(relativePath) {
+  return readFileSync(path.join(projectRoot, relativePath), "utf8");
+}
+
+test("the word index renders text blocks, not one element per entry", () => {
+  const component = source("src/components/tool/BrahuiWordIndex.tsx");
+
+  // Mapping entries to elements is the exact thing this component exists to avoid.
+  assert.doesNotMatch(
+    component,
+    /entries\.map\([^)]*=>\s*\(?\s*</,
+    "entries must be joined into text, never mapped to elements",
+  );
+  assert.match(component, /\.join\(/, "entries are joined into a text block");
+  assert.match(component, /groups\.map/, "one block per letter group is expected");
+});
+
+test("the word index is a server component and ships no JavaScript", () => {
+  const component = source("src/components/tool/BrahuiWordIndex.tsx");
+
+  assert.doesNotMatch(component, /"use client"/);
+  assert.doesNotMatch(component, /useState|useEffect|onClick|onChange/);
+});
+
+test("the word index marks the Brahui script with language and direction", () => {
+  const component = source("src/components/tool/BrahuiWordIndex.tsx");
+
+  // Mixed Latin and Arabic on one line renders in the wrong visual order without
+  // an isolate. Unicode isolates cost zero DOM elements, unlike a wrapper span.
+  assert.match(component, /\\u2068|⁨/, "script forms need a first-strong isolate");
+  assert.match(component, /\\u2069|⁩/, "and a matching pop-directional-isolate");
+  assert.match(component, /lang="brh"/);
+});
