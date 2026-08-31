@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Isolated worktrees live inside the repo and carry their own node_modules
+    // and .next build output. Git ignores them; ESLint does not, and without this
+    // it lints a worktree's generated bundles and reports dozens of errors that
+    // have nothing to do with the source.
+    ".worktrees/**",
     // Vendored FFmpeg WebAssembly loader copied from @ffmpeg/core.
     "public/ffmpeg/**",
     // The Brahui learning app: a separate repository checked out inside this one,
