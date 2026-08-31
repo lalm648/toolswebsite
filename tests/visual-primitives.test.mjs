@@ -14,6 +14,7 @@ const PRIMITIVES = [
   "src/components/visual/BrandBloom.tsx",
   "src/components/visual/ResultMeter.tsx",
   "src/components/visual/DeviceFrame.tsx",
+  "src/components/visual/CategoryTile.tsx",
 ];
 
 test("no visual primitive uses a blur filter", () => {
@@ -63,4 +64,40 @@ test("DeviceFrame chrome is decorative and its URL is not a link", () => {
   // Chrome that looked clickable but was not would be a usability trap.
   assert.doesNotMatch(frame, /<a\b|next\/link/);
   assert.match(frame, /children/);
+});
+
+test("category visuals are declared once and shared", () => {
+  const visuals = source("src/lib/data/category-visuals.tsx");
+  const grid = source("src/components/CategoryGrid.tsx");
+  const tile = source("src/components/visual/CategoryTile.tsx");
+
+  for (const name of ["categoryIcons", "categoryTileStyles", "categorySurfaceStyles"]) {
+    assert.match(visuals, new RegExp(`export const ${name}`), `missing export ${name}`);
+    // Both consumers must import them rather than redeclare them.
+    assert.doesNotMatch(grid, new RegExp(`const ${name}\\s*:`), `${name} redeclared in CategoryGrid`);
+  }
+
+  assert.match(grid, /from "@\/lib\/data\/category-visuals"/);
+  assert.match(tile, /from "@\/lib\/data\/category-visuals"/);
+});
+
+test("every category slug has an icon and both colour maps", () => {
+  const visuals = source("src/lib/data/category-visuals.tsx");
+  const slugs = [
+    "image", "video", "audio", "document", "text",
+    "developer", "security", "network", "seo", "dictionary",
+  ];
+
+  for (const slug of slugs) {
+    const occurrences = visuals.split(`${slug}:`).length - 1;
+    assert.ok(occurrences >= 3, `${slug} appears ${occurrences} times, expected 3 maps`);
+  }
+});
+
+test("CategoryTile is compact: a count, no description paragraph", () => {
+  const tile = source("src/components/visual/CategoryTile.tsx");
+
+  assert.match(tile, /toolCount/);
+  // The paragraph is exactly what the tile replaces.
+  assert.doesNotMatch(tile, /category\.description/);
 });
