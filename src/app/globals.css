@@ -135,28 +135,51 @@
   --foreground-strong: #f7f9fc;
   --muted-foreground: #9aa7b8;
 
-  --brand-50: rgba(190, 242, 100, 0.1);
-  --brand-100: rgba(190, 242, 100, 0.16);
-  --brand-200: rgba(190, 242, 100, 0.24);
-  --brand-300: #bef264;
-  --brand-500: #a3e635;
-  --brand-600: #bef264;
-  --brand-700: #d9f99d;
+  --brand-mint: #00E7A0;
+  --brand-spring: #47F170;
+  --brand-chartreuse: #BEF817;
+  --brand-lime: #D3FA05;
 
-  --accent-50: rgba(52, 211, 153, 0.12);
-  --accent-100: rgba(52, 211, 153, 0.18);
-  --accent-200: rgba(52, 211, 153, 0.26);
-  --accent-300: #6ee7b7;
-  /* These were byte-identical to the light theme, so the primary button was a
-     near-black green pill on a dark card and did not read as an action at all. */
-  --accent-500: #34d399;
-  --accent-600: #6ee7b7;
-  --accent-700: #a7f3d0;
+  /* On a near-black canvas the neon is legible as text, so the darkened variants
+     collapse back onto the ramp rather than staying dim. */
+  --brand-ink: #4EF0B0;
+  --lime-ink: #C9F74A;
+  --ink: #08120C;
 
-  /* Bright fill with dark text — about 9:1, versus 2.2:1 for white on this green. */
-  --action-bg: #34d399;
-  --action-bg-hover: #6ee7b7;
-  --action-fg: #052e21;
+  --brand-gradient: linear-gradient(
+    104deg,
+    var(--brand-mint) 0%,
+    var(--brand-spring) 38%,
+    var(--brand-chartreuse) 74%,
+    var(--brand-lime) 100%
+  );
+  --brand-bloom: radial-gradient(
+    ellipse at center,
+    rgba(0, 231, 160, 0.22),
+    rgba(190, 248, 23, 0.1) 45%,
+    transparent 70%
+  );
+  --surface-inverse: #f7f9fc;
+
+  --brand-50: rgba(211, 250, 5, 0.1);
+  --brand-100: rgba(211, 250, 5, 0.16);
+  --brand-200: rgba(211, 250, 5, 0.24);
+  --brand-300: #C9F74A;
+  --brand-500: #BEF817;
+  --brand-600: #D3FA05;
+  --brand-700: #E4FC6B;
+
+  --accent-50: rgba(0, 231, 160, 0.12);
+  --accent-100: rgba(0, 231, 160, 0.18);
+  --accent-200: rgba(0, 231, 160, 0.26);
+  --accent-300: #4EF0B0;
+  --accent-500: #00E7A0;
+  --accent-600: #47F170;
+  --accent-700: #93F9D1;
+
+  --action-bg: var(--brand-mint);
+  --action-bg-hover: var(--brand-spring);
+  --action-fg: var(--ink);
 
   --ink-900: #f7f9fc;
   --surface: #141d2b;
@@ -171,8 +194,8 @@
   --footer-bg: #060a11;
   --outline-soft: rgba(255, 255, 255, 0.1);
   --outline-strong: rgba(255, 255, 255, 0.2);
-  --ring-soft: rgba(52, 211, 153, 0.3);
-  --page-glow: rgba(52, 211, 153, 0.045);
+  --ring-soft: rgba(0, 231, 160, 0.34);
+  --page-glow: rgba(0, 231, 160, 0.05);
   --error-foreground: #fca5a5;
   --error-surface: rgba(248, 113, 113, 0.12);
   --error-outline: rgba(248, 113, 113, 0.32);

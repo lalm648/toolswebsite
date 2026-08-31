@@ -137,3 +137,52 @@ test("ink reads on every neon stop in the ramp", () => {
     assert.ok(ratio >= 7, `--ink on --${token} is ${ratio.toFixed(2)}:1, below AAA`);
   }
 });
+
+const darkBlock = themeBlock(':root[data-theme="dark"] {');
+
+test("the dark theme defines the same brand token names as light", () => {
+  for (const name of [
+    "brand-mint",
+    "brand-spring",
+    "brand-chartreuse",
+    "brand-lime",
+    "brand-ink",
+    "lime-ink",
+    "ink",
+    "brand-gradient",
+    "brand-bloom",
+    "surface-inverse",
+  ]) {
+    assert.ok(tokenValue(darkBlock, name).length > 0, `dark theme is missing --${name}`);
+  }
+});
+
+test("the dark primary action also puts ink on the neon fill", () => {
+  const background = resolvedToken(darkBlock, "action-bg");
+  const foreground = resolvedToken(darkBlock, "action-fg");
+
+  assert.notEqual(foreground.toLowerCase(), "#ffffff");
+  assert.ok(
+    contrastRatio(background, foreground) >= 4.5,
+    `dark action-bg/action-fg is ${contrastRatio(background, foreground).toFixed(2)}:1`,
+  );
+});
+
+test("the neon is legible as text on the dark canvas", () => {
+  const background = tokenValue(darkBlock, "background");
+
+  for (const token of ["brand-mint", "brand-lime"]) {
+    const ratio = contrastRatio(tokenValue(darkBlock, token), background);
+    assert.ok(ratio >= 7, `--${token} on the dark canvas is ${ratio.toFixed(2)}:1, below AAA`);
+  }
+});
+
+test("body text meets AA in both themes", () => {
+  for (const [label, block] of [["light", lightBlock], ["dark", darkBlock]]) {
+    const ratio = contrastRatio(
+      tokenValue(block, "foreground"),
+      tokenValue(block, "background"),
+    );
+    assert.ok(ratio >= 4.5, `${label} body text is ${ratio.toFixed(2)}:1, below AA`);
+  }
+});
