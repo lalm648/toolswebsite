@@ -107,6 +107,34 @@ which would otherwise reach for large imagery.
 
 Baseline is captured by `npm run build` before phase 1 and compared after each phase.
 
+## 5a. Hard constraint: the Brahui audio and sheet engine
+
+Owner-directed and non-negotiable. `public/brahui/index.html` and
+`public/brahui/lexdetail.c6ebf98142d2.json` are **frozen**. No phase edits them.
+
+What that protects, verified by inspection of the document:
+
+| Machinery | Evidence in the file |
+| --- | --- |
+| Text-to-speech and voice ranking | 9 `speechSynthesis` references, 1 `getVoices`, 1 `AudioContext` |
+| Recorded-speaker pronunciation playback | 2 `new Audio`, `.m4a` sources over 6,646 files |
+| Modal / sheet switching | 32 `sheet` references |
+| Saved words, progress, theme persistence | 9 `localStorage` references |
+
+There is no `getUserMedia` or `MediaRecorder`, so "speaking records" means playback of
+real speaker recordings, not user capture.
+
+Consequences for the work:
+
+- The iframe is retained, exactly as section 6.5 states. Retiring it is off the table.
+- Extracted entry pages **read** the same `.m4a` assets through a plain `<audio>`
+  element. They do not reimplement voice ranking, TTS, or the sheet system, and they do
+  not import the framed app's script.
+- Theme remapping onto Webutilia tokens has already been applied inside that document.
+  Any further visual alignment happens on the surrounding shell, never in the file.
+- If a change ever appears to require editing the frozen file, that is a signal to stop
+  and raise it, not to proceed.
+
 ## 6. Design
 
 ### 6.1 Token layer
@@ -237,10 +265,10 @@ invisible to search.
 - **Shell.** The app is currently wrapped in the generic Input → Process → Output rail
   at a fixed height, producing a scroll container inside a scrolling page. The rail is
   meaningless here because nothing is processed. F8 replaces it.
-- **Retire or retain the iframe.** The framed app keeps the spaced-repetition scheduler,
-  transliterator, and speech ranking that its own test suites cover. It is retained as
-  the interactive surface; the extracted routes are what search sees. The two read the
-  same data, so they cannot diverge.
+- **Retain the iframe.** Settled, not optional — see section 5a. The framed app keeps
+  the spaced-repetition scheduler, transliterator, speech ranking, and sheet system that
+  its own test suites cover. It is the interactive surface; the extracted routes are what
+  search sees. Both read the same data, so they cannot diverge.
 
 Lexical content is not authored or invented — every field on an entry page traces to the
 CC BY 4.0 source, and attribution is carried on each page. Entries flagged in the data as
@@ -308,6 +336,7 @@ materially. Health-score regression blocks the phase.
 | Editorial visuals regress the 98+ score | Section 5 budget; measured every phase |
 | `--action-fg` flip changes every button at once | Intended; verified by screenshot across both themes |
 | Light-first overrides OS dark preference | Accepted and owner-directed; toggle still persists choice |
+| A design or SEO change reaches into the frozen Brahui file | Section 5a forbids it; the shell absorbs visual change instead |
 | Brahui invested in without volume data | Stated openly; rests on winnability and 12 observed clicks |
 | ~3,473 new static routes slow the build | Measured at phase 5; entry pages are data-only and must not inline the 1.31 MB JSON |
 | 57 tools have no keyword data | They receive design-only treatment this round |
