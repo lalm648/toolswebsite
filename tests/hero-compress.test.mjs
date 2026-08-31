@@ -41,3 +41,31 @@ test("compressionSummary handles a zero-byte original without dividing by zero",
   assert.equal(summary.savedBytes, 0);
   assert.equal(summary.savedPercent, 0);
 });
+
+test("compressionSummary never claims 100% while bytes remain", () => {
+  // A 10 MB image compressing to 50 KB is an ordinary result, and it must not
+  // tell the visitor the file compressed to nothing.
+  assert.equal(compressionSummary(10_485_760, 51_200).savedPercent, 99);
+  assert.equal(compressionSummary(4_404_019, 20_480).savedPercent, 99);
+  assert.equal(compressionSummary(10_000_000, 1).savedPercent, 99);
+});
+
+test("compressionSummary reports a true 100% only when nothing remains", () => {
+  assert.equal(compressionSummary(1000, 0).savedPercent, 100);
+});
+
+test("compressionSummary still rounds normally below the cap", () => {
+  assert.equal(compressionSummary(1000, 500).savedPercent, 50);
+  assert.equal(compressionSummary(1000, 100).savedPercent, 90);
+  assert.equal(compressionSummary(1000, 994).savedPercent, 1);
+});
+
+test("heroTargetDimensions does not collapse an extreme aspect ratio to zero", () => {
+  const wide = heroTargetDimensions(5000, 2);
+  assert.equal(wide.width, 1600);
+  assert.ok(wide.height >= 1, "height must never round down to zero");
+
+  const tall = heroTargetDimensions(2, 5000);
+  assert.ok(tall.width >= 1, "width must never round down to zero");
+  assert.equal(tall.height, 1600);
+});

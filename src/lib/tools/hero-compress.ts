@@ -46,7 +46,14 @@ export function compressionSummary(
   // and so the hero never reports a negative saving as a positive one.
   const ratio = Math.min(Math.max(compressedBytes / originalBytes, 0), 1);
   const savedBytes = Math.max(originalBytes - compressedBytes, 0);
-  const savedPercent = Math.round((savedBytes / originalBytes) * 100);
+  const roundedPercent = Math.round((savedBytes / originalBytes) * 100);
+
+  // Rounding alone lets an ordinary compression (e.g. 10 MB -> 50 KB, 99.51%
+  // saved) display as "100% smaller", which falsely claims the file compressed
+  // to nothing. Report 100 only when it is literally true — all bytes gone —
+  // and cap every other case at 99 so the label never overstates the result.
+  // Do not "simplify" this back to a plain Math.round.
+  const savedPercent = savedBytes === originalBytes ? 100 : Math.min(roundedPercent, 99);
 
   return { ratio, savedBytes, savedPercent };
 }
