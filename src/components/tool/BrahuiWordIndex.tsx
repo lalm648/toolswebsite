@@ -30,16 +30,44 @@
   A server component with no interactivity — it adds no JavaScript to the bundle.
 */
 
-import { Fragment } from "react";
 import type { BrahuiEntry, BrahuiLetterGroup } from "@/lib/data/brahui-lexicon";
 
 const ISOLATE_START = "⁨";
 const ISOLATE_END = "⁩";
 
-function tail(entry: BrahuiEntry): string {
-  const script = entry.script ? ` ${ISOLATE_START}${entry.script}${ISOLATE_END}` : "";
-  const pos = entry.pos ? ` ${entry.pos}` : "";
-  return `${script}${pos} — ${entry.gloss}\n`;
+/*
+  The entries are handed to React as ONE pre-built HTML string per letter rather
+  than as elements.
+
+  Measured reason: rendering 3,473 headwords as JSX put every one of them into the
+  React Server Component payload — a 690 KB .rsc file the browser has to parse and
+  reconcile — which took Total Blocking Time from 440 ms (the framed app alone) to
+  860 ms and halved the page's performance score. A single string is one node in
+  that payload regardless of how much markup it contains, while the rendered HTML,
+  and therefore what a crawler reads, is identical.
+
+  The source is a build-time file we control, never user input, but every field is
+  still escaped: a stray `&` or `<` in a gloss would otherwise corrupt the markup.
+*/
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function entryMarkup(entry: BrahuiEntry): string {
+  const headword = `<b class="font-bold text-[var(--ink-900)]">${escapeHtml(entry.latin)}</b>`;
+  const script = entry.script
+    ? ` ${ISOLATE_START}${escapeHtml(entry.script)}${ISOLATE_END}`
+    : "";
+  const pos = entry.pos ? ` ${escapeHtml(entry.pos)}` : "";
+  return `${headword}${script}${pos} — ${escapeHtml(entry.gloss)}`;
+}
+
+function groupMarkup(group: BrahuiLetterGroup): string {
+  return group.entries.map(entryMarkup).join("\n");
 }
 
 export default function BrahuiWordIndex({ groups }: { groups: BrahuiLetterGroup[] }) {
@@ -97,14 +125,8 @@ export default function BrahuiWordIndex({ groups }: { groups: BrahuiLetterGroup[
               <p
                 lang="brh"
                 className="mt-2 whitespace-pre-line px-4 pb-2 text-[13px] leading-6 text-[var(--muted-foreground)] [text-indent:-1.25rem] [padding-left:2.5rem] sm:columns-2 sm:gap-x-10 xl:columns-3"
-              >
-                {group.entries.map((entry) => (
-                  <Fragment key={entry.id || `${entry.latin}-${entry.gloss}`}>
-                    <b className="font-bold text-[var(--ink-900)]">{entry.latin}</b>
-                    {tail(entry)}
-                  </Fragment>
-                ))}
-              </p>
+                dangerouslySetInnerHTML={{ __html: groupMarkup(group) }}
+              />
             </details>
           );
         })}
