@@ -58,6 +58,14 @@ export default function HeroVisual({
             className="h-full w-full"
           >
             <defs>
+              {/*
+                This gradient's stops are fixed brand tokens and never vary with
+                `slot`, so a duplicate `slot` across two instances resolves to a
+                byte-identical gradient and stays visually correct — the id
+                collision is invalid markup, not a rendering bug. If the gradient
+                is ever made to depend on `slot`, switch to a guaranteed-unique id
+                first.
+              */}
               <linearGradient id={`hero-${slot}`} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stopColor="var(--brand-mint)" />
                 <stop offset="0.5" stopColor="var(--brand-spring)" />

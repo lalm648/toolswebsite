@@ -40,7 +40,6 @@ export default function BeforeAfter({
           <p className="mt-1.5 font-mono text-lg font-semibold text-[var(--ink-900)]">
             {beforeValue}
           </p>
-          <ResultMeter className="mt-2" value={1} max={1} label={`${beforeLabel} baseline`} />
         </div>
         <div className="rounded-[var(--radius-sm)] border border-[var(--accent-200)] bg-[var(--accent-50)] p-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
