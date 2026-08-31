@@ -352,25 +352,37 @@ materially. Health-score regression blocks the phase.
 
 ## 11. Phase-0 baseline and Phase 1-2 measurement
 
-Baseline captured August 31, 2026 from a clean `npm run build` (exit code 0).
-Phase 1-2 re-measured after implementation of token layer and visual primitives.
+Both columns were produced the same way on the same machine: a clean `npm run build`,
+then `find .next/static` for byte totals and `.next/prerender-manifest.json` for the
+route count. The baseline column is a REBUILD of commit `a3e2aaa` performed after
+phase 1-2 finished, specifically so the comparison uses one method rather than two.
 
-| Metric | Baseline | Phase 1–2 |
-| --- | --- | --- |
-| Static JS | 102 files, 3.39 MB uncompressed | 102 files, 3.39 MB uncompressed |
-| Static CSS | 2 files, 108.7 KB uncompressed | 2 files, 109.9 KB uncompressed |
-| Routes prerendered | 78 | 93 |
-| `npm run build` | exit 0 | exit 0 |
-| Web font requests | 0 external (`next/font` self-hosts both families) | 0 external |
+| Metric | Baseline (rebuilt `a3e2aaa`) | Phase 1-2 (`75476d0`) | Delta |
+| --- | --- | --- | --- |
+| Static JS | 102 files, 3.39 MB | 102 files, 3.39 MB | **0** |
+| Static CSS | 2 files, 109.1 KB | 2 files, 109.9 KB | +0.8 KB |
+| Routes prerendered | 91 | 91 | **0** |
+| `npm run build` | exit 0 | exit 0 | — |
+| External web font requests | 0 | 0 | **0** |
 
-**Phase 1–2 analysis:**
-- Static JS: **0 MB growth** (3.39 MB → 3.39 MB); well under 3.56 MB ceiling ✓
-- Static CSS: +1.2 KB growth (108.7 KB → 109.9 KB); unconstrained budget ✓
-- Routes: 93 generated (+15 from baseline); source requires clarification (may reflect build output methodology change)
-- Lint, tests, registry audit: all pass ✓
-- Output audit: blocked by missing ffmpeg system dependency (not a code quality issue)
+**Analysis.** Static JS did not grow at all: the six visual primitives are not yet
+imported by any route, so webpack does not pull them into a chunk. They will land in
+the bundle when phase 3 wires them in, and that is the measurement that matters for
+the ceiling. CSS grew 0.8 KB, which is the new token declarations. No route was added.
 
-Each subsequent phase re-measures these. Growth in CSS is expected and acceptable. New components
-do add JS, so the budget is **+5% total static JS across all phases** (3.39 MB to no more
-than 3.56 MB); no new runtime dependency may be added at all. Exceeding the JS budget
-blocks the phase.
+**Correction to an earlier figure.** This section previously recorded the baseline as
+"78 routes" and "108.7 KB" CSS. The 78 was wrong — it was inferred from the content-page
+count (68 tools + 10 categories) rather than measured, and the real prerendered-route
+count was 91 both before and after. A verification run briefly read this as a +15 route
+regression; the rebuild above shows 91 on both sides, so nothing was added. The 108.7 KB
+came from a build in a different checkout and is superseded by the 109.1 KB rebuild.
+
+**Known pre-existing failure, not caused by this work.** `npm run audit:outputs` fails
+in this environment because `ffmpeg` is not installed. Confirmed to fail identically on
+the rebuilt `a3e2aaa` baseline, so it is environmental. `npm run lint`,
+`node --test tests/*.test.mjs` (50 tests), and `npm run audit:tools` (68 tools) all pass.
+
+Each subsequent phase re-measures these. Growth in CSS is expected and acceptable. New
+components do add JS, so the budget is **+5% total static JS across all phases**
+(3.39 MB to no more than 3.56 MB); no new runtime dependency may be added at all.
+Exceeding the JS budget blocks the phase.
