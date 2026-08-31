@@ -47,3 +47,33 @@ test("the eyebrow uses a brand colour that is legible as text on light", () => {
   assert.match(header, /var\(--accent-700\)/);
   assert.doesNotMatch(header, /var\(--brand-mint\)|var\(--brand-lime\)/);
 });
+
+test("the hero compressor really compresses rather than showing fixed numbers", () => {
+  const hero = source("src/components/visual/HeroCompressor.tsx");
+
+  assert.match(hero, /from "@\/lib\/tools\/hero-compress"/);
+  assert.match(hero, /from "@\/lib\/image-conversion"/);
+  assert.match(hero, /from "@\/components\/tool\/FileDropzone"/);
+  assert.match(hero, /compressionSummary/);
+  // Any hard-coded byte figure would be a fabricated result.
+  assert.doesNotMatch(hero, /4\.2 MB|386 KB/);
+});
+
+test("the hero compressor releases every object URL it creates", () => {
+  const hero = source("src/components/visual/HeroCompressor.tsx");
+
+  const created = (hero.match(/createObjectURL/g) ?? []).length;
+  const revoked = (hero.match(/revokeObjectURL/g) ?? []).length;
+  assert.ok(created > 0, "the component should create at least one object URL");
+  assert.ok(
+    revoked >= created,
+    `created ${created} object URLs but revoke appears ${revoked} times — leaked blobs`,
+  );
+});
+
+test("the hero compressor reports failure instead of failing silently", () => {
+  const hero = source("src/components/visual/HeroCompressor.tsx");
+
+  assert.match(hero, /catch/);
+  assert.match(hero, /role="alert"|aria-live/);
+});
