@@ -51,3 +51,7 @@ redme-1.md
 readme-2.md
 two
 .env*
+
+# isolated worktrees and subagent scratch
+/.worktrees/
+/.superpowers/
