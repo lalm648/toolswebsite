@@ -164,8 +164,16 @@ brand rather than place it correctly.
 
 Additional new tokens: `--brand-gradient`, `--brand-bloom`, `--surface-inverse`.
 `--action-fg` changes from `#ffffff` to `--ink`, which visibly changes every primary
-button on all 78 pages. The six `--surface-*` tokens that are all currently `#ffffff`
-gain real tonal steps so nested cards stop reading as one plane.
+button across the site.
+
+**Outstanding, deferred to phase 3.** `--surface`, `--surface-strong`, `--surface-raised`,
+`--surface-card`, and `--surface-hero` are all still `#ffffff`, so nested cards continue to
+read as one flat plane. Giving them real tonal steps belongs in this section and was
+promised here, but the phase 1-2 implementation plan never scoped a task for it, so nothing
+delivered it. It is deferred rather than done: changing five surface values alters every
+card on all 91 routes, and this repository has no visual regression test, so it is safer
+paired with the shared-shell rebuild in phase 3 where those cards are being reworked
+anyway.
 
 **Theme default.** `src/app/layout.tsx:117` currently falls back to
 `prefers-color-scheme`. It becomes a literal `"light"`. The toggle and its persistence
@@ -180,10 +188,18 @@ New, in `src/components/visual/`:
 | --- | --- |
 | `BrandBloom` | Radial gradient wash behind heroes. No blur filter. |
 | `HeroVisual` | Slot-based: renders an owner-supplied image when given one, self-generated SVG otherwise. |
-| `BeforeAfter` | Drag slider plus numeric delta, fed by real tool output. |
+| `BeforeAfter` | Paired before/after cards with a proportional meter, fed by real tool output. |
 | `ResultMeter` | Gradient bar for size, quality, or savings. |
 | `CategoryTile` | Compact tile replacing the paragraph card. |
 | `DeviceFrame` | Browser chrome around live tool previews. |
+
+**What `BeforeAfter` actually is.** An earlier draft of this section described it as a
+"drag slider plus numeric delta". The shipped component is not a slider: it renders two
+labelled cards holding pre-formatted display strings, plus an optional `ResultMeter`
+showing the after value as a proportion of the before value, plus a `children` slot for an
+eventual visual comparison. Nothing drags. The description is corrected here rather than
+left claiming a capability that does not exist; a real drag comparison can be built into
+the `children` slot when a tool needs one.
 
 `HeroVisual` is the forward-compatibility seam: owner image links drop into named slots
 without layout change.
