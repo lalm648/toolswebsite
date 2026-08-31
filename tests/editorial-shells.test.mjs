@@ -77,3 +77,25 @@ test("the hero compressor reports failure instead of failing silently", () => {
   assert.match(hero, /catch/);
   assert.match(hero, /role="alert"|aria-live/);
 });
+
+test("the home hero is editorial and leads with the working tool", () => {
+  const home = source("src/components/HomeCatalog.tsx");
+
+  assert.match(home, /from "@\/components\/visual\/BrandBloom"/);
+  assert.match(home, /from "@\/components\/visual\/HeroCompressor"/);
+  assert.match(home, /<HeroCompressor/);
+});
+
+test("the hero headline stays real text so it remains the LCP element", () => {
+  const home = source("src/components/HomeCatalog.tsx");
+
+  assert.match(home, /<h1/);
+  // A headline rendered as an image would wreck LCP and be unreadable to search.
+  assert.doesNotMatch(home, /<h1[^>]*>\s*<(img|Image)/);
+});
+
+test("search survives the hero rebuild rather than being dropped", () => {
+  const home = source("src/components/HomeCatalog.tsx");
+
+  assert.match(home, /SearchBar/);
+});

@@ -6,6 +6,8 @@ import CategoryGrid from "@/components/CategoryGrid";
 import SearchBar from "@/components/SearchBar";
 import ToolCard from "@/components/tool/ToolCard";
 import ToolsEmptyState from "@/components/tool/ToolsEmptyState";
+import BrandBloom from "@/components/visual/BrandBloom";
+import HeroCompressor from "@/components/visual/HeroCompressor";
 import {
   categories,
   getFeaturedTools,
@@ -80,19 +82,33 @@ export default function HomeCatalog() {
 
   return (
     <>
-      <section className="pb-2 pt-4 text-center sm:pt-7">
-        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-3.5 py-1.5 text-xs font-semibold text-[var(--muted-foreground)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-500)]" />
-          {tools.length} focused tools · no sign-up
-        </span>
-        <h1 className="mx-auto mt-5 max-w-4xl text-[clamp(2.4rem,6vw,3.6rem)] font-bold leading-[1.04] tracking-[-0.045em] text-[var(--ink-900)]">
-          Every tool you need, right in your browser
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg">
-          Convert, compress, edit and manage files securely — without installing anything.
-        </p>
+      <section className="relative isolate overflow-hidden pb-6 pt-6 sm:pt-10">
+        <BrandBloom className="left-1/2 top-0 -translate-x-1/2 -translate-y-1/2" />
 
-        <div className="relative z-10 mt-7">
+        <div className="relative grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="text-center lg:text-left">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-3.5 py-1.5 text-xs font-semibold text-[var(--muted-foreground)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-mint)]" />
+              {tools.length} focused tools · no sign-up
+            </span>
+
+            <h1 className="mt-5 text-[clamp(2.4rem,6vw,3.6rem)] font-bold leading-[1.04] tracking-[-0.045em] text-[var(--ink-900)]">
+              Every tool you need,{" "}
+              <span className="bg-[image:var(--brand-gradient)] bg-clip-text text-transparent">
+                right in your browser
+              </span>
+            </h1>
+
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)] sm:text-lg lg:mx-0">
+              Convert, compress and edit files without uploading them anywhere. Processing
+              happens on your device.
+            </p>
+          </div>
+
+          <HeroCompressor />
+        </div>
+
+        <div className="relative z-10 mt-8">
           <SearchBar
             value={query}
             onChange={setQuery}
