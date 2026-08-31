@@ -52,7 +52,18 @@ export default function HeroCompressor() {
     }
   }, []);
 
-  useEffect(() => releasePreview, [releasePreview]);
+  // A compression can still be in flight when this component unmounts. Without this
+  // guard, the async handler below would assign a preview URL into the ref after the
+  // cleanup effect already ran, and nothing would ever revoke it.
+  const unmountedRef = useRef(false);
+
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+      releasePreview();
+    };
+  }, [releasePreview]);
 
   const handleFiles = useCallback(
     async (incoming: File[]) => {
@@ -93,6 +104,14 @@ export default function HeroCompressor() {
         const { blob } = encoded;
         const summary = compressionSummary(file.size, blob.size);
         const previewUrl = URL.createObjectURL(blob);
+
+        if (unmountedRef.current) {
+          // The component is gone; nobody will ever revoke this through the ref,
+          // so close it immediately instead of leaking it.
+          URL.revokeObjectURL(previewUrl);
+          return;
+        }
+
         previewUrlRef.current = previewUrl;
 
         setResult({
@@ -118,7 +137,18 @@ export default function HeroCompressor() {
   );
 
   return (
-    <div className="rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-lift)] sm:p-5">
+    <div className="min-h-[26rem] rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-card)] p-4 shadow-[var(--shadow-lift)] sm:p-5">
+      {/*
+        min-h reserves space for the result state up front so it never grows the
+        card in place (CLS). Budget with the card's own p-4/p-5 padding (32-40px)
+        added on top:
+          - dropzone: icon 40 + label/hint text ~36 + p-4 padding 32 + border  ~110px
+          - mt-4 gap before result                                             16px
+          - before/after row (p-3 cells, label+value+ratio meter)             ~90px
+          - mt-3 gap + action row (min-h-11 buttons)                          ~56px
+          total content ~272px, +40px card padding ~312px, rounded up with a
+          safety margin for font/zoom variance to 26rem (416px).
+      */}
       <FileDropzone
         accept="image/jpeg,image/png,image/webp"
         files={files}
@@ -131,7 +161,13 @@ export default function HeroCompressor() {
       />
 
       <p aria-live="polite" className="sr-only">
-        {busy ? "Compressing image" : result ? "Compression complete" : ""}
+        {busy
+          ? "Compressing image"
+          : result
+            ? result.savedPercent > 0
+              ? `Compressed to ${formatBytes(result.compressedBytes)}, ${result.savedPercent}% smaller`
+              : `Compressed to ${formatBytes(result.compressedBytes)}`
+            : ""}
       </p>
 
       {error ? (
@@ -155,7 +191,7 @@ export default function HeroCompressor() {
               download={result.downloadName}
               className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--action-bg)] px-4 text-sm font-bold text-[var(--action-fg)] hover:bg-[var(--action-bg-hover)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--ring-soft)]"
             >
-              Download {result.savedPercent}% smaller
+              {result.savedPercent > 0 ? `Download ${result.savedPercent}% smaller` : "Download result"}
             </a>
             <Link
               href="/tools/image/image-compressor"

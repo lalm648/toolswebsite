@@ -99,3 +99,13 @@ test("search survives the hero rebuild rather than being dropped", () => {
 
   assert.match(home, /SearchBar/);
 });
+
+test("the hero headline uses the legible gradient, not the neon one", () => {
+  const home = source("src/components/HomeCatalog.tsx");
+
+  // --brand-gradient runs mint -> lime, ~1.1-1.5:1 on the light page background —
+  // clipping text to it directly makes half the headline invisible. The text-safe
+  // sibling steps down to the dark ink variants (5.00:1 / 5.91:1).
+  assert.doesNotMatch(home, /bg-\[image:var\(--brand-gradient\)\]/);
+  assert.match(home, /bg-\[image:var\(--brand-gradient-text\)\]/);
+});

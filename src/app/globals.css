@@ -35,6 +35,16 @@
     var(--brand-chartreuse) 74%,
     var(--brand-lime) 100%
   );
+  /* --brand-gradient is a fill-only asset: both neon endpoints sit under 3:1 against
+     this light page background, so text clipped to it is close to invisible. This is
+     the text-safe sibling — same 104deg angle, same 0%→100% run, but stepped down to
+     the dark ink variants (5.00:1 and 5.91:1) so gradient headlines stay legible here.
+     The neon look returns in the dark theme block below, where it reads at 11.74:1. */
+  --brand-gradient-text: linear-gradient(
+    104deg,
+    var(--brand-ink) 0%,
+    var(--lime-ink) 100%
+  );
   /* A plain radial gradient, deliberately not a blurred layer: filter: blur() on a
      hero-sized element costs paint time on every frame and would regress the
      performance budget this redesign is required to protect. */
@@ -149,6 +159,15 @@
   --ink: #08120C;
 
   --brand-gradient: linear-gradient(
+    104deg,
+    var(--brand-mint) 0%,
+    var(--brand-spring) 38%,
+    var(--brand-chartreuse) 74%,
+    var(--brand-lime) 100%
+  );
+  /* On a near-black canvas the full neon ramp reads at 11.74:1, so the text-safe
+     gradient collapses back onto --brand-gradient here rather than staying dimmed. */
+  --brand-gradient-text: linear-gradient(
     104deg,
     var(--brand-mint) 0%,
     var(--brand-spring) 38%,

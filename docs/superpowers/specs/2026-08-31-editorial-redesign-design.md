@@ -366,7 +366,7 @@ materially. Health-score regression blocks the phase.
    prioritise entry pages without it.
 3. Owner image links for `HeroVisual` slots, whenever available.
 
-## 11. Phase-0 baseline and Phase 1-2 measurement
+## 11. Phase-0 baseline through Phase 3-4 measurement
 
 Both columns were produced the same way on the same machine: a clean `npm run build`,
 then `find .next/static` for byte totals and `.next/prerender-manifest.json` for the
@@ -381,10 +381,16 @@ phase 1-2 finished, specifically so the comparison uses one method rather than t
 | `npm run build` | exit 0 | exit 0 | exit 0 |
 | External web font requests | 0 | 0 | 0 |
 
-**Analysis.** Static JS did not grow at all: the six visual primitives are not yet
-imported by any route, so webpack does not pull them into a chunk. They will land in
-the bundle when phase 3 wires them in, and that is the measurement that matters for
-the ceiling. CSS grew 0.8 KB, which is the new token declarations. No route was added.
+**Analysis.** Static JS did not grow at all between the baseline and Phase 1-2: the six
+visual primitives were not yet imported by any route, so webpack did not pull them into
+a chunk. Phase 3-4 is where they land in the bundle, and the table now shows exactly
+that: 3.39 MB to 3.43 MB, a 1.2% increase that is well inside the +5% ceiling (3.56 MB).
+CSS grew 0.8 KB from the new token declarations in Phase 1-2 and a further 0.5 KB in
+Phase 3-4 for the additional component styles. No route was added at any phase.
+Static JS file count went from 102 to 101 in Phase 3-4 despite the byte increase:
+wiring the visual primitives into `HomeCatalog` and related routes let webpack merge
+one previously-separate shared chunk into a route bundle it now shares a boundary
+with, so the total byte count rose while the file count dropped by one.
 
 **Correction to an earlier figure.** This section previously recorded the baseline as
 "78 routes" and "108.7 KB" CSS. The 78 was wrong — it was inferred from the content-page

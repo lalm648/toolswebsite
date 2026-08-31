@@ -85,7 +85,7 @@ export default function HomeCatalog() {
       <section className="relative isolate overflow-hidden pb-6 pt-6 sm:pt-10">
         <BrandBloom className="left-1/2 top-0 -translate-x-1/2 -translate-y-1/2" />
 
-        <div className="relative grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-[var(--outline-soft)] bg-[var(--surface-panel)] px-3.5 py-1.5 text-xs font-semibold text-[var(--muted-foreground)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-mint)]" />
@@ -94,7 +94,7 @@ export default function HomeCatalog() {
 
             <h1 className="mt-5 text-[clamp(2.4rem,6vw,3.6rem)] font-bold leading-[1.04] tracking-[-0.045em] text-[var(--ink-900)]">
               Every tool you need,{" "}
-              <span className="bg-[image:var(--brand-gradient)] bg-clip-text text-transparent">
+              <span className="bg-[image:var(--brand-gradient-text)] bg-clip-text text-transparent">
                 right in your browser
               </span>
             </h1>
