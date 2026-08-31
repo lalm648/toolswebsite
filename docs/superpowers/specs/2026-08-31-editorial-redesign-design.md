@@ -150,15 +150,15 @@ Brand ramp sampled from `public/webutilia-logo.png`:
 | `--brand-spring` | `#47F170` | gradient mid |
 | `--brand-chartreuse` | `#BEF817` | gradient mid |
 | `--brand-lime` | `#D3FA05` | gradient end |
-| `--brand-ink` | `#067A52` | brand as text on light (5.4:1) |
-| `--lime-ink` | `#3F6B00` | secondary brand text on light (6.3:1) |
-| `--ink` | `#08120C` | text on neon fills (16.4:1) |
+| `--brand-ink` | `#067A52` | brand as text on light (5.37:1) |
+| `--lime-ink` | `#3F6B00` | secondary brand text on light (6.34:1) |
+| `--ink` | `#08120C` | text on neon fills (15.83:1) |
 
 **Contrast rule.** Mint and greenyellow are surfaces — button fills, gradient washes,
 meter bars, icon tiles, highlight marks — always with `--ink` on top. White text on
-greenyellow measures 1.18:1 and is forbidden. Where brand colour must be text on a light
+greenyellow measures 1.20:1 and is forbidden. Where brand colour must be text on a light
 background it steps down to `--brand-ink`. On dark canvas the neon may be text freely
-(11.9:1). This rule is why the current tokens darkened the brand to `#047857` and
+(11.74:1). This rule is why the current tokens darkened the brand to `#047857` and
 confined lime to "small accents"; the constraint is real, the response was to hide the
 brand rather than place it correctly.
 
