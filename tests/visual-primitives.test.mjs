@@ -15,6 +15,7 @@ const PRIMITIVES = [
   "src/components/visual/ResultMeter.tsx",
   "src/components/visual/DeviceFrame.tsx",
   "src/components/visual/CategoryTile.tsx",
+  "src/components/visual/BeforeAfter.tsx",
 ];
 
 test("no visual primitive uses a blur filter", () => {
@@ -100,4 +101,23 @@ test("CategoryTile is compact: a count, no description paragraph", () => {
   assert.match(tile, /toolCount/);
   // The paragraph is exactly what the tile replaces.
   assert.doesNotMatch(tile, /category\.description/);
+});
+
+test("BeforeAfter labels both sides and reuses ResultMeter", () => {
+  const beforeAfter = source("src/components/visual/BeforeAfter.tsx");
+
+  assert.match(beforeAfter, /beforeLabel/);
+  assert.match(beforeAfter, /afterLabel/);
+  assert.match(beforeAfter, /beforeValue/);
+  assert.match(beforeAfter, /afterValue/);
+  assert.match(beforeAfter, /from "@\/components\/visual\/ResultMeter"/);
+  // Numbers must be comparable at a glance, so they are tabular and monospaced.
+  assert.match(beforeAfter, /font-mono/);
+});
+
+test("BeforeAfter does not compute the values it displays", () => {
+  const beforeAfter = source("src/components/visual/BeforeAfter.tsx");
+
+  // Formatting bytes here would duplicate logic each tool already owns.
+  assert.doesNotMatch(beforeAfter, /1024|toFixed\(/);
 });
