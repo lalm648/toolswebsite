@@ -111,10 +111,11 @@ export default function RootLayout({
             __html: `
               (function () {
                 try {
+                  /* Light is the default. Mass-market utility sites land cold search
+                     traffic on a light page, so the OS preference no longer decides
+                     the first paint — only an explicit stored choice does. */
                   var stored = localStorage.getItem("theme");
-                  var theme = stored === "light" || stored === "dark"
-                    ? stored
-                    : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+                  var theme = stored === "light" || stored === "dark" ? stored : "light";
                   document.documentElement.dataset.theme = theme;
                 } catch (error) {}
               })();

@@ -16,7 +16,8 @@ function getResolvedTheme(): ResolvedTheme {
     return stored;
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  // Matches the bootstrap script in layout.tsx: light unless explicitly chosen.
+  return "light";
 }
 
 function applyTheme(theme: ResolvedTheme) {

@@ -186,3 +186,24 @@ test("body text meets AA in both themes", () => {
     assert.ok(ratio >= 4.5, `${label} body text is ${ratio.toFixed(2)}:1, below AA`);
   }
 });
+
+function source(relativePath) {
+  return readFileSync(path.join(projectRoot, relativePath), "utf8");
+}
+
+test("a first visit resolves to light regardless of the operating system setting", () => {
+  const layout = source("src/app/layout.tsx");
+  const toggle = source("src/components/layout/ThemeToggle.tsx");
+
+  assert.doesNotMatch(layout, /prefers-color-scheme/);
+  assert.doesNotMatch(toggle, /prefers-color-scheme/);
+});
+
+test("an explicit stored choice still wins over the light default", () => {
+  const layout = source("src/app/layout.tsx");
+  const toggle = source("src/components/layout/ThemeToggle.tsx");
+
+  assert.match(layout, /localStorage\.getItem\("theme"\)/);
+  assert.match(layout, /stored === "light" \|\| stored === "dark"/);
+  assert.match(toggle, /stored === "light" \|\| stored === "dark"/);
+});
