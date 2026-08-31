@@ -17,6 +17,7 @@ const PRIMITIVES = [
   "src/components/visual/CategoryTile.tsx",
   "src/components/visual/BeforeAfter.tsx",
   "src/components/visual/HeroVisual.tsx",
+  "src/components/visual/SectionHeader.tsx",
 ];
 
 test("no visual primitive uses a blur filter", () => {

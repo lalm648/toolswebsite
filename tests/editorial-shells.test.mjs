@@ -28,3 +28,22 @@ test("the grid is dense enough to show the whole catalogue", () => {
   assert.match(grid, /grid-cols-2/);
   assert.match(grid, /lg:grid-cols-(4|5)/);
 });
+
+test("SectionHeader renders a real heading with a referenceable id", () => {
+  const header = source("src/components/visual/SectionHeader.tsx");
+
+  assert.match(header, /<h2/);
+  assert.match(header, /id=\{id\}/);
+  assert.match(header, /eyebrow/);
+  assert.match(header, /aside/);
+  // The eyebrow is decorative labelling, never the accessible heading.
+  assert.doesNotMatch(header, /<h1/);
+});
+
+test("the eyebrow uses a brand colour that is legible as text on light", () => {
+  const header = source("src/components/visual/SectionHeader.tsx");
+
+  // --accent-700 is #067A52 (5.37:1). The raw neon would be ~1.2:1.
+  assert.match(header, /var\(--accent-700\)/);
+  assert.doesNotMatch(header, /var\(--brand-mint\)|var\(--brand-lime\)/);
+});
