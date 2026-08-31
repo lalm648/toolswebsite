@@ -16,6 +16,7 @@ const PRIMITIVES = [
   "src/components/visual/DeviceFrame.tsx",
   "src/components/visual/CategoryTile.tsx",
   "src/components/visual/BeforeAfter.tsx",
+  "src/components/visual/HeroVisual.tsx",
 ];
 
 test("no visual primitive uses a blur filter", () => {
@@ -120,4 +121,22 @@ test("BeforeAfter does not compute the values it displays", () => {
 
   // Formatting bytes here would duplicate logic each tool already owns.
   assert.doesNotMatch(beforeAfter, /1024|toFixed\(/);
+});
+
+test("HeroVisual routes supplied images through next/image with fixed dimensions", () => {
+  const hero = source("src/components/visual/HeroVisual.tsx");
+
+  assert.match(hero, /from "next\/image"/);
+  // A raw <img> without dimensions is the classic CLS regression.
+  assert.doesNotMatch(hero, /<img\b/);
+  assert.match(hero, /width/);
+  assert.match(hero, /height/);
+});
+
+test("HeroVisual falls back to self-generated art when no image is supplied", () => {
+  const hero = source("src/components/visual/HeroVisual.tsx");
+
+  assert.match(hero, /slot/);
+  assert.match(hero, /<svg/);
+  assert.match(hero, /aspect-/);
 });
