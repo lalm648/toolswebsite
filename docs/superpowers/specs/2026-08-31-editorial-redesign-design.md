@@ -71,8 +71,8 @@ case rests on winnability and on 12 observed clicks, not on measured demand. The
 
 1. Replace the text-only presentation with a bold editorial visual system.
 2. Give every tool a design appropriate to its interaction shape, plus its own result UI.
-3. Rebuild the Brahui dictionary as a dictionary-and-translator section with indexable
-   per-entry pages.
+3. Rebuild the Brahui dictionary as a dictionary-and-translator section, extracting the
+   3,473 existing entries out of the iframe into indexable per-entry pages.
 4. Generate internal linking from the registry rather than by hand.
 5. Apply the Semrush on-page fixes to the 21 covered URLs.
 
@@ -83,8 +83,9 @@ case rests on winnability and on 12 observed clicks, not on measured demand. The
   computes.
 - Backlink acquisition.
 - Italian-language content for `hash-calculator`, despite its Italian query.
-- Authoring Brahui-language lexical content. Structure is in scope; verified Brahui
-  content is not, and will not be invented.
+- Authoring new Brahui lexical content. None is required: 3,473 CC BY 4.0 entries with
+  audio already ship in `public/brahui/`. The work is extraction and presentation, and no
+  Brahui content will be invented to fill gaps.
 
 ## 5. Hard constraint: site health
 
@@ -196,21 +197,58 @@ definition.
 
 ### 6.5 Brahui section
 
-Promoted from one tool to a section, because it is the only page with demonstrated
-ranking ability and the weakest competitive field.
+Promoted from one tool to a section. It is the only page with demonstrated ranking
+ability, it faces the weakest competitive field, and it already owns the content.
 
+**Current implementation.** `src/components/tool/BrahuiDictionaryTool.tsx` is 82 lines
+that render an `<iframe>` onto `public/brahui/index.html` — a self-contained 1.08 MB
+document with its own engine, plus `lexdetail.c6ebf98142d2.json` (1.31 MB of senses and
+glossed examples) and 6,646 audio files totalling 113 MB. Entries are fully structured
+in the pre-rendered markup:
+
+    <article class="lexrow" id="w-abad" data-b="ábád"
+      data-e="populated; cultivated; prosperous" data-p="a." data-c="qual"
+      data-f="10" data-t="Farsi">
+      <span class="lex-ur ur" dir="rtl">آبَاد</span>…
+
+That yields headword, Arabic-script form, English gloss, part of speech, category
+(10 of them), corpus frequency, and etymology — 3,473 rows — with interlinear example
+sentences and citations in the JSON. Source: Ali & Kobayashi (2024), *Brahui Texts*,
+ILCAA Asian and African Lexicon 66, CC BY 4.0.
+
+**The defect.** Iframe content is not attributed to the parent document, so
+`/tools/dictionary/brahui-dictionary` ranks at position 9.7 on a loading message and an
+attribution line. All 3,473 words share one URL, and `public/brahui/index.html` is absent
+from `src/app/sitemap.ts`, which emits only the 78 registry routes — so the document that
+holds the content is not submitted for indexing either. 6,646 pronunciations are
+invisible to search.
+
+**The work.**
+
+- **Extract to routes.** Build `/tools/dictionary/brahui/<slug>` from the existing markup
+  and JSON at build time: roughly 3,473 statically generated pages, each carrying script
+  form, gloss, POS, frequency, etymology, example sentences with citations, and audio.
+  This is an extraction, not an authoring task.
+- **Index pages** per category and per letter, so entry pages are reachable by crawl.
+- **Sitemap** gains every entry route.
 - **Dictionary and translator UI** — direction switcher across Brahui, English, and
-  Urdu; correct `lang` and `dir` attributes per script; audio playback from the existing
-  `public/brahui` assets; example sentences; related words.
-- **Per-entry pages** — one indexable URL per word. A single search box ranks for
-  nothing; per-entry pages are what capture "meaning in Urdu" style queries and are the
-  only way one dataset becomes many URLs.
-- **Content hub** — script, grammar, numbers, phrases, learner guides.
+  Urdu; correct `lang` and `dir` per script; audio playback; example sentences; related
+  words by category and frequency.
+- **Shell.** The app is currently wrapped in the generic Input → Process → Output rail
+  at a fixed height, producing a scroll container inside a scrolling page. The rail is
+  meaningless here because nothing is processed. F8 replaces it.
+- **Retire or retain the iframe.** The framed app keeps the spaced-repetition scheduler,
+  transliterator, and speech ranking that its own test suites cover. It is retained as
+  the interactive surface; the extracted routes are what search sees. The two read the
+  same data, so they cannot diverge.
 
-Structure and URL architecture are in scope. The lexical content and its keyword
-targeting are not: the Semrush file contains zero Brahui rows, and Brahui content will
-not be fabricated. Entry pages ship with content slots fed by the existing dataset,
-and gaps are left visible rather than filled with invented translations.
+Lexical content is not authored or invented — every field on an entry page traces to the
+CC BY 4.0 source, and attribution is carried on each page. Entries flagged in the data as
+awaiting a speaker check are marked as such rather than presented as settled.
+
+**Payload note.** The 113 MB audio directory is per-file lazy loaded and does not enter
+any page bundle; the 1.08 MB framed document loads only on the dictionary route. Neither
+counts against the section 5 budget, but extracted entry pages must not inline the JSON.
 
 ### 6.6 Internal linking
 
@@ -232,7 +270,7 @@ is added once to the tool template and covers all 78 pages.
 | 2 | Visual primitives | No user-visible change alone |
 | 3 | Shared shells: Header, Footer, `ToolShell`, `CategoryPage`, `ToolCard` | All 78 pages inherit |
 | 4 | Home, full editorial treatment | Landing page complete |
-| 5 | Brahui section and per-entry pages (family F8) | Highest-value SEO work |
+| 5 | Brahui section: extract 3,473 entry routes, F8 shell | Highest-value SEO work |
 | 6 | The other seven family shells (F1-F7) | All tools gain appropriate layout |
 | 7 | Per-tool result UI, batched by category | The long tail |
 | 8 | Semrush on-page fixes for the 21 covered URLs | Applied to top pages first |
@@ -271,13 +309,16 @@ materially. Health-score regression blocks the phase.
 | `--action-fg` flip changes every button at once | Intended; verified by screenshot across both themes |
 | Light-first overrides OS dark preference | Accepted and owner-directed; toggle still persists choice |
 | Brahui invested in without volume data | Stated openly; rests on winnability and 12 observed clicks |
+| ~3,473 new static routes slow the build | Measured at phase 5; entry pages are data-only and must not inline the 1.31 MB JSON |
 | 57 tools have no keyword data | They receive design-only treatment this round |
 | Redesign is expected to fix rankings | Stated openly: position 81 is an authority problem |
 
 ## 10. Open items
 
 1. Semrush exports for the 57 uncovered tools, or accept design-only treatment.
-2. Brahui keyword data — Semrush export, Search Console query data, or a term list.
+2. Brahui keyword data — Semrush export or Search Console query data. Not a blocker:
+   the corpus supplies headwords, glosses, and frequency, which is enough to build and
+   prioritise entry pages without it.
 3. Owner image links for `HeroVisual` slots, whenever available.
 
 ## 11. Phase-0 baseline
