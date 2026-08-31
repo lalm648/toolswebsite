@@ -265,7 +265,17 @@ export default function ToolShell({
           ) : null}
         </div>
 
-        <WorkbenchFrame category={category?.slug}>{children}</WorkbenchFrame>
+        {/*
+          A dictionary does not process anything, so the Input → Process → Output
+          rail states a workflow that never happens and costs a screenful before
+          the reader reaches the words. Reference tools render bare; every other
+          category keeps the workbench.
+        */}
+        {isDictionary ? (
+          children
+        ) : (
+          <WorkbenchFrame category={category?.slug}>{children}</WorkbenchFrame>
+        )}
 
         {afterWorkbench}
 

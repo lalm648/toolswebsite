@@ -113,17 +113,40 @@ function source(relativePath) {
   return readFileSync(path.join(projectRoot, relativePath), "utf8");
 }
 
-test("the word index renders text blocks, not one element per entry", () => {
+test("the word index spends one element per entry, not five", () => {
   const component = source("src/components/tool/BrahuiWordIndex.tsx");
 
-  // Mapping entries to elements is the exact thing this component exists to avoid.
-  assert.doesNotMatch(
-    component,
-    /entries\.map\([^)]*=>\s*\(?\s*</,
-    "entries must be joined into text, never mapped to elements",
-  );
-  assert.match(component, /\.join\(/, "entries are joined into a text block");
-  assert.match(component, /groups\.map/, "one block per letter group is expected");
+  /*
+    Measured on this page, three shapes:
+      per-entry <dl>/<dt>/<dd>   18,530 elements   LCP 7,660 ms
+      per-entry bold headword     ~3,600 elements   LCP ~1,000 ms
+      plain text blocks              559 elements   LCP   792 ms
+
+    Five elements per entry cost roughly ten times the LCP to restyle a secondary
+    section that the interactive app above already presents better. One <b> around
+    the headword buys the scannability that matters; the rest of each line is a
+    text node, which is free.
+  */
+  assert.match(component, /<b /, "the headword gets exactly one element");
+  assert.match(component, /whitespace-pre-line/, "the rest of the line stays text");
+  assert.doesNotMatch(component, /<(dd|dt)\b/, "per-field elements measured 10x the LCP");
+  assert.match(component, /groups\.map/, "one section per letter group");
+});
+
+test("the word index keeps the page short without hiding content from crawlers", () => {
+  const component = source("src/components/tool/BrahuiWordIndex.tsx");
+
+  /*
+    3,473 entries expanded would make the page an endless scroll. A closed
+    <details> is still in the DOM, so the words remain indexable while the reader
+    sees a compact letter index. Anything JavaScript-gated would not be.
+  */
+  assert.match(component, /<details/, "letter sections collapse");
+  assert.match(component, /<summary/, "and have a real disclosure control");
+  // `aria-hidden` on a decorative arrow is fine; the bare `hidden` attribute and
+  // display:none are not, because they remove content rather than collapse it.
+  assert.doesNotMatch(component, /(?<!aria-)\bhidden=/, "no bare hidden attribute");
+  assert.doesNotMatch(component, /display:\s*none/, "content must stay in the DOM");
 });
 
 test("the word index is a server component and ships no JavaScript", () => {
