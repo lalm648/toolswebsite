@@ -75,11 +75,11 @@ test("category visuals are declared once and shared", () => {
 
   for (const name of ["categoryIcons", "categoryTileStyles", "categorySurfaceStyles"]) {
     assert.match(visuals, new RegExp(`export const ${name}`), `missing export ${name}`);
-    // Both consumers must import them rather than redeclare them.
+    // The maps are declared once in category-visuals.tsx; no consumer redeclares them.
     assert.doesNotMatch(grid, new RegExp(`const ${name}\\s*:`), `${name} redeclared in CategoryGrid`);
+    assert.doesNotMatch(tile, new RegExp(`const ${name}\\s*:`), `${name} redeclared in CategoryTile`);
   }
 
-  assert.match(grid, /from "@\/lib\/data\/category-visuals"/);
   assert.match(tile, /from "@\/lib\/data\/category-visuals"/);
 });
 
