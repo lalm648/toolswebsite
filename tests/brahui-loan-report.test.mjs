@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildLoanReport, readLoanSources } from "../scripts/brahui-loan-report.mjs";
+import { buildLoanReport, readLoanSources, sameRoot } from "../scripts/brahui-loan-report.mjs";
 
 // data-t sits in a different position on each row on purpose: the generator
 // emits attributes in an unstable order, and an order-assuming reader has
@@ -104,4 +104,21 @@ test("a proper noun in a gloss is not mistaken for a morpheme label", () => {
 
   const { replaceable } = buildLoanReport(entries, sources);
   assert.deepEqual(replaceable[0].natives.map((n) => n.latin), ["daşt"]);
+});
+
+test("a word built on the loan's own root is not a native replacement", () => {
+  /*
+    `sáf` (Arabic, "clean") was being offered `safá`, and `ahvál` "news" was
+    offered `havál` — the same word twice, one of them simply never tagged.
+    Swapping one for the other removes nothing borrowed. Semitic and Iranian
+    roots survive in the consonants, so the skeletons give it away: sf/sf, hvl/hvl.
+  */
+  assert.ok(sameRoot("safá", "sáf"));
+  assert.ok(sameRoot("havál", "ahvál"));
+  assert.ok(sameRoot("juání-aŧ", "juán"));
+
+  // Genuinely unrelated words must not be swept up.
+  assert.ok(!sameRoot("dú", "dast"), "hand: native dú vs Farsi dast");
+  assert.ok(!sameRoot("de", "áftáb"), "sun: native de vs Farsi áftáb");
+  assert.ok(!sameRoot("xan", "nazar"), "eye: native xan vs Arabic nazar");
 });

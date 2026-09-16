@@ -62,6 +62,37 @@ export function readLoanSources(html) {
 */
 const MORPHOLOGICAL = /\b[A-Z]{2,}(\.[A-Z0-9]+)*\b/;
 
+/*
+  "Untagged" is not the same as "native", and this is where the difference bites.
+  `sáf` (Arabic, "clean") was being offered `safá` as its native replacement;
+  `ahvál` "news" was offered `havál`. Same word, same root, one of them simply
+  never tagged. Swapping one for the other removes nothing borrowed.
+
+  Semitic and Iranian roots survive in the consonants, so comparing consonant
+  skeletons catches this where comparing spellings does not: sáf/safá → sf,
+  ahvál/havál → hvl. 38 of 364 proposed removals are this.
+*/
+function consonantSkeleton(word) {
+  return word
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[aeiou'’\-= ]/g, "");
+}
+
+export function sameRoot(a, b) {
+  const x = consonantSkeleton(a);
+  const y = consonantSkeleton(b);
+  /*
+    Two consonants minimum, or the test swallows the cases it exists to protect.
+    `dú` "hand" reduces to a bare "d", which prefix-matches `dast` — and calling
+    the native word for hand a derivative of the Farsi one is precisely the
+    error this function is meant to prevent. Same for `na`/`nae` and `saí`/`sahí`.
+  */
+  if (x.length < 2 || y.length < 2) return false;
+  return x === y || x.startsWith(y) || y.startsWith(x);
+}
+
 function senses(gloss) {
   if (MORPHOLOGICAL.test(gloss)) return [];
   return gloss
@@ -152,6 +183,57 @@ function main() {
     for (const loan of report.only.filter(keep).sort(byUse)) {
       console.log(`  ${loan.latin} (${loan.donor}, ${loan.frequency}x) — ${loan.gloss}`);
     }
+  }
+
+  /*
+    The removal list: borrowed words a native word could take over from.
+
+    It is a proposal, not an instruction, and every row carries the reason to
+    doubt it. 21 of these loans are used more often than the native word they
+    would be replaced by — `xalk` (Arabic) appears 205 times against `álum` at
+    16 — and a dictionary that drops the word speakers actually say in favour of
+    a rarer one has been made worse, however native the result looks. Brahui has
+    borrowed for centuries; the loans ARE the language as spoken.
+
+    So the caution column exists to be read. Rows with an empty one are the safe
+    end of the list.
+  */
+  const removals = value("--removals");
+  if (removals) {
+    const lines = ["remove\tenglish\tdonor\tremove_uses\tkeep\tkeep_uses\tcaution"];
+    for (const row of report.replaceable.filter((r) => keep(r.loan)).sort(byUse)) {
+      const best = [...row.natives].sort((a, b) => b.frequency - a.frequency)[0];
+      const caution = [];
+      if (row.loan.frequency > best.frequency) {
+        caution.push(`loan used ${row.loan.frequency}x vs native ${best.frequency}x`);
+      }
+      if (best.frequency <= 2) caution.push("native barely attested");
+      if (row.natives.length > 2) caution.push(`${row.natives.length} candidates — pick one`);
+      // An English word with several senses on the native side is where a
+      // homonym pairing hides: "well" matched both the water and the good sense.
+      if (best.gloss.split(/[;,]/).length >= 4) caution.push("native gloss broad — check the sense");
+      if (row.natives.some((n) => sameRoot(n.latin, row.loan.latin))) {
+        caution.push("candidate is built on the loan's own root");
+      }
+
+      lines.push(
+        [
+          row.loan.latin,
+          row.loan.gloss,
+          row.loan.donor,
+          row.loan.frequency,
+          row.natives.map((n) => n.latin).join("; "),
+          row.natives.map((n) => n.frequency).join("; "),
+          caution.join("; "),
+        ].join("\t"),
+      );
+    }
+    writeFileSync(removals, `${lines.join("\n")}\n`, "utf8");
+    const clean = lines.slice(1).filter((l) => l.endsWith("\t")).length;
+    console.log(
+      `\nWrote ${lines.length - 1} proposed removals to ${removals}` +
+        `\n  ${clean} carry no caution; ${lines.length - 1 - clean} need a decision first`,
+    );
   }
 
   const tsv = value("--tsv");
