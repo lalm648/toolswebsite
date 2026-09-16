@@ -186,35 +186,42 @@ function main() {
   }
 
   /*
-    The removal list: borrowed words a native word could take over from.
+    The removal list, following the owner's rule:
 
-    It is a proposal, not an instruction, and every row carries the reason to
-    doubt it. 21 of these loans are used more often than the native word they
-    would be replaced by — `xalk` (Arabic) appears 205 times against `álum` at
-    16 — and a dictionary that drops the word speakers actually say in favour of
-    a rarer one has been made worse, however native the result looks. Brahui has
-    borrowed for centuries; the loans ARE the language as spoken.
+      a meaning with no Brahui word  ->  keep the loan
+      a meaning with a Brahui word   ->  remove the loan, keep the Brahui
 
-    So the caution column exists to be read. Rows with an empty one are the safe
-    end of the list.
+    Centuries-old borrowings shared with every neighbouring language are not
+    treated as foreign here — they are how Brahui is spoken, and where they are
+    the only word for something they stay. Frequency therefore does not argue
+    against removal: `xalk` (Arabic) outnumbers `álum` 205 to 16 and is still
+    removed, because a Brahui word for it exists. That is the owner's call and
+    this script follows it.
+
+    The one thing the rule cannot be applied to blindly is a candidate built on
+    the loan's own root — `sáf` "clean" offered `safá`, `ahvál` offered `havál`.
+    Those are the same word untagged, so the meaning has NO Brahui word, and the
+    rule's own first line says keep the loan. They are dropped from this list
+    rather than removed, which is the rule applied correctly, not an exception
+    to it.
   */
   const removals = value("--removals");
   if (removals) {
-    const lines = ["remove\tenglish\tdonor\tremove_uses\tkeep\tkeep_uses\tcaution"];
+    const lines = ["remove\tenglish\tdonor\tremove_uses\tkeep\tkeep_uses\tcheck"];
+    let heldBack = 0;
     for (const row of report.replaceable.filter((r) => keep(r.loan)).sort(byUse)) {
-      const best = [...row.natives].sort((a, b) => b.frequency - a.frequency)[0];
-      const caution = [];
-      if (row.loan.frequency > best.frequency) {
-        caution.push(`loan used ${row.loan.frequency}x vs native ${best.frequency}x`);
+      const natives = row.natives.filter((n) => !sameRoot(n.latin, row.loan.latin));
+      if (!natives.length) {
+        heldBack++;
+        continue;
       }
-      if (best.frequency <= 2) caution.push("native barely attested");
-      if (row.natives.length > 2) caution.push(`${row.natives.length} candidates — pick one`);
+
+      const best = [...natives].sort((a, b) => b.frequency - a.frequency)[0];
+      const check = [];
       // An English word with several senses on the native side is where a
       // homonym pairing hides: "well" matched both the water and the good sense.
-      if (best.gloss.split(/[;,]/).length >= 4) caution.push("native gloss broad — check the sense");
-      if (row.natives.some((n) => sameRoot(n.latin, row.loan.latin))) {
-        caution.push("candidate is built on the loan's own root");
-      }
+      if (best.gloss.split(/[;,]/).length >= 4) check.push("native gloss broad — confirm the sense");
+      if (natives.length > 2) check.push(`${natives.length} Brahui words — pick one`);
 
       lines.push(
         [
@@ -222,17 +229,18 @@ function main() {
           row.loan.gloss,
           row.loan.donor,
           row.loan.frequency,
-          row.natives.map((n) => n.latin).join("; "),
-          row.natives.map((n) => n.frequency).join("; "),
-          caution.join("; "),
+          natives.map((n) => n.latin).join("; "),
+          natives.map((n) => n.frequency).join("; "),
+          check.join("; "),
         ].join("\t"),
       );
     }
     writeFileSync(removals, `${lines.join("\n")}\n`, "utf8");
-    const clean = lines.slice(1).filter((l) => l.endsWith("\t")).length;
+    const plain = lines.slice(1).filter((l) => l.endsWith("\t")).length;
     console.log(
-      `\nWrote ${lines.length - 1} proposed removals to ${removals}` +
-        `\n  ${clean} carry no caution; ${lines.length - 1 - clean} need a decision first`,
+      `\nWrote ${lines.length - 1} removals to ${removals}` +
+        `\n  ${plain} unambiguous; ${lines.length - 1 - plain} want the sense confirmed` +
+        `\n  ${heldBack} held back — their only candidate shares the loan's root, so the loan stays`,
     );
   }
 
