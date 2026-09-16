@@ -153,8 +153,13 @@ function main() {
   const entries = parseBrahuiEntries(html);
   const report = buildLoanReport(entries, readLoanSources(html));
 
-  const lang = value("--lang");
-  const keep = (loan) => !lang || loan.donor.toLowerCase().includes(lang.toLowerCase());
+  // --lang Farsi,Arabic — a donor tagged "Arabic, Farsi" matches either.
+  const langs = (value("--lang") ?? "")
+    .split(",")
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean);
+  const keep = (loan) =>
+    !langs.length || langs.some((name) => loan.donor.toLowerCase().includes(name));
   const byUse = (a, b) => (b.loan ?? b).frequency - (a.loan ?? a).frequency;
 
   console.log(
@@ -207,7 +212,7 @@ function main() {
   */
   const removals = value("--removals");
   if (removals) {
-    const lines = ["remove\tenglish\tdonor\tremove_uses\tkeep\tkeep_uses\tcheck"];
+    const lines = ["remove\tenglish\tdonor\tremove_uses\tkeep\tkeep_uses\talternatives\tcheck"];
     let heldBack = 0;
     for (const row of report.replaceable.filter((r) => keep(r.loan)).sort(byUse)) {
       const natives = row.natives.filter((n) => !sameRoot(n.latin, row.loan.latin));
@@ -216,12 +221,22 @@ function main() {
         continue;
       }
 
-      const best = [...natives].sort((a, b) => b.frequency - a.frequency)[0];
+      /*
+        Where several Brahui words carry the meaning, one is chosen rather than
+        handed back as a question: the owner asked not to be made to pick. The
+        most used word wins, which is the only ranking the corpus actually
+        supports — `de` at 163 uses over a synonym at 1 is not a close call.
+        The rest stay in `alternatives` so nothing is thrown away.
+      */
+      const ranked = [...natives].sort((a, b) => b.frequency - a.frequency);
+      const [chosen, ...rest] = ranked;
+
       const check = [];
-      // An English word with several senses on the native side is where a
+      // An English word with several senses on the Brahui side is where a
       // homonym pairing hides: "well" matched both the water and the good sense.
-      if (best.gloss.split(/[;,]/).length >= 4) check.push("native gloss broad — confirm the sense");
-      if (natives.length > 2) check.push(`${natives.length} Brahui words — pick one`);
+      if (chosen.gloss.split(/[;,]/).length >= 4) {
+        check.push("Brahui gloss broad — confirm the sense");
+      }
 
       lines.push(
         [
@@ -229,8 +244,9 @@ function main() {
           row.loan.gloss,
           row.loan.donor,
           row.loan.frequency,
-          natives.map((n) => n.latin).join("; "),
-          natives.map((n) => n.frequency).join("; "),
+          chosen.latin,
+          chosen.frequency,
+          rest.map((n) => `${n.latin} (${n.frequency}x)`).join("; "),
           check.join("; "),
         ].join("\t"),
       );
