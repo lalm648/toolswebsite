@@ -68,3 +68,40 @@ test("the counts split the lexicon without losing an entry", () => {
   assert.equal(loans.length, 3);
   assert.equal(replaceable.length + only.length, loans.length, "every loan lands in one bucket");
 });
+
+test("a morphological gloss is never offered as a native alternative", () => {
+  /*
+    105 entries are glossed with Leipzig morpheme labels rather than translated —
+    `-válá` "PROPR", `alk` "take-PST.3SG", `í-á` "ALL". They are inflected forms
+    and grammatical markers, not words anyone could say instead of a loan. `í-á`
+    "ALL" was being suggested as the native replacement for `kul` "all".
+  */
+  const entries = [
+    { id: "w-ia", latin: "í-á", gloss: "ALL", frequency: 17 },
+    { id: "w-muc", latin: "muc", gloss: "all; whole; total", frequency: 25 },
+    { id: "w-kul", latin: "kul", gloss: "all", frequency: 83 },
+  ];
+  const sources = readLoanSources(
+    `<article class="lexrow" id="w-kul" data-b="kul" data-e="all" data-t="Arabic"></article>`,
+  );
+
+  const { replaceable } = buildLoanReport(entries, sources);
+  const all = replaceable.find((row) => row.loan.latin === "kul");
+
+  assert.ok(all, "muc is a real alternative, so the loan is still replaceable");
+  assert.deepEqual(all.natives.map((n) => n.latin), ["muc"], "í-á must not be offered");
+});
+
+test("a proper noun in a gloss is not mistaken for a morpheme label", () => {
+  // "Dasht" is a place, not PST.3SG — one capital must not disqualify a gloss.
+  const entries = [
+    { id: "w-dast", latin: "daşt", gloss: "plateau; Dasht", frequency: 7 },
+    { id: "w-x", latin: "xloan", gloss: "plateau", frequency: 1 },
+  ];
+  const sources = readLoanSources(
+    `<article class="lexrow" id="w-x" data-b="xloan" data-e="plateau" data-t="Farsi"></article>`,
+  );
+
+  const { replaceable } = buildLoanReport(entries, sources);
+  assert.deepEqual(replaceable[0].natives.map((n) => n.latin), ["daşt"]);
+});

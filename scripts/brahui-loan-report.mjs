@@ -49,7 +49,21 @@ export function readLoanSources(html) {
   return sources;
 }
 
+/*
+  105 entries are glossed morphologically rather than translated — `-válá`
+  "PROPR", `alk` "take-PST.3SG", `í-á` "ALL". They are inflected forms and
+  grammatical markers, not words a speaker could use in place of a loan, so
+  offering them as alternatives is noise: `í-á` "ALL" was being suggested as the
+  native replacement for `kul` "all".
+
+  A gloss counts as morphological when it carries a run of capitals in the
+  Leipzig style (PST, 3SG, COP, IDF, PROPR). Ordinary glosses are lower case
+  here, and proper nouns like "Dasht" are single capitals, so neither is caught.
+*/
+const MORPHOLOGICAL = /\b[A-Z]{2,}(\.[A-Z0-9]+)*\b/;
+
 function senses(gloss) {
+  if (MORPHOLOGICAL.test(gloss)) return [];
   return gloss
     .split(/[;,]/)
     .map((sense) => sense.trim().toLowerCase())
