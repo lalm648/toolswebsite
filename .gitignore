@@ -55,3 +55,9 @@ two
 # isolated worktrees and subagent scratch
 /.worktrees/
 /.superpowers/
+
+# Scans and photographs of dictionary sources. Kept out of the repo for the same
+# reason /Brahui-to-EN-URDU-Dictionary/ is: they are somebody else's publication,
+# read here to check and extend the lexicon, never redistributed. They must also
+# stay out of public/, which Next.js serves at the web root.
+/data/source-scans/
