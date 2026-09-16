@@ -133,3 +133,40 @@ test("clitic and affix marks stay part of the headword's identity", () => {
   const report = screenCandidates(rows({ brahui: "ham", english: "every" }), SHIPPED);
   assert.equal(report.new.length, 1);
 });
+
+test("a spelling with several entries is checked against all of them", () => {
+  /*
+    197 spellings in the shipped lexicon carry more than one entry — 430 entries,
+    12% of the corpus. `de` is "sun; daylight; day; while" (n., 163 uses) AND
+    "who" (pron., 18 uses). Keying on the headword alone kept whichever was read
+    last, so a candidate meaning "day" was checked against "who" and reported as
+    a collision against a sense the lexicon never claimed. A speaker caught it.
+  */
+  const shipped = [
+    { latin: "de", pos: "n.", gloss: "sun; daylight; day; while" },
+    { latin: "de", pos: "pron.", gloss: "who" },
+  ];
+
+  const known = screenCandidates(rows({ brahui: "de", english: "who" }), shipped);
+  assert.equal(known.duplicate.length, 1, "the second entry must still be reachable");
+  assert.equal(known.collision.length, 0);
+
+  const first = screenCandidates(
+    rows({ brahui: "de", english: "sun; daylight; day; while" }),
+    shipped,
+  );
+  assert.equal(first.duplicate.length, 1, "and so must the first");
+});
+
+test("a collision on a multi-sense headword reports every sense, labelled", () => {
+  const shipped = [
+    { latin: "are", pos: "n.", gloss: "husband" },
+    { latin: "are", pos: "itj.", gloss: "oh my!" },
+  ];
+
+  const report = screenCandidates(rows({ brahui: "are", english: "spouse" }), shipped);
+
+  assert.equal(report.collision.length, 1);
+  // Showing one arbitrary sense sends the reader to resolve the wrong meaning.
+  assert.equal(report.collision[0].shippedGloss, "[n.] husband || [itj.] oh my!");
+});

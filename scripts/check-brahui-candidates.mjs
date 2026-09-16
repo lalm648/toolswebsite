@@ -108,10 +108,25 @@ function parseJsonl(text) {
     .map((line, index) => ({ ...JSON.parse(line), __line: index + 1 }));
 }
 
+/*
+  A headword is NOT a unique key. 197 spellings in the shipped lexicon carry more
+  than one entry — 430 entries, 12% of the corpus. `de` is both "sun; daylight;
+  day; while" (n., 163 uses) and "who" (pron., 18 uses); `are` is "husband" and
+  "oh my!"; `asi` is "one" and "sinner".
+
+  Keying a Map on the headword alone kept whichever entry happened to be read
+  last and silently discarded the rest, so a candidate meaning "day" was checked
+  against "who" and reported as a collision that a human then had to resolve
+  against a sense the lexicon never claimed. A Brahui speaker caught exactly that
+  on `de`. Every spelling now holds ALL of its entries, and a collision report
+  shows every sense rather than an arbitrary one.
+*/
 export function screenCandidates(candidates, existingEntries) {
   const existing = new Map();
   for (const entry of existingEntries) {
-    existing.set(headwordKey(entry.latin), entry);
+    const key = headwordKey(entry.latin);
+    if (!existing.has(key)) existing.set(key, []);
+    existing.get(key).push(entry);
   }
 
   const report = { new: [], duplicate: [], collision: [], multiSense: [], invalid: [] };
@@ -175,18 +190,27 @@ export function screenCandidates(candidates, existingEntries) {
     }
 
     /*
-      Same headword. If the gloss matches too it is simply already present. If it
-      differs, the new source may be adding a sense, correcting the old one, or
-      describing a different word that happens to collide — a judgment no script
-      should make silently, so it goes to a human with both glosses shown.
+      Same spelling, possibly several entries. If ANY of them already carries this
+      gloss the word is present. If none does, the source may be adding a sense,
+      correcting one, or describing a different word that merely shares a
+      spelling — a judgment no script should make silently, so it goes to a human
+      with every shipped sense laid out beside the candidate.
     */
-    if (shipped.gloss.trim().toLowerCase() === english.toLowerCase()) {
+    const match = shipped.find(
+      (entry) => entry.gloss.trim().toLowerCase() === english.toLowerCase(),
+    );
+    if (match) {
       report.duplicate.push({ line: row.__line, brahui, english, against: "the shipped lexicon" });
     } else {
       report.collision.push({
         line: row.__line,
         brahui,
-        shippedGloss: shipped.gloss,
+        // One sense reads as the plain gloss; several are labelled so the reader
+        // can see which part of speech each belongs to.
+        shippedGloss:
+          shipped.length === 1
+            ? shipped[0].gloss
+            : shipped.map((entry) => `[${entry.pos || "?"}] ${entry.gloss}`).join(" || "),
         candidateGloss: english,
       });
     }
