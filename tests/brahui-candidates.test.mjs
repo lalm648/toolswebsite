@@ -1,0 +1,135 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { headwordKey, screenCandidates } from "../scripts/check-brahui-candidates.mjs";
+
+const SHIPPED = [
+  { latin: "balla", gloss: "grandmother; old woman" },
+  { latin: "ábád", gloss: "populated" },
+  { latin: "=ham", gloss: "too" },
+];
+
+function rows(...entries) {
+  return entries.map((entry, index) => ({ __line: index + 2, source: "new book", ...entry }));
+}
+
+test("a headword absent from the shipped lexicon is new", () => {
+  const report = screenCandidates(rows({ brahui: "xarmehrí", english: "hate" }), SHIPPED);
+
+  assert.equal(report.new.length, 1);
+  assert.equal(report.new[0].brahui, "xarmehrí");
+  assert.equal(report.collision.length, 0);
+});
+
+test("the same headword and gloss is a duplicate, not an addition", () => {
+  const report = screenCandidates(rows({ brahui: "balla", english: "grandmother; old woman" }), SHIPPED);
+
+  assert.equal(report.new.length, 0);
+  assert.equal(report.duplicate.length, 1);
+  assert.equal(report.duplicate[0].against, "the shipped lexicon");
+});
+
+test("a headword spelled without its diacritics still counts as the same word", () => {
+  /*
+    Sources disagree about Brahui diacritics — the tool's own intro calls existing
+    word lists "inconsistent about how the language is spelled". "abad" must not
+    be added alongside "ábád".
+  */
+  assert.equal(headwordKey("ábád"), headwordKey("abad"));
+
+  const report = screenCandidates(rows({ brahui: "abad", english: "populated" }), SHIPPED);
+  assert.equal(report.new.length, 0);
+  assert.equal(report.duplicate.length, 1);
+});
+
+test("the same headword with a different gloss is a collision for a human", () => {
+  const report = screenCandidates(rows({ brahui: "balla", english: "elderly female relative" }), SHIPPED);
+
+  assert.equal(report.new.length, 0);
+  assert.equal(report.duplicate.length, 0);
+  assert.deepEqual(report.collision, [
+    {
+      line: 2,
+      brahui: "balla",
+      shippedGloss: "grandmother; old woman",
+      candidateGloss: "elderly female relative",
+    },
+  ]);
+});
+
+test("Arabic script in the romanisation column is rejected", () => {
+  /*
+    Seven Urdu kinship terms shipped as Brahui until a speaker caught them
+    (commit e39d742). Urdu script pasted into the headword column is the most
+    mechanical form of that mistake, so it fails rather than being imported.
+  */
+  const report = screenCandidates(rows({ brahui: "دادی", english: "grandmother" }), SHIPPED);
+
+  assert.equal(report.new.length, 0);
+  assert.equal(report.invalid.length, 1);
+  assert.match(report.invalid[0].problems[0], /Arabic script/);
+});
+
+test("a row missing a required field is rejected and names the field", () => {
+  const report = screenCandidates(
+    [
+      { __line: 2, brahui: "xarmehrí", english: "hate" },
+      { __line: 3, brahui: "", english: "hate", source: "new book" },
+    ],
+    SHIPPED,
+  );
+
+  assert.equal(report.invalid.length, 2);
+  assert.deepEqual(report.invalid[0].problems, ["missing source"]);
+  assert.deepEqual(report.invalid[1].problems, ["missing brahui"]);
+});
+
+test("a gloss that merely repeats the headword is rejected as untranslated", () => {
+  const report = screenCandidates(rows({ brahui: "xarmehrí", english: "xarmehri" }), SHIPPED);
+
+  assert.equal(report.invalid.length, 1);
+  assert.match(report.invalid[0].problems[0], /untranslated/);
+});
+
+test("an identical row repeated inside the candidate file is a duplicate", () => {
+  const report = screenCandidates(
+    rows(
+      { brahui: "xarmehrí", english: "hate" },
+      { brahui: "xarmehri", english: "hate" },
+    ),
+    SHIPPED,
+  );
+
+  assert.equal(report.new.length, 1, "the first spelling wins");
+  assert.equal(report.duplicate.length, 1);
+  assert.match(report.duplicate[0].against, /line 2 of this file/);
+});
+
+test("a second meaning for the same headword is kept as a sense, not dropped", () => {
+  /*
+    The shipped lexicon already stores multiple meanings in one entry
+    ("grandmother; old woman"). A book listing them as two rows must not lose the
+    second — that would silently discard half the meanings being imported.
+  */
+  const report = screenCandidates(
+    rows(
+      { brahui: "xarmehrí", english: "hate" },
+      { brahui: "xarmehrí", english: "hostility" },
+    ),
+    SHIPPED,
+  );
+
+  assert.equal(report.duplicate.length, 0, "a different meaning is not a duplicate");
+  assert.equal(report.new.length, 1);
+  assert.deepEqual(report.multiSense, [
+    { line: 3, brahui: "xarmehrí", english: "hostility", groupsWith: 2 },
+  ]);
+});
+
+test("clitic and affix marks stay part of the headword's identity", () => {
+  // "=ham" (a clitic) and "ham" are different entries; the key must not merge them.
+  assert.notEqual(headwordKey("=ham"), headwordKey("ham"));
+
+  const report = screenCandidates(rows({ brahui: "ham", english: "every" }), SHIPPED);
+  assert.equal(report.new.length, 1);
+});
