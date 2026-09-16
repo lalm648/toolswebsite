@@ -27,7 +27,10 @@ export default function BrahuiDictionaryPage() {
       /* Must match the registry title exactly — ToolShell looks the tool up by it. */
       title="Brahui Dictionary & Learning App"
       description="Search 3,473 Brahui words in English, romanised Brahui, or Urdu script. Read cited example sentences, hear pronunciation, and practise vocabulary in frequency order."
-      afterWorkbench={<BrahuiWordIndex groups={wordGroups} />}
+      /* After the editorial section, not straight after the workbench: 20,480
+         words of vocabulary between the H1 and the prose left the page's only
+         unique writing below a wall of list. */
+      afterContent={<BrahuiWordIndex groups={wordGroups} />}
     >
       <BrahuiDictionaryTool />
     </ToolShell>

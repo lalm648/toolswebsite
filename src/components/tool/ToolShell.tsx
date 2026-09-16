@@ -31,6 +31,14 @@ type ToolShellProps = {
      word list into the page's own HTML, since iframe content is not attributed
      to the parent document. Optional: every other tool omits it. */
   afterWorkbench?: ReactNode;
+  /* Rendered after the editorial section and its FAQ, before related tools.
+
+     Bulk reference material belongs here rather than in `afterWorkbench`. The
+     Brahui word list is 20,480 words; placed after the workbench it pushed the
+     intro, use cases, how-to and FAQ below all of them, leaving 87 words of
+     prose above a wall of vocabulary. The words still ship in this page's HTML
+     either way — only the reading order changes. */
+  afterContent?: ReactNode;
 };
 
 export default function ToolShell({
@@ -39,6 +47,7 @@ export default function ToolShell({
   description,
   children,
   afterWorkbench,
+  afterContent,
 }: ToolShellProps) {
   const tool = getToolByTitle(title);
   const category = tool ? getCategoryBySlug(tool.category) : null;
@@ -340,6 +349,8 @@ export default function ToolShell({
             }
           />
         ) : null}
+
+        {afterContent}
 
         {relatedTools.length ? <RelatedTools tools={relatedTools} /> : null}
       </Container>

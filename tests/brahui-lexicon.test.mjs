@@ -166,6 +166,60 @@ test("the word index marks the Brahui script with language and direction", () =>
   assert.match(component, /lang="brh"/);
 });
 
+test("only the headword is declared Brahui, never the English gloss", () => {
+  const component = source("src/components/tool/BrahuiWordIndex.tsx");
+
+  /*
+    `lang="brh"` used to sit on the <p> wrapping every entry — and that paragraph
+    holds each entry's ENGLISH meaning. It declared 94% of this page's text to be
+    Brahui on a page whose job is to rank for English queries. The headword is the
+    only Brahui on the line, so the attribute belongs on its <b>.
+  */
+  assert.match(component, /<b lang="brh">/, "the headword carries the language");
+
+  const paragraph = component.match(/<p\b[\s\S]*?>/);
+  assert.ok(paragraph, "the entries still render into a paragraph");
+  assert.doesNotMatch(
+    paragraph[0],
+    /lang=/,
+    "the wrapper must not relabel the English glosses as Brahui",
+  );
+});
+
+test("the headword markup carries no per-entry class attribute", () => {
+  const component = source("src/components/tool/BrahuiWordIndex.tsx");
+
+  /*
+    `class="font-bold text-[var(--ink-900)]"` on each <b> is 40 bytes, and the RSC
+    flight payload mirrors the same markup, so 3,473 entries paid it twice — 278 KB
+    of an 803 KB page spent repeating one styling decision. The parent says it once
+    with a descendant selector instead.
+  */
+  const markup = component.match(/const headword = `[\s\S]*?`;/);
+  assert.ok(markup, "the headword is still built as a markup string");
+  assert.doesNotMatch(markup[0], /class=/, "styling belongs on the parent, not each entry");
+  assert.match(component, /\[&_b\]:font-bold/, "the parent styles its own <b> children");
+});
+
+test("the word list renders after the editorial content, not before it", () => {
+  const page = source("src/app/tools/dictionary/brahui-dictionary/page.tsx");
+  const shell = source("src/components/tool/ToolShell.tsx");
+
+  /*
+    In `afterWorkbench` the list sat between the H1 and every word of prose the
+    page has: 87 editorial words above 20,480 list words. `afterContent` renders
+    after the intro, use cases, how-to and FAQ. The words stay in this page's HTML
+    either way — only the order changes.
+  */
+  assert.match(page, /afterContent=\{<BrahuiWordIndex/);
+  assert.doesNotMatch(page, /afterWorkbench=/, "the list must not precede the prose");
+
+  assert.match(shell, /afterContent\?: ReactNode/, "the slot must be optional");
+  const contentSlot = shell.indexOf("{afterContent}");
+  const editorial = shell.indexOf("<ContentSection");
+  assert.ok(editorial !== -1 && contentSlot > editorial, "the slot follows the editorial section");
+});
+
 test("ToolShell exposes a slot after the workbench without breaking callers", () => {
   const shell = source("src/components/tool/ToolShell.tsx");
 

@@ -57,8 +57,21 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/*
+  The headword carries `lang="brh"`, and nothing else does.
+
+  It used to sit on the wrapping <p>, which also holds the ENGLISH gloss of every
+  entry — so 94% of this page's text was declared to be Brahui on a page that
+  exists to rank for English queries. The headword and its script form are the
+  only Brahui on the line; the gloss inherits `en` from <html> as it should.
+
+  The <b> carries no class. Repeating `class="font-bold text-[var(--ink-900)]"`
+  3,473 times cost 40 bytes an entry in the rendered markup AND another 40 in the
+  RSC payload that mirrors it — 278 KB of the 803 KB page to say one thing 3,473
+  times. The parent styles its own <b> children instead, in one selector.
+*/
 function entryMarkup(entry: BrahuiEntry): string {
-  const headword = `<b class="font-bold text-[var(--ink-900)]">${escapeHtml(entry.latin)}</b>`;
+  const headword = `<b lang="brh">${escapeHtml(entry.latin)}</b>`;
   const script = entry.script
     ? ` ${ISOLATE_START}${escapeHtml(entry.script)}${ISOLATE_END}`
     : "";
@@ -86,7 +99,9 @@ export default function BrahuiWordIndex({ groups }: { groups: BrahuiLetterGroup[
           id="brahui-word-index"
           className="mt-2 text-2xl font-bold tracking-[-0.025em] text-[var(--ink-900)] sm:text-3xl"
         >
-          All {total.toLocaleString()} Brahui words, A&ndash;Z
+          {/* One template literal, not `All {expr} Brahui`: JSX dropped the space
+              after the interpolation and the heading read "All 3,473Brahui words". */}
+          {`All ${total.toLocaleString()} Brahui words, A–Z`}
         </h2>
         <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
           Every headword with its Brahui script, part of speech and English meaning.
@@ -123,8 +138,7 @@ export default function BrahuiWordIndex({ groups }: { groups: BrahuiLetterGroup[
                 does; the hanging indent sets each headword against its definition.
               */}
               <p
-                lang="brh"
-                className="mt-2 whitespace-pre-line px-4 pb-2 text-[13px] leading-6 text-[var(--muted-foreground)] [text-indent:-1.25rem] [padding-left:2.5rem] sm:columns-2 sm:gap-x-10 xl:columns-3"
+                className="mt-2 whitespace-pre-line px-4 pb-2 text-[13px] leading-6 text-[var(--muted-foreground)] [text-indent:-1.25rem] [padding-left:2.5rem] [&_b]:font-bold [&_b]:text-[var(--ink-900)] sm:columns-2 sm:gap-x-10 xl:columns-3"
                 dangerouslySetInnerHTML={{ __html: groupMarkup(group) }}
               />
             </details>
