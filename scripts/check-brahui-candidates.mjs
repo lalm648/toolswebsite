@@ -121,15 +121,43 @@ function parseJsonl(text) {
   on `de`. Every spelling now holds ALL of its entries, and a collision report
   shows every sense rather than an arbitrary one.
 */
+/*
+  The senses inside one gloss. The lexicon packs several into a field
+  ("sun; daylight; day; while"), so a source offering only "day" has to be able
+  to find it. Indexed individually as well as whole.
+*/
+function glossSenses(gloss) {
+  return [
+    gloss.trim().toLowerCase(),
+    ...gloss
+      .split(/[;,]/)
+      .map((sense) => sense.trim().toLowerCase())
+      .filter(Boolean),
+  ];
+}
+
 export function screenCandidates(candidates, existingEntries) {
   const existing = new Map();
+  const byGloss = new Map();
   for (const entry of existingEntries) {
     const key = headwordKey(entry.latin);
     if (!existing.has(key)) existing.set(key, []);
     existing.get(key).push(entry);
+
+    for (const sense of glossSenses(entry.gloss)) {
+      if (!byGloss.has(sense)) byGloss.set(sense, []);
+      byGloss.get(sense).push(entry);
+    }
   }
 
-  const report = { new: [], duplicate: [], collision: [], multiSense: [], invalid: [] };
+  const report = {
+    new: [],
+    duplicate: [],
+    variant: [],
+    collision: [],
+    multiSense: [],
+    invalid: [],
+  };
   const seenInFile = new Map();
 
   for (const row of candidates) {
@@ -183,37 +211,75 @@ export function screenCandidates(candidates, existingEntries) {
     }
     seenInFile.set(key, row);
 
-    const shipped = existing.get(key);
-    if (!shipped) {
+    /*
+      The MEANING is looked up before the spelling, and this order is the whole
+      point of the function.
+
+      Sources romanise Brahui differently, and a conversion between two schemes
+      is a hypothesis about spelling, never proof of identity. Converting this
+      list's `dûî` "tongue" gave `dúí`, which is a real entry — meaning "control",
+      from `dú` "hand", as in holding something in your hand. Tongue is `duví`,
+      with a `v` the source does not write. So the converted form landed on a
+      DIFFERENT REAL WORD, and nothing about it looked wrong: the candidate would
+      have been filed as a conflicting definition of "control" and a human asked
+      to settle a disagreement that never existed.
+
+      A gloss survives the crossing between romanisations; a spelling does not.
+      So: meaning first, spelling second.
+    */
+    const shipped = existing.get(key) ?? [];
+    const sameMeaning = new Map();
+    for (const sense of glossSenses(english)) {
+      for (const entry of byGloss.get(sense) ?? []) sameMeaning.set(entry.latin, entry);
+    }
+
+    const exact = shipped.find((entry) => sameMeaning.has(entry.latin));
+    if (exact) {
+      report.duplicate.push({ line: row.__line, brahui, english, against: "the shipped lexicon" });
+      continue;
+    }
+
+    /*
+      The meaning is already here under a spelling the conversion did not reach.
+      This is the `dûî`/`duví` case, and it is the one a form-only check gets
+      exactly backwards — it would have called this a new word AND flagged a
+      false conflict on the homograph.
+    */
+    if (sameMeaning.size) {
+      report.variant.push({
+        line: row.__line,
+        brahui,
+        english,
+        lexiconSpelling: [...sameMeaning.values()].map((entry) => entry.latin),
+        // Set when the candidate's own spelling also exists, meaning something
+        // else. Silence here is how `dúí` slipped through.
+        alsoASpelling: shipped.length
+          ? shipped.map((entry) => `${entry.latin} [${entry.pos || "?"}] ${entry.gloss}`)
+          : undefined,
+      });
+      continue;
+    }
+
+    if (!shipped.length) {
       report.new.push(row);
       continue;
     }
 
     /*
-      Same spelling, possibly several entries. If ANY of them already carries this
-      gloss the word is present. If none does, the source may be adding a sense,
-      correcting one, or describing a different word that merely shares a
-      spelling — a judgment no script should make silently, so it goes to a human
-      with every shipped sense laid out beside the candidate.
+      The spelling exists but nothing here carries the meaning. That is NOT
+      necessarily a disputed definition — on this evidence it is at least as
+      often two different words sharing a spelling. Reported with every shipped
+      sense so a reader can tell which, rather than being told it is a conflict.
     */
-    const match = shipped.find(
-      (entry) => entry.gloss.trim().toLowerCase() === english.toLowerCase(),
-    );
-    if (match) {
-      report.duplicate.push({ line: row.__line, brahui, english, against: "the shipped lexicon" });
-    } else {
-      report.collision.push({
-        line: row.__line,
-        brahui,
-        // One sense reads as the plain gloss; several are labelled so the reader
-        // can see which part of speech each belongs to.
-        shippedGloss:
-          shipped.length === 1
-            ? shipped[0].gloss
-            : shipped.map((entry) => `[${entry.pos || "?"}] ${entry.gloss}`).join(" || "),
-        candidateGloss: english,
-      });
-    }
+    report.collision.push({
+      line: row.__line,
+      brahui,
+      shippedGloss:
+        shipped.length === 1
+          ? shipped[0].gloss
+          : shipped.map((entry) => `[${entry.pos || "?"}] ${entry.gloss}`).join(" || "),
+      candidateGloss: english,
+    });
   }
 
   return report;
@@ -254,6 +320,7 @@ function main() {
         shippedHeadwords: existingEntries.length,
         new: report.new.length,
         duplicate: report.duplicate.length,
+        variant: report.variant.length,
         collision: report.collision.length,
         multiSense: report.multiSense.length,
         invalid: report.invalid.length,
@@ -266,9 +333,19 @@ function main() {
   for (const row of report.invalid) {
     console.error(`  invalid  line ${row.line}  ${row.brahui || "(no headword)"} — ${row.problems.join("; ")}`);
   }
+  for (const row of report.variant) {
+    console.error(
+      `  variant   line ${row.line}  ${row.brahui} "${row.english}"\n` +
+        `      already here as: ${row.lexiconSpelling.join(", ")}\n` +
+        (row.alsoASpelling
+          ? `      and "${row.brahui}" is itself a different word: ${row.alsoASpelling.join("; ")}\n`
+          : ""),
+    );
+  }
   for (const row of report.collision) {
     console.error(
-      `  collision line ${row.line}  ${row.brahui}\n` +
+      `  collision line ${row.line}  ${row.brahui} — same spelling, meaning not found here.\n` +
+        `      Possibly a different word rather than a disputed definition.\n` +
         `      shipped:   ${row.shippedGloss}\n` +
         `      candidate: ${row.candidateGloss}`,
     );

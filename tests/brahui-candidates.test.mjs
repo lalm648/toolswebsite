@@ -170,3 +170,52 @@ test("a collision on a multi-sense headword reports every sense, labelled", () =
   // Showing one arbitrary sense sends the reader to resolve the wrong meaning.
   assert.equal(report.collision[0].shippedGloss, "[n.] husband || [itj.] oh my!");
 });
+
+test("the meaning is matched before the spelling", () => {
+  /*
+    The case that forced this. Converting this wordlist's `dûî` "tongue" into
+    Brolikva gave `dúí` — a real entry meaning "control", from `dú` "hand", as in
+    holding something in your hand. Tongue is `duví`, with a `v` the source does
+    not write.
+
+    So the converted spelling landed on a DIFFERENT REAL WORD and nothing looked
+    wrong. Matching on spelling would have called this both a new word and a
+    conflicting definition of "control". The gloss is what survives the crossing
+    between two romanisations; the spelling is not.
+  */
+  const shipped = [
+    { latin: "dú", pos: "n.", gloss: "hand; arm" },
+    { latin: "dúí", pos: "n.", gloss: "control" },
+    { latin: "duví", pos: "n.", gloss: "tongue" },
+  ];
+
+  const report = screenCandidates(rows({ brahui: "dúí", english: "tongue" }), shipped);
+
+  assert.equal(report.new.length, 0, "the word is present — under another spelling");
+  assert.equal(report.collision.length, 0, "and this is not a disputed definition");
+  assert.equal(report.variant.length, 1);
+  assert.deepEqual(report.variant[0].lexiconSpelling, ["duví"]);
+  // The homograph must be named too: silence about it is how this slipped past.
+  assert.deepEqual(report.variant[0].alsoASpelling, ["dúí [n.] control"]);
+});
+
+test("a sense inside a packed gloss is still found", () => {
+  // The lexicon packs senses into one field; a source offering just one of them
+  // must not be treated as new.
+  const shipped = [{ latin: "de", pos: "n.", gloss: "sun; daylight; day; while" }];
+
+  const report = screenCandidates(rows({ brahui: "de", english: "day" }), shipped);
+
+  assert.equal(report.new.length, 0);
+  assert.equal(report.duplicate.length, 1);
+});
+
+test("a form match with a meaning found nowhere stays a question, not a verdict", () => {
+  const shipped = [{ latin: "azal", pos: "n.", gloss: "beginning" }];
+
+  const report = screenCandidates(rows({ brahui: "azal", english: "luck" }), shipped);
+
+  assert.equal(report.collision.length, 1);
+  assert.equal(report.collision[0].shippedGloss, "beginning");
+  assert.equal(report.collision[0].candidateGloss, "luck");
+});
