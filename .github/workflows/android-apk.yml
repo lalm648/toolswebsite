@@ -1,0 +1,120 @@
+# Builds the Brahui Dictionary APK and leaves it as a downloadable artifact.
+#
+# This exists because the local Windows build cannot run: Java's Pipe.open() and
+# Selector.open() fail there with "Unable to establish loopback connection" —
+# Gradle's exact error, reproducible in two lines of Java — while plain sockets
+# work. Something on that machine intercepts the loopback socket pair Windows
+# uses to implement an NIO pipe. A Linux runner has no such problem.
+#
+# The APK is for sideloading and testing only. It is signed with a throwaway key
+# generated fresh on each run, so the signature differs run to run: Android will
+# refuse to install a new one over an older one, and you uninstall first. That is
+# the correct trade for a test build — it means no signing key is stored in this
+# repository or in GitHub secrets, and nothing here could ever be published.
+#
+# A Play release needs its own persistent key. See android/README.md.
+
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "android/twa-manifest.json"
+      - ".github/workflows/android-apk.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Point Bubblewrap at the JDK and SDK
+        run: |
+          set -euo pipefail
+          # Bubblewrap's AndroidSdkTools.validatePath accepts only the pre-2020
+          # layout: it looks for <sdk>/tools or <sdk>/bin and rejects the SDK
+          # outright otherwise, reporting "androidSdkPath isn't correct" with no
+          # hint that the layout is what it means. The runner installs the modern
+          # one, so link the tools into the place Bubblewrap insists on looking.
+          ln -sfn "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" "$ANDROID_SDK_ROOT/bin"
+          mkdir -p ~/.bubblewrap
+          # Written with jq rather than a heredoc: this file is JSON, and a
+          # heredoc is how you end up with an invalid escape in a path.
+          jq -n --arg jdk "$JAVA_HOME" --arg sdk "$ANDROID_SDK_ROOT" \
+            '{jdkPath: $jdk, androidSdkPath: $sdk}' > ~/.bubblewrap/config.json
+          cat ~/.bubblewrap/config.json
+          bubblewrap doctor
+
+      - name: Generate a throwaway signing key
+        working-directory: android
+        run: |
+          set -euo pipefail
+          # Matches signingKey in twa-manifest.json. The password is the one
+          # Android's own debug keystore has always used; it protects nothing and
+          # the key never leaves this runner.
+          keytool -genkeypair -v \
+            -keystore android-test.keystore -alias test \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Brahui Dictionary TEST ONLY, O=Webutilia, C=PK"
+          keytool -list -v -keystore android-test.keystore -alias test \
+            -storepass android | grep -E "SHA256:"
+
+      - name: Generate the Android project from twa-manifest.json
+        working-directory: android
+        run: |
+          set -euo pipefail
+          bubblewrap update --skipVersionUpgrade
+          chmod +x gradlew
+
+      - name: Build the APK
+        working-directory: android
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: android
+          BUBBLEWRAP_KEY_PASSWORD: android
+        run: |
+          set -euo pipefail
+          # --skipPwaValidation: the manifest is already verified live, and the
+          # validator is a network call that can fail the build for reasons that
+          # have nothing to do with the build.
+          bubblewrap build --skipPwaValidation
+          ls -la ./*.apk ./*.aab || true
+
+      - name: Confirm the APK is real and signed
+        working-directory: android
+        run: |
+          set -euo pipefail
+          APK=$(ls app-release-signed.apk 2>/dev/null || ls ./*.apk | head -1)
+          echo "APK: $APK ($(du -h "$APK" | cut -f1))"
+          BT=$(ls -d "$ANDROID_SDK_ROOT"/build-tools/* | sort -V | tail -1)
+          "$BT/aapt" dump badging "$APK" | grep -E "^(package|application-label|sdkVersion|targetSdkVersion)" || true
+          "$BT/apksigner" verify --print-certs "$APK"
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: brahui-dictionary-apk
+          path: |
+            android/app-release-signed.apk
+            android/*.apk
+          if-no-files-found: error
+          retention-days: 30
