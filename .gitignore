@@ -72,6 +72,12 @@ android/app-release-*.aab
 android/*.idsig
 android/build/
 android/app/
+# Generated from twa-manifest.json by `bubblewrap update` — regenerate, do not commit.
+android/build.gradle
+android/settings.gradle
+android/gradle.properties
+android/manifest-checksum.txt
+android/store_icon.png
 android/gradle/
 android/gradlew
 android/gradlew.bat
