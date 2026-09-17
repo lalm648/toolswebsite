@@ -43,14 +43,18 @@ export default function BrahuiDictionaryTool() {
           src={APP_SRC}
           title="Brahui dictionary and learning app"
           /*
-            The height is the app's viewport. 82svh keeps the pane usable on a phone
-            without the mobile browser's collapsing toolbar resizing it mid-scroll,
-            which is what svh fixes and vh does not; the floor keeps it workable in
-            a short desktop window, and the ceiling stops it stretching absurdly
-            tall on a large display. There is page above and below it either way,
-            so the outer page is always scrollable past it.
+            The height is the app's viewport. svh, not vh, so a mobile browser's
+            collapsing toolbar cannot resize it mid-scroll.
+
+            It is measured down from the viewport rather than as a share of it.
+            84svh came to 682px on a 812px phone, and with the breadcrumb and the
+            heading pushing the frame to y=140 its bottom landed at 822 — past the
+            viewport, with the app's own fixed navigation bar clipped in half. The
+            11rem subtracted here is that chrome above plus a margin below, so the
+            nav bar stays whole. The floor keeps the pane workable in a short
+            desktop window and the ceiling stops it stretching on a large display.
           */
-          className="col-start-1 row-start-1 block h-[min(max(84svh,32rem),58rem)] w-full border-0 bg-transparent"
+          className="col-start-1 row-start-1 block h-[clamp(32rem,calc(100svh-11rem),58rem)] w-full border-0 bg-transparent"
           /*
             Deliberately not sandboxed. The document is first-party, same-origin and
             loads nothing from anywhere else, and `allow-scripts allow-same-origin`
