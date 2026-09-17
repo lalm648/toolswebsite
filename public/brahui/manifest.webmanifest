@@ -1,0 +1,53 @@
+{
+  "id": "/brahui/",
+  "name": "Brahui Dictionary",
+  "short_name": "Brahui",
+  "description": "3,473 Brahui words with English meanings, phrases, sounds and a transliterator. Works offline.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#080d15",
+  "theme_color": "#047857",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "books", "reference"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Search the dictionary",
+      "short_name": "Search",
+      "url": "./index.html#tab-dict"
+    },
+    {
+      "name": "Today's words",
+      "short_name": "Learn",
+      "url": "./index.html#tab-learn"
+    }
+  ]
+}
