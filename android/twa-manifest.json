@@ -18,8 +18,8 @@
   "maskableIconUrl": "https://www.webutilia.com/brahui/icons/icon-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "./android-test.keystore",
-    "alias": "test"
+    "path": "./android-release.keystore",
+    "alias": "brahui"
   },
   "appVersionName": "1.0.0",
   "appVersionCode": 1,

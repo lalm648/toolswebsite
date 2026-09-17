@@ -6,13 +6,18 @@
 # work. Something on that machine intercepts the loopback socket pair Windows
 # uses to implement an NIO pipe. A Linux runner has no such problem.
 #
-# The APK is for sideloading and testing only. It is signed with a throwaway key
-# generated fresh on each run, so the signature differs run to run: Android will
-# refuse to install a new one over an older one, and you uninstall first. That is
-# the correct trade for a test build — it means no signing key is stored in this
-# repository or in GitHub secrets, and nothing here could ever be published.
+# The key is STABLE and comes from repository secrets. The first version of this
+# workflow generated a fresh key per run, which was wrong: Digital Asset Links
+# pins the app to one fingerprint, so a key that changes every build can never be
+# verified, and the app is forced to run as a plain Chrome tab with a URL bar.
+# One key, published once in /.well-known/assetlinks.json, is what makes the APK
+# open as an app instead of a browser.
 #
-# A Play release needs its own persistent key. See android/README.md.
+# Secrets required (Settings -> Secrets and variables -> Actions):
+#   ANDROID_KEYSTORE_BASE64    the keystore, base64 encoded
+#   ANDROID_KEYSTORE_PASSWORD  its password
+#
+# The keystore itself is never committed. See android/README.md.
 
 name: Build Android APK
 
@@ -89,20 +94,24 @@ jobs:
           cat ~/.bubblewrap/config.json
           bubblewrap doctor
 
-      - name: Generate a throwaway signing key
+      - name: Restore the signing key
         working-directory: android
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           set -euo pipefail
-          # Matches signingKey in twa-manifest.json. The password is the one
-          # Android's own debug keystore has always used; it protects nothing and
-          # the key never leaves this runner.
-          keytool -genkeypair -v \
-            -keystore android-test.keystore -alias test \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass android -keypass android \
-            -dname "CN=Brahui Dictionary TEST ONLY, O=Webutilia, C=PK"
-          keytool -list -v -keystore android-test.keystore -alias test \
-            -storepass android | grep -E "SHA256:"
+          if [ -z "${KEYSTORE_B64:-}" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set."
+            echo "Add it under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > android-release.keystore
+          # The key must be the SAME on every build. Asset link verification
+          # pins to one fingerprint: a key regenerated per run can never be
+          # verified, which is exactly why the first APK showed a URL bar.
+          keytool -list -v -keystore android-release.keystore -alias brahui \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" | grep -E "SHA256:"
 
       - name: Generate the Android project from twa-manifest.json
         working-directory: android
@@ -114,8 +123,8 @@ jobs:
       - name: Build the APK
         working-directory: android
         env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: android
-          BUBBLEWRAP_KEY_PASSWORD: android
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           set -euo pipefail
           # --skipPwaValidation: the manifest is already verified live, and the

@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.webutilia.brahuidictionary",
+      "sha256_cert_fingerprints": [
+        "E1:CE:F7:14:72:A6:E7:77:82:C9:92:1F:89:7D:D8:9B:25:B3:A0:92:2B:9B:1D:0A:B8:4C:4F:E5:18:89:23:7B"
+      ]
+    }
+  }
+]
