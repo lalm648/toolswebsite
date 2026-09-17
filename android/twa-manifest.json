@@ -1,0 +1,55 @@
+{
+  "packageId": "com.webutilia.brahuidictionary",
+  "host": "www.webutilia.com",
+  "name": "Brahui Dictionary",
+  "launcherName": "Brahui",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#047857",
+  "themeColorDark": "#080d15",
+  "navigationColor": "#080d15",
+  "navigationColorDark": "#080d15",
+  "navigationDividerColor": "#080d15",
+  "navigationDividerColorDark": "#080d15",
+  "backgroundColor": "#080d15",
+  "enableNotifications": false,
+  "startUrl": "/brahui/index.html",
+  "iconUrl": "https://www.webutilia.com/brahui/icons/icon-512.png",
+  "maskableIconUrl": "https://www.webutilia.com/brahui/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android-upload.keystore",
+    "alias": "upload"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Search the dictionary",
+      "shortName": "Search",
+      "url": "/brahui/index.html#tab-dict",
+      "chosenIconUrl": "https://www.webutilia.com/brahui/icons/icon-192.png"
+    },
+    {
+      "name": "Today's words",
+      "shortName": "Learn",
+      "url": "/brahui/index.html#tab-learn",
+      "chosenIconUrl": "https://www.webutilia.com/brahui/icons/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://www.webutilia.com/brahui/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://www.webutilia.com/brahui/",
+  "minSdkVersion": 21,
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "1.0.0"
+}
