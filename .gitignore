@@ -61,3 +61,19 @@ two
 # read here to check and extend the lexicon, never redistributed. They must also
 # stay out of public/, which Next.js serves at the web root.
 /data/source-scans/
+
+# Android (TWA) — see android/README.md
+# The signing keystore must never be committed: anyone holding it can publish an
+# update as you, and it is the one file that cannot be regenerated.
+*.keystore
+*.jks
+android/app-release-*.apk
+android/app-release-*.aab
+android/*.idsig
+android/build/
+android/app/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/.gradle/
