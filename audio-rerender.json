@@ -1,17 +1,17 @@
 {
   "generated": "2026-09-20",
   "note": "Render each entry's `deva` string with Lekha, the macOS Hindi voice, the same way the existing 6,646 clips were made: say -v Lekha -o public/brahui/audio/<key>.m4a \"<deva>\". Do not render the Latin or the Urdu — Lekha reads Devanagari. Then bump AUDIOREV in index.html so browsers do not serve a cached copy of the old pronunciation under the same key.",
-  "count": 43,
-  "replace": 5,
-  "create": 38,
+  "count": 44,
+  "replace": 4,
+  "create": 40,
   "entries": [
     {
-      "key": "71d21828",
-      "text": "Dá har musiŧŧingák asieloton ílumí karer.",
-      "deva": "दा हर मुसिट्टिंगाक असिएलोतोन ईलुमी करेर",
-      "ipa": "daː həɾ mʊsɪʈʈɪngaːk əsɪeːloːtoːn iːlʊmiː kəɾeːɾ",
+      "key": "501f901c",
+      "text": "Dá har musiŧŧingák asi elo ton ílumí karer.",
+      "deva": "दा हर मुसिट्टिंगाक असि एलो तोन ईलुमी करेर",
+      "ipa": "daː həɾ mʊsɪʈʈɪngaːk əsɪ eːloː toːn iːlʊmiː kəɾeːɾ",
       "reason": "rendered from the wrong letters — replace",
-      "existsOnDisk": true
+      "existsOnDisk": false
     },
     {
       "key": "ac94e823",
@@ -347,6 +347,14 @@
       "deva": "मुआफ़ क",
       "ipa": "mʊaːf kə",
       "reason": "phrase with no recording",
+      "existsOnDisk": false
+    },
+    {
+      "key": "ab036444",
+      "text": "pad e pad",
+      "deva": "पद ए पद",
+      "ipa": "pəd eː pəd",
+      "reason": "compound split into words — new key, needs its own recording",
       "existsOnDisk": false
     }
   ]

@@ -2872,7 +2872,7 @@
 <article class="lexrow" id="w-pad-ana" data-b="pad-aná" data-e="next" data-p="a." data-c="qual" data-f="4" data-x="2"><span class="lex-ur ur" dir="rtl">پَدَنَا</span><b lang="brh">pad-aná</b><i>a.</i><span class="lex-en">next</span></article>
 <article class="lexrow" id="w-pada" data-b="padá" data-e="after; afterwards; again; back; then" data-p="adv." data-c="adv" data-f="29" data-x="2"><span class="lex-ur ur" dir="rtl">پَدَا</span><b lang="brh">padá</b><i>adv.</i><span class="lex-en">after; afterwards; again; back; then</span></article>
 <article class="lexrow" id="w-paddam-hall-ing" data-b="paddám hall-ińg" data-e="to inflate" data-p="vi." data-c="verb"><span class="lex-ur ur" dir="rtl">پَدَّام ہَلِّںگ</span><b lang="brh">paddám hall-ińg</b><i>vi.</i><span class="lex-en">to inflate</span></article>
-<article class="lexrow" id="w-padepad" data-b="padepad" data-e="continuously; in a queue" data-p="adv." data-c="adv" data-f="1" data-x="1"><span class="lex-ur ur" dir="rtl">پَدےپَد</span><b lang="brh">padepad</b><i>adv.</i><span class="lex-en">continuously; in a queue</span></article>
+<article class="lexrow" id="w-padepad" data-b="pad e pad" data-e="continuously; in a queue" data-p="adv." data-c="adv" data-f="1" data-x="1"><span class="lex-ur ur" dir="rtl">پَد اے پَد</span><b lang="brh">pad e pad</b><i>adv.</i><span class="lex-en">continuously; in a queue</span></article>
 <article class="lexrow" id="w-padgir" data-b="padgír" data-e="private eye" data-p="n." data-c="noun" data-f="1" data-x="1" data-t="Balochi"><span class="lex-ur ur" dir="rtl">پَدگِیر</span><b lang="brh">padgír</b><i>n.</i><span class="lex-en">private eye</span></article>
 <article class="lexrow" id="w-padi" data-b="padí" data-e="back" data-p="adv." data-c="adv" data-f="43" data-x="2"><span class="lex-ur ur" dir="rtl">پَدِی</span><b lang="brh">padí</b><i>adv.</i><span class="lex-en">back</span></article>
 <article class="lexrow" id="w-padi-du" data-b="padí-dú" data-e="in reverse order" data-p="adv." data-c="adv" data-f="1" data-x="1"><span class="lex-ur ur" dir="rtl">پَدِیدُو</span><b lang="brh">padí-dú</b><i>adv.</i><span class="lex-en">in reverse order</span></article>
@@ -4466,16 +4466,62 @@ function toIPA(word){
 }
 const URDU_PUNCT={'.':'۔',',':'،','?':'؟'};
 function joinedScriptLine(txt,render){
-  /* Join morphemes and clitics. An internal corpus dot is another compound
-     boundary; a dot at the end of a token is real sentence punctuation. */
-  txt=txt.normalize('NFC').replace(/\s*=\s*/g,'').replace(/-/g,'')
-    .replace(/\.(?=\S)/g,'');
+  /* Morphemes and clitics are WRITTEN joined in both target scripts, but they
+     have to be TOKENIZED apart, and those are different things. The boundaries
+     used to be deleted before tokenizing, which let a vowel run across the
+     seam: asi.elo-ton became the single string "asieloton", whose "ie" the
+     longest-match tokenizer read as one unit, and the corpus's "each other"
+     came out اسےلوتون — ase-, not asi-.
+
+     So the separators survive to here and split the token instead. Each
+     morpheme is rendered on its own and the pieces are concatenated with
+     nothing between them, which gives the same joined script as before for
+     everything that was already right (har.kas is still ہرکس) and the correct
+     vowel for everything that was not.
+
+     An internal dot is a compound boundary; a dot at the end of a token is
+     sentence punctuation and is handled by `tail` below, so anything still in
+     `core` by then is internal. */
+  txt=txt.normalize('NFC').replace(/\s*=\s*/g,'=').replace(/\s*-\s*/g,'-');
   return txt.split(/\s+/).filter(Boolean).map(part=>{
     const lead=(part.match(/^[“‘(]+/)||[''])[0];
     const tail=(part.match(/[.,?”’)]+$/)||[''])[0];
     const core=part.slice(lead.length,part.length-tail.length);
     const punct=[...tail].map(c=>URDU_PUNCT[c]||c).join('');
-    return lead+(core?render(core):'')+punct;
+    /* The corpus marks two different things and they render differently.
+
+       A hyphen is a suffix boundary — kar-er, kann-ińg, de-as — and 734 of the
+       dictionary's headwords carry one. A suffix is part of its word, so those
+       pieces are tokenized apart and written with nothing between them.
+
+       A dot is the gloss's way of writing several words as one unit:
+       asi.elo-ton is "each other" plus the comitative, glossed each.other-COM.
+       Those are separate orthographic words and take a space, which is also how
+       the dictionary already writes its multi-word headwords (pad o rand).
+
+       Both still tokenize per piece, which is the point: deleting the seam let
+       a vowel run across it and turned asi.elo into ase-. */
+    /* The corpus marks two different things and they render differently.
+
+       A hyphen is a suffix boundary — kar-er, kann-ińg, de-as — and 734 of the
+       dictionary's headwords carry one. It is deleted, not split on, because a
+       suffix is part of its word and the vowel forms depend on position: render
+       "ińg" on its own and it takes the word-initial اں instead of the medial
+       ں, so kann-ińg comes out کنناںگ rather than کنِّںگ.
+
+       A dot is the gloss writing several words as one unit — asi.elo-ton is
+       "each other" plus the comitative, glossed each.other-COM. Those are
+       separate orthographic words, so the dot becomes a space, which is how the
+       dictionary already writes its multi-word headwords (pad o rand).
+
+       Splitting on the dot also puts the seam back where it belongs. Deleting
+       it, as this did before, left "asielo" for the longest-match tokenizer to
+       read as one string, and its "ie" became سے — so the corpus's asi- came
+       out ase-. */
+    const body=core.split(/\.+/).filter(Boolean)
+      .map(chunk=>render(chunk.replace(/[-=]/g,'')))
+      .join(' ');
+    return lead+body+punct;
   }).join(' ');
 }
 function line(txt,opts){
@@ -5063,7 +5109,7 @@ const SEED_PHRASES = [
   en:'They should act towards one another in a spirit of brotherhood.', src:'UDHR'},
  {br:'Asi xazmas as, asi xáxoas as, asi şokas as.',
   en:'There was a deer, a crow and a fox.', src:'CORP'},
- {br:'Dá har musiŧŧingák asieloton ílumí karer.',
+ {br:'Dá har musiŧŧingák asi.elo-ton ílumí karer.',
   en:'These three were friends with one another.', src:'CORP'},
  {br:'As asi şohánas.',
   en:'There was a shepherd.', src:'CORP'},

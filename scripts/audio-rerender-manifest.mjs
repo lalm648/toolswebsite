@@ -90,7 +90,7 @@ const onDisk = new Set(
 /* Entries whose text contains a word the capital-alias bug changed. Their
    recordings were rendered from the wrong letters. */
 const MISRENDERED = [
-  "Dá har musiŧŧingák asieloton ílumí karer.",
+  "Dá har musiŧŧingák asi elo ton ílumí karer.",
   "Asi xazmas as, asi xáxoas as, asi şokas as.",
   "As asi şohánas.",
   "Andáde ofte asi elo ton ílumí e vaddifoí e.",
@@ -107,6 +107,21 @@ const SYLLABLES = [
 ];
 
 const PHRASES_WITHOUT_CLIP = ["Salám", "Naa nám ant?", "Nií ant kanning?", "Ant o?", "Muáf ka."];
+
+/* Compounds that were written as one word and have now been split apart.
+
+   Both were wrong as single tokens: asieloton is "asi elo ton" ("one other
+   with") and is spelled that way in the UDHR entry a few lines above it, while
+   padepad is "pad e pad" ("after and after"), whose own parts are separate
+   headwords. Run together, the tokenizer could not see the seam — asieloton
+   came out اسےلوتون, with the vowel of asi corrupted across it — and the voice
+   read one long nonsense word.
+
+   Splitting them changes the text, and the text is the audio key, so each one
+   retires a recording and needs a new one. That is the only reason these were
+   not corrected earlier: the fix silently silenced the word until a re-render
+   was on the table. It is now. */
+const RESPELT = ["Dá har musiŧŧingák asi elo ton ílumí karer.", "pad e pad"];
 
 function entry(text, reason) {
   const key = audioKey(text.trim());
@@ -128,7 +143,15 @@ const manifest = [
   ...MISRENDERED.map((t) => entry(t, "rendered from the wrong letters — replace")),
   ...SYLLABLES.map((t) => entry(t, "sounds tab demonstration — never rendered")),
   ...PHRASES_WITHOUT_CLIP.map((t) => entry(t, "phrase with no recording")),
+  ...RESPELT.map((t) => entry(t, "compound split into words — new key, needs its own recording")),
 ];
+
+/* De-duplicate: the split phrase is listed as both misrendered and respelt, and
+   it is one recording either way. */
+const seen = new Set();
+const unique = manifest.filter((m) => (seen.has(m.key) ? false : seen.add(m.key)));
+manifest.length = 0;
+manifest.push(...unique);
 
 const out = {
   generated: new Date().toISOString().slice(0, 10),
