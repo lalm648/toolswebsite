@@ -71,10 +71,33 @@ const newFile = path.join(AUDIO, newKey + ".m4a");
 console.log(`  ${oldText}\n    -> ${newText}`);
 console.log(`  key ${oldKey} -> ${newKey}`);
 
-const occurrences = html.split(oldText).length - 1;
+/* Whole words only.
+
+   This replaced plain substrings once and corrupted eight unrelated entries:
+   renaming kaŕ to karr also rewrote kaŕo, kaŕí, kaŕáxt, kaŕdáńk and the rest,
+   because each of them contains kaŕ. Brahui builds words by suffixing, so a
+   headword is a prefix of its own derivations more often than not, and plain
+   replacement is never safe here.
+
+   The boundary is "not a Brahui letter". The alphabet runs well past ASCII so
+   \b is useless, and the class is spelled out instead. The apostrophe is left
+   OUT of it even though ' is a Brahui letter — the glottal stop — because it is
+   also the quote around every seed entry, and including it made 'kaŕ' fail to
+   match its own delimiters. A word ending in a glottal stop is the price, and
+   --check will show it as unmatched rather than silently mangling anything. */
+const LETTER = "A-Za-z\\u00C0-\\u024F\\u1E00-\\u1EFF";
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const wordRe = new RegExp(`(?<![${LETTER}])${esc(oldText)}(?![${LETTER}])`, "g");
+
+const occurrences = (html.match(wordRe) || []).length;
+const substrings = html.split(oldText).length - 1;
 if (!occurrences) {
-  console.error(`\n"${oldText}" does not appear in index.html — nothing changed`);
+  console.error(`\n"${oldText}" does not appear as a whole word in index.html — nothing changed`);
+  if (substrings) console.error(`  it appears ${substrings}x inside longer words, which are left alone`);
   process.exit(1);
+}
+if (substrings > occurrences) {
+  console.log(`  ${substrings - occurrences} longer word(s) contain it and are left alone`);
 }
 
 /* The recording moves with the word. It is the same audio: only the name the
@@ -85,7 +108,7 @@ if (fs.existsSync(oldFile)) {
   moved = `${oldKey}.m4a -> ${newKey}.m4a`;
 }
 
-html = html.split(oldText).join(newText);
+html = html.replace(wordRe, newText);
 
 const m = /const AUDIOKEYS=(\[[^\]]*\]);/.exec(html);
 if (!m) throw new Error("AUDIOKEYS not found");
