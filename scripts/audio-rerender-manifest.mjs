@@ -90,7 +90,7 @@ const onDisk = new Set(
 /* Entries whose text contains a word the capital-alias bug changed. Their
    recordings were rendered from the wrong letters. */
 const MISRENDERED = [
-  "Dá har musiŧŧingák asi elo ton ílumí karer.",
+  "Dá har musiŧŧingák asi.elo-ton ílumí karer.",
   "Asi xazmas as, asi xáxoas as, asi şokas as.",
   "As asi şohánas.",
   "Andáde ofte asi elo ton ílumí e vaddifoí e.",
@@ -121,7 +121,7 @@ const PHRASES_WITHOUT_CLIP = ["Salám", "Naa nám ant?", "Nií ant kanning?", "A
    retires a recording and needs a new one. That is the only reason these were
    not corrected earlier: the fix silently silenced the word until a re-render
    was on the table. It is now. */
-const RESPELT = ["Dá har musiŧŧingák asi elo ton ílumí karer.", "pad e pad"];
+const RESPELT = ["Dá har musiŧŧingák asi.elo-ton ílumí karer.", "pad e pad"];
 
 function entry(text, reason) {
   const key = audioKey(text.trim());

@@ -6,10 +6,10 @@
   "create": 40,
   "entries": [
     {
-      "key": "501f901c",
-      "text": "Dá har musiŧŧingák asi elo ton ílumí karer.",
-      "deva": "दा हर मुसिट्टिंगाक असि एलो तोन ईलुमी करेर",
-      "ipa": "daː həɾ mʊsɪʈʈɪngaːk əsɪ eːloː toːn iːlʊmiː kəɾeːɾ",
+      "key": "ab83474d",
+      "text": "Dá har musiŧŧingák asi.elo-ton ílumí karer.",
+      "deva": "दा हर मुसिट्टिंगाक असिएलोतोन ईलुमी करेर",
+      "ipa": "daː həɾ mʊsɪʈʈɪngaːk əsɪeːloːtoːn iːlʊmiː kəɾeːɾ",
       "reason": "rendered from the wrong letters — replace",
       "existsOnDisk": false
     },
