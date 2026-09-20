@@ -4368,7 +4368,7 @@ const V = {
   'á' :{ini:'آ'  ,mid:'َا' ,fin:'ا'  ,ipa:'aː',note:'long — a in father'},
   'í' :{ini:'اِی',mid:'ِی' ,fin:'ی'  ,ipa:'iː',note:'long — ee in see'},
   'ú' :{ini:'اُو',mid:'ُو' ,fin:'و'  ,ipa:'uː',note:'long — oo in food'},
-  'e' :{ini:'اے' ,mid:'ے'       ,fin:'ے'  ,ipa:'eː',note:'long — pure ay, no glide'},
+  'e' :{ini:'اے' ,mid:'ی'       ,fin:'ے'  ,ipa:'eː',note:'long — pure ay, no glide'},
   'o' :{ini:'او' ,mid:'و'       ,fin:'و'  ,ipa:'oː',note:'long — pure o, no glide'},
   'ai':{ini:'اَی',mid:'َی' ,fin:'َے',ipa:'əɪ̯',note:'diphthong — eye'},
   'au':{ini:'اَو',mid:'َو' ,fin:'َو',ipa:'əʊ̯',note:'diphthong — how'}
@@ -4467,7 +4467,12 @@ function toUrdu(word,opts){
       else s+=urduConsonant(tk,i,t);
       if(nx&&V[nx]){
         const atEnd = (i+2>=t.length);
-        s += (atEnd && V[nx].fin && 'aiu'.includes(nx)) ? V[nx].fin : V[nx].mid;
+        /* e belongs here too. ے is a final-form letter — Urdu writes bari ye
+           only at the end of a word and choti ye inside one, where it joins —
+           so a medial e written ے detached the rest of the word: aŕeńg-ing came
+           out اَڑےنگِنگ. The map already drew this distinction for ai (mid َی,
+           fin َے); e was simply never given the same treatment. */
+        s += (atEnd && V[nx].fin && 'aiue'.includes(nx)) ? V[nx].fin : V[nx].mid;
         i++;
       } else if(sukun && nx!==tk) s+=SUKUN;   // shadda carries it before a geminate
     } else if(V[tk]){
@@ -5283,7 +5288,7 @@ const VPLAIN={
   'a':{ini:'ا',mid:'',fin:'ہ'}, 'i':{ini:'ا',mid:'',fin:'ی'},
   'u':{ini:'ا',mid:'',fin:'و'}, 'á':{ini:'آ',mid:'ا',fin:'ا'},
   'í':{ini:'ای',mid:'ی',fin:'ی'},'ú':{ini:'او',mid:'و',fin:'و'},
-  'e':{ini:'اے',mid:'ے',fin:'ے'},'o':{ini:'او',mid:'و',fin:'و'},
+  'e':{ini:'اے',mid:'ی',fin:'ے'},'o':{ini:'او',mid:'و',fin:'و'},
   'ai':{ini:'اَی',mid:'ی',fin:'ے'},'au':{ini:'اَو',mid:'و',fin:'و'}
 };
 function toUrduPlain(word){
