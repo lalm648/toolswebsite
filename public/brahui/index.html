@@ -4266,8 +4266,8 @@
         <select id="voice" onchange="showVoiceStatus()"></select>
         <div id="voicestatus" style="margin-top:10px"></div></div>
       <div id="wordgapwrap" style="grid-column:1/-1">
-        <label for="rate">Speed — <span id="rv">0.7</span>×</label>
-        <input type="range" id="rate" min="0.3" max="1" step="0.05" value="0.7"
+        <label for="rate">Speed — <span id="rv">0.9</span>×</label>
+        <input type="range" id="rate" min="0.3" max="1" step="0.05" value="0.9"
                oninput="document.getElementById('rv').textContent=this.value;saveVoicePrefs()"
                style="padding:0;background:transparent;border:0;accent-color:var(--accent)">
       </div>
@@ -4402,6 +4402,24 @@ function tokenize(word){
   word=word.normalize('NFC')
     .replace(/([bpcjkg])ʰ/g,'$1h')
     .replace(/\u0303/g,'ń');
+  /* A sentence-initial capital is a capital letter, not an ASCII alias.
+
+     ALIAS lets someone without a Brahui keyboard type D for đ, S for ş, A for á
+     and so on. That is right for the converter's input box and wrong
+     everywhere else, because stored Brahui is written with real diacritics and
+     its sentences start with a capital like any other language's. Left alone
+     the alias fired on the capital and changed the word: "Dá" ("this") came out
+     as đá — ڈا rather than دا — which an Urdu voice then read as the
+     abbreviation for ڈاکٹر and pronounced "doctor". "Salám" came out as şalám,
+     "shalaam". Eleven of the 436 seed entries were affected.
+
+     So a capital followed by a lowercase letter is folded before tokenizing. An
+     all-caps run is untouched, so DA, SH, LH and GH still mean what the ASCII
+     convention says they mean. */
+  if(ALIAS[word[0]] && /^[A-Z][^A-Z]/.test(word)){
+    word=word[0].toLowerCase()+word.slice(1);
+  }
+
   const out=[]; let i=0;
   while(i<word.length){
     let hit=null;
@@ -5216,6 +5234,7 @@ function toUrduPlain(word){
 function linePlain(t){ return joinedScriptLine(t,toUrduPlain); }
 function stripMarks(s){ return s.replace(/[ً-ْ]/g,''); }
 
+
 const HARAKA='ًٌٍَُِّْٰ';
 function validateAerab(t){
   const out=[];
@@ -5296,8 +5315,20 @@ function playClip(key,onFail,reps){
     const a=new Audio(AUDIO_DIR+key+'.m4a?v='+AUDIOREV);
     const rate=document.getElementById('rate');
     /* The speed control still means what it says — it moves the playback rate
-       rather than the synthesiser's. */
-    if(rate) a.playbackRate=parseFloat(rate.value)||1;
+       rather than the synthesiser's.
+
+       Pitch is pinned first. These clips are finished audio, so slowing them
+       resamples real speech, and a browser that drops the formants with the
+       rate turns a voice into a growl — which is the one thing a pronunciation
+       guide cannot afford. Chromium and Firefox default this on, Safari needs
+       the prefixed name, and neither is guaranteed, so both are set explicitly
+       and before play() rather than left to the default. */
+    if(rate){
+      const r=parseFloat(rate.value)||1;
+      a.preservesPitch=true;
+      a.webkitPreservesPitch=true;
+      a.playbackRate=r;
+    }
     a.onerror=fall;
     a.onended=()=>{ if(--left>0) setTimeout(next,120); else if(mine===clipToken) clip=null; };
     clip=a;
