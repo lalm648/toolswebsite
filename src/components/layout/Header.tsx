@@ -61,7 +61,18 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--outline-soft)] bg-[var(--header-bg)] backdrop-blur-xl">
+    /*
+      z-40 normally, above the cookie banner's z-50 while the menu is open.
+      The banner is `fixed bottom-3 z-50`, so with the menu below it the banner
+      sat on top of the last few links — SEO, Dictionary, About — and they could
+      not be tapped at all. Raising the header only while the menu is open keeps
+      the banner above the page the rest of the time, which is what it is for.
+    */
+    <header
+      className={`sticky top-0 border-b border-[var(--outline-soft)] bg-[var(--header-bg)] backdrop-blur-xl ${
+        isMobileMenuOpen ? "z-[60]" : "z-40"
+      }`}
+    >
       <Container className="py-2.5">
         <div className="flex items-center justify-between gap-4">
           <Link
@@ -204,7 +215,22 @@ export default function Header() {
         {isMobileMenuOpen ? (
           <div
             id="mobile-navigation"
-            className="mt-3 rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3 shadow-[var(--shadow-soft)] lg:hidden"
+            /*
+              The panel has to scroll itself. Twelve links come to 598px, which
+              overflows a 360x640 phone — the commonest Android size — so the
+              last items sat below the fold with no way to reach them: the panel
+              did not scroll, so a swipe scrolled the PAGE behind it instead and
+              the menu looked frozen.
+
+              svh, not vh, so a collapsing mobile toolbar cannot resize the panel
+              mid-scroll. 5.5rem is the header above it plus a little breathing
+              room at the bottom.
+
+              overscroll-contain stops the scroll chaining to the page once the
+              list reaches its end, which is the same "frozen" feeling in
+              miniature.
+            */
+            className="mt-3 max-h-[calc(100svh-5.5rem)] overflow-y-auto overscroll-contain rounded-[var(--radius-xl)] border border-[var(--outline-soft)] bg-[var(--surface-raised)] p-3 shadow-[var(--shadow-soft)] lg:hidden"
           >
             <nav aria-label="Mobile navigation" className="grid gap-1">
               {links.map((link) => {
