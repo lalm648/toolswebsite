@@ -5766,11 +5766,43 @@ function speak(txt,latin,literal){
   }
   recordingUnavailable(latin||txt,false);
 }
+/* Two different situations, and they used to share one response: open the
+   settings sheet, because that is the only place msg() is visible.
+
+   A clip that fails to LOAD is a deployment fault — the audio folder did not
+   ship — and is worth interrupting for, so that keeps the sheet.
+
+   A clip that was never RENDERED is an ordinary gap in the library, and there
+   are plenty: two thirds of the Sounds tab has no recording, and a word whose
+   spelling was corrected has none until the next render. Throwing the settings
+   sheet over the page each time a learner taps one of those is hostile, and it
+   buries whatever they were reading. It reports in a toast instead. */
+let toastTimer=null;
+function toast(html){
+  let el=document.getElementById('bs-toast');
+  if(!el){
+    el=document.createElement('div');
+    el.id='bs-toast';
+    el.setAttribute('role','status');
+    el.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navh,64px) + 16px);'+
+      'max-width:min(30rem,calc(100vw - 32px));z-index:60;padding:10px 14px;border-radius:10px;'+
+      'background:var(--card,#141d2b);color:var(--ink,#f7f9fc);border:1px solid var(--line,rgba(255,255,255,.14));'+
+      'box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:13px;line-height:1.45;opacity:0;transition:opacity .18s';
+    document.body.appendChild(el);
+  }
+  el.innerHTML=html;
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ el.style.opacity='0'; },4200);
+}
+
 function recordingUnavailable(label,failed){
-  openSettings(); engineChanged();
-  msg(failed
-    ? 'The prepared Lekha recording could not load. Check that the audio folder was deployed. No device voice was used.'
-    : `No prepared Lekha recording exists for <b>${h(label||'this text')}</b>. Nothing was sent to a device voice. Choose Device voice or Azure only if you want a manual fallback.`);
+  if(failed){
+    openSettings(); engineChanged();
+    msg('The prepared Lekha recording could not load. Check that the audio folder was deployed. No device voice was used.');
+    return;
+  }
+  toast(`No recording yet for <b>${h(label||'this text')}</b>. Device voice is off, so nothing was guessed at.`);
 }
 function drill(txt,reps,latin,literal){
   const n=reps||3;
