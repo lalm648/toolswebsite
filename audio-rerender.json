@@ -1,57 +1,17 @@
 {
   "generated": "2026-09-20",
   "note": "Render each entry's `deva` string with Lekha, the macOS Hindi voice, the same way the existing 6,646 clips were made: say -v Lekha -o public/brahui/audio/<key>.m4a \"<deva>\". Do not render the Latin or the Urdu — Lekha reads Devanagari. Then bump AUDIOREV in index.html so browsers do not serve a cached copy of the old pronunciation under the same key.",
-  "count": 44,
-  "replace": 4,
-  "create": 40,
+  "count": 40,
+  "replace": 40,
+  "create": 0,
   "entries": [
-    {
-      "key": "ab83474d",
-      "text": "Dá har musiŧŧingák asi.elo-ton ílumí karer.",
-      "deva": "दा हर मुसिट्टिंगाक असिएलोतोन ईलुमी करेर",
-      "ipa": "daː həɾ mʊsɪʈʈɪngaːk əsɪeːloːtoːn iːlʊmiː kəɾeːɾ",
-      "reason": "rendered from the wrong letters — replace",
-      "existsOnDisk": false
-    },
-    {
-      "key": "ac94e823",
-      "text": "Asi xazmas as, asi xáxoas as, asi şokas as.",
-      "deva": "असि ख़ज़्मस अस असि ख़ाख़ोअस अस असि शोकस अस",
-      "ipa": "əsɪ xəzməs əs əsɪ xaːxoːəs əs əsɪ ʃoːkəs əs",
-      "reason": "rendered from the wrong letters — replace",
-      "existsOnDisk": true
-    },
-    {
-      "key": "ac2f983f",
-      "text": "As asi şohánas.",
-      "deva": "अस असि शोहानस",
-      "ipa": "əs əsɪ ʃoːhaːnəs",
-      "reason": "rendered from the wrong letters — replace",
-      "existsOnDisk": true
-    },
-    {
-      "key": "9ea7534c",
-      "text": "Andáde ofte asi elo ton ílumí e vaddifoí e.",
-      "deva": "अन्दादे ओफ़्ते असि एलो तोन ईलुमी ए वद्दिफ़ोई ए",
-      "ipa": "əndaːdeː oːfteː əsɪ eːloː toːn iːlʊmiː eː ʋəddɪfoːiː eː",
-      "reason": "rendered from the wrong letters — replace",
-      "existsOnDisk": true
-    },
-    {
-      "key": "8e5d83ce",
-      "text": "Asi deas xácá, tuģas xaná.",
-      "deva": "असि देअस ख़ाचा तुग़स ख़ना",
-      "ipa": "əsɪ deːəs xaːtʃaː tʊɣəs xənaː",
-      "reason": "rendered from the wrong letters — replace",
-      "existsOnDisk": true
-    },
     {
       "key": "b8446ee6",
       "text": "tá",
       "deva": "ता",
       "ipa": "taː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "bda6d4a5",
@@ -59,7 +19,7 @@
       "deva": "टा",
       "ipa": "ʈaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "ea20c567",
@@ -67,7 +27,7 @@
       "deva": "डा",
       "ipa": "ɖaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "c83c3951",
@@ -75,7 +35,7 @@
       "deva": "का",
       "ipa": "kaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "c0213da5",
@@ -83,7 +43,7 @@
       "deva": "गा",
       "ipa": "gaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "e42221e8",
@@ -91,7 +51,7 @@
       "deva": "फ़ा",
       "ipa": "faː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "cc6720a4",
@@ -99,7 +59,7 @@
       "deva": "ज़ा",
       "ipa": "zaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "c9ecb7a4",
@@ -107,7 +67,7 @@
       "deva": "ज़ा",
       "ipa": "ʒaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "c0629092",
@@ -115,7 +75,7 @@
       "deva": "ख़ा",
       "ipa": "xaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "d64f5889",
@@ -123,7 +83,7 @@
       "deva": "ग़ा",
       "ipa": "ɣaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "e42eeddb",
@@ -131,7 +91,7 @@
       "deva": "मा",
       "ipa": "maː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "d55509f6",
@@ -139,7 +99,7 @@
       "deva": "णा",
       "ipa": "ɳaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "c832935e",
@@ -147,7 +107,7 @@
       "deva": "ला",
       "ipa": "laː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "e67ba9ee",
@@ -155,7 +115,7 @@
       "deva": "ला",
       "ipa": "ɬaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "dc55451c",
@@ -163,7 +123,7 @@
       "deva": "रा",
       "ipa": "ɾaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "d1784183",
@@ -171,7 +131,7 @@
       "deva": "ड़ा",
       "ipa": "ɽaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "c0bd7b65",
@@ -179,7 +139,7 @@
       "deva": "ा",
       "ipa": "ʔaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "f9cc7ea2",
@@ -187,7 +147,7 @@
       "deva": "भा",
       "ipa": "baː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "ca43d46c",
@@ -195,7 +155,7 @@
       "deva": "फा",
       "ipa": "pʰaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "300de250",
@@ -203,7 +163,7 @@
       "deva": "था",
       "ipa": "tʰaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "dc75e191",
@@ -211,7 +171,7 @@
       "deva": "ठा",
       "ipa": "ʈʰaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "40657920",
@@ -219,7 +179,7 @@
       "deva": "धा",
       "ipa": "daː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "44bd1267",
@@ -227,7 +187,7 @@
       "deva": "ढा",
       "ipa": "ɖaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "d3f48bc5",
@@ -235,7 +195,7 @@
       "deva": "खा",
       "ipa": "kʰaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "c3292c91",
@@ -243,7 +203,7 @@
       "deva": "घा",
       "ipa": "gaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "7d86607d",
@@ -251,7 +211,7 @@
       "deva": "छा",
       "ipa": "tʃʰaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "50dd33aa",
@@ -259,7 +219,7 @@
       "deva": "झा",
       "ipa": "dʒaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "2f9f10cb",
@@ -267,7 +227,7 @@
       "deva": "ढ़ा",
       "ipa": "ɽaː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "6f7a3f28",
@@ -275,7 +235,7 @@
       "deva": "बात",
       "ipa": "baːt",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "9bd8152c",
@@ -283,7 +243,7 @@
       "deva": "तीन",
       "ipa": "tiːn",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "621cd814",
@@ -291,7 +251,7 @@
       "deva": "दो",
       "ipa": "doː",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "e7bf0671",
@@ -299,7 +259,7 @@
       "deva": "है",
       "ipa": "haɪ",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "27905fe6",
@@ -307,7 +267,7 @@
       "deva": "कौन",
       "ipa": "kaʊn",
       "reason": "sounds tab demonstration — never rendered",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "16198a45",
@@ -315,7 +275,7 @@
       "deva": "सलाम",
       "ipa": "səlaːm",
       "reason": "phrase with no recording",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "0c597437",
@@ -323,7 +283,7 @@
       "deva": "ना नाम अन्त",
       "ipa": "naː naːm ənt",
       "reason": "phrase with no recording",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "7a888893",
@@ -331,7 +291,7 @@
       "deva": "निई अन्त कन्निंग",
       "ipa": "nɪiː ənt kənnɪng",
       "reason": "phrase with no recording",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "fe330e58",
@@ -339,7 +299,7 @@
       "deva": "अन्त ओ",
       "ipa": "ənt oː",
       "reason": "phrase with no recording",
-      "existsOnDisk": false
+      "existsOnDisk": true
     },
     {
       "key": "06201fee",
@@ -347,7 +307,15 @@
       "deva": "मुआफ़ क",
       "ipa": "mʊaːf kə",
       "reason": "phrase with no recording",
-      "existsOnDisk": false
+      "existsOnDisk": true
+    },
+    {
+      "key": "ab83474d",
+      "text": "Dá har musiŧŧingák asi.elo-ton ílumí karer.",
+      "deva": "दा हर मुसिट्टिंगाक असिएलोतोन ईलुमी करेर",
+      "ipa": "daː həɾ mʊsɪʈʈɪngaːk əsɪeːloːtoːn iːlʊmiː kəɾeːɾ",
+      "reason": "compound split into words — new key, needs its own recording",
+      "existsOnDisk": true
     },
     {
       "key": "ab036444",
@@ -355,7 +323,7 @@
       "deva": "पद ए पद",
       "ipa": "pəd eː pəd",
       "reason": "compound split into words — new key, needs its own recording",
-      "existsOnDisk": false
+      "existsOnDisk": true
     }
   ]
 }

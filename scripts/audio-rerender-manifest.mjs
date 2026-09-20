@@ -87,15 +87,20 @@ const onDisk = new Set(
     : [],
 );
 
-/* Entries whose text contains a word the capital-alias bug changed. Their
-   recordings were rendered from the wrong letters. */
-const MISRENDERED = [
-  "Dá har musiŧŧingák asi.elo-ton ílumí karer.",
-  "Asi xazmas as, asi xáxoas as, asi şokas as.",
-  "As asi şohánas.",
-  "Andáde ofte asi elo ton ílumí e vaddifoí e.",
-  "Asi deas xácá, tuģas xaná.",
-];
+/* Recordings the capital-alias bug reached.
+
+   Only one is re-rendered. The bug changed a letter in five entries, but a
+   changed letter is not always an audible fault: in "Asi xazmas as", "Andáde
+   ofte", "As asi şohánas" and "Asi deas xácá" it lengthened a vowel — ási for
+   asi — and the speaker listened to all four and judged the original Lekha
+   recordings correct as they stand. They were re-rendered once, then restored
+   from git, and they are deliberately not listed here again.
+
+   The Dá phrase is the exception and it is not in this list either: splitting
+   asieloton into the corpus's asi.elo-ton gave it a new key, so it appears
+   under RESPELT as a recording that never existed rather than one being
+   replaced. Nothing in the manifest now overwrites a Lekha original. */
+const MISRENDERED = [];
 
 /* Sounds-tab demonstration syllables. Not dictionary words, so they were never
    rendered, and two thirds of that tab opens Settings instead of speaking. */
