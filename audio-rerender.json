@@ -1,0 +1,310 @@
+{
+  "generated": "2026-09-20",
+  "note": "Render each entry from its IPA with <phoneme alphabet='ipa' ph='...'>, not from Urdu script. Write the result to public/brahui/audio/<key>.m4a and bump AUDIOREV in index.html so browsers do not serve a cached copy of the old pronunciation under the same key.",
+  "count": 43,
+  "replace": 5,
+  "create": 38,
+  "entries": [
+    {
+      "key": "71d21828",
+      "text": "Dá har musiŧŧingák asieloton ílumí karer.",
+      "ipa": "daː həɾ mʊsɪʈʈɪngaːk əsɪeːloːtoːn iːlʊmiː kəɾeːɾ",
+      "reason": "rendered from the wrong letters — replace",
+      "existsOnDisk": true
+    },
+    {
+      "key": "ac94e823",
+      "text": "Asi xazmas as, asi xáxoas as, asi şokas as.",
+      "ipa": "əsɪ xəzməs əs əsɪ xaːxoːəs əs əsɪ ʃoːkəs əs",
+      "reason": "rendered from the wrong letters — replace",
+      "existsOnDisk": true
+    },
+    {
+      "key": "ac2f983f",
+      "text": "As asi şohánas.",
+      "ipa": "əs əsɪ ʃoːhaːnəs",
+      "reason": "rendered from the wrong letters — replace",
+      "existsOnDisk": true
+    },
+    {
+      "key": "9ea7534c",
+      "text": "Andáde ofte asi elo ton ílumí e vaddifoí e.",
+      "ipa": "əndaːdeː oːfteː əsɪ eːloː toːn iːlʊmiː eː ʋəddɪfoːiː eː",
+      "reason": "rendered from the wrong letters — replace",
+      "existsOnDisk": true
+    },
+    {
+      "key": "8e5d83ce",
+      "text": "Asi deas xácá, tuģas xaná.",
+      "ipa": "əsɪ deːəs xaːtʃaː tʊɣəs xənaː",
+      "reason": "rendered from the wrong letters — replace",
+      "existsOnDisk": true
+    },
+    {
+      "key": "b8446ee6",
+      "text": "tá",
+      "ipa": "taː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "bda6d4a5",
+      "text": "ŧá",
+      "ipa": "ʈaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "ea20c567",
+      "text": "đá",
+      "ipa": "ɖaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "c83c3951",
+      "text": "ká",
+      "ipa": "kaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "c0213da5",
+      "text": "gá",
+      "ipa": "gaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "e42221e8",
+      "text": "fá",
+      "ipa": "faː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "cc6720a4",
+      "text": "zá",
+      "ipa": "zaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "c9ecb7a4",
+      "text": "źá",
+      "ipa": "ʒaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "c0629092",
+      "text": "xá",
+      "ipa": "xaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "d64f5889",
+      "text": "ģá",
+      "ipa": "ɣaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "e42eeddb",
+      "text": "má",
+      "ipa": "maː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "d55509f6",
+      "text": "ńá",
+      "ipa": "ɳaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "c832935e",
+      "text": "lá",
+      "ipa": "laː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "e67ba9ee",
+      "text": "ļá",
+      "ipa": "ɬaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "dc55451c",
+      "text": "rá",
+      "ipa": "ɾaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "d1784183",
+      "text": "ŕá",
+      "ipa": "ɽaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "c0bd7b65",
+      "text": "'á",
+      "ipa": "ʔaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "f9cc7ea2",
+      "text": "bhá",
+      "ipa": "baː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "ca43d46c",
+      "text": "phá",
+      "ipa": "pʰaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "300de250",
+      "text": "thá",
+      "ipa": "tʰaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "dc75e191",
+      "text": "ŧhá",
+      "ipa": "ʈʰaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "40657920",
+      "text": "dhá",
+      "ipa": "daː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "44bd1267",
+      "text": "đhá",
+      "ipa": "ɖaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "d3f48bc5",
+      "text": "khá",
+      "ipa": "kʰaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "c3292c91",
+      "text": "ghá",
+      "ipa": "gaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "7d86607d",
+      "text": "chá",
+      "ipa": "tʃʰaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "50dd33aa",
+      "text": "jhá",
+      "ipa": "dʒaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "2f9f10cb",
+      "text": "ŕhá",
+      "ipa": "ɽaː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "6f7a3f28",
+      "text": "bát",
+      "ipa": "baːt",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "9bd8152c",
+      "text": "tín",
+      "ipa": "tiːn",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "621cd814",
+      "text": "do",
+      "ipa": "doː",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "e7bf0671",
+      "text": "hai",
+      "ipa": "haɪ",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "27905fe6",
+      "text": "kaun",
+      "ipa": "kaʊn",
+      "reason": "sounds tab demonstration — never rendered",
+      "existsOnDisk": false
+    },
+    {
+      "key": "16198a45",
+      "text": "Salám",
+      "ipa": "səlaːm",
+      "reason": "phrase with no recording",
+      "existsOnDisk": false
+    },
+    {
+      "key": "0c597437",
+      "text": "Naa nám ant?",
+      "ipa": "naː naːm ənt",
+      "reason": "phrase with no recording",
+      "existsOnDisk": false
+    },
+    {
+      "key": "7a888893",
+      "text": "Nií ant kanning?",
+      "ipa": "nɪiː ənt kənnɪng",
+      "reason": "phrase with no recording",
+      "existsOnDisk": false
+    },
+    {
+      "key": "fe330e58",
+      "text": "Ant o?",
+      "ipa": "ənt oː",
+      "reason": "phrase with no recording",
+      "existsOnDisk": false
+    },
+    {
+      "key": "06201fee",
+      "text": "Muáf ka.",
+      "ipa": "mʊaːf kə",
+      "reason": "phrase with no recording",
+      "existsOnDisk": false
+    }
+  ]
+}
