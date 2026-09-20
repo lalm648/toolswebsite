@@ -1,0 +1,4 @@
+{
+  "_comment": "Speaker approvals for generated course sentences. Keyed by itemFingerprint from scripts/course/review.mjs — sha256 of the Brahui, a NUL byte, then the lowercased English, first 16 hex characters. Written by the review screen in the app; read by scripts/build-course.mjs. Committed so approvals survive regeneration.",
+  "approved": {}
+}
