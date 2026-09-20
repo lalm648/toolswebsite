@@ -3,30 +3,35 @@ import path from "node:path";
 import vm from "node:vm";
 
 /*
-  Builds the list of Brahui recordings that have to be re-rendered, and the IPA
-  to render them from.
+  Builds the list of Brahui recordings that have to be re-made, and the exact
+  Devanagari to render each of them from.
 
   Why this exists
   ---------------
-  The prepared clips were rendered from Urdu script, and an Urdu voice reads
-  Urdu script the way an English one reads "Dr.": it expands abbreviations. The
-  demonstrative dá is written ڈا once a sentence-initial capital has been
-  mis-read as the ASCII alias for retroflex đ, and ڈا is how Urdu abbreviates
-  ڈاکٹر — so the recording for "Dá har musiŧŧingák…" says "doctor". The spelling
-  bug is fixed in tokenize(), but a fix in the page cannot change an .m4a that
-  was rendered months ago. Those clips have to be made again.
+  The prepared clips are Lekha, the macOS Hindi voice, reading Devanagari — not
+  Urdu, and not a neural Urdu voice, both of which were tried and are wrong for
+  Brahui. Lekha expands abbreviations the way any speaking engine does, and डा
+  is how Hindi shortens डॉक्टर. So when a sentence-initial capital was mis-read
+  as the ASCII alias for retroflex đ, the demonstrative dá became retroflex डा
+  instead of dental दा, and the recording for "Dá har musiŧŧingák…" says
+  "doctor".
 
-  Render from IPA, not from script. The app's AZIPA map covers all 49 phonemes
-  and distinguishes exactly what matters — dá is daː and đá is ɖaː — and a voice
-  handed <phoneme alphabet="ipa" ph="daː"> has no text to expand. That closes
-  this class of bug rather than patching one word of it.
+  Fixing tokenize() corrected the script on screen and the live voice, but it
+  cannot change an .m4a rendered months ago. Those clips have to be made again,
+  and the corrected दा is not an abbreviation of anything.
+
+  Render the `deva` field. Not the Latin, not the Urdu: Lekha reads Devanagari.
+  The `ipa` field rides along only as a cross-check for a human reviewer — daː
+  is dental, ɖaː is retroflex, and that is the distinction the old recordings
+  lost.
 
   The maps are read out of public/brahui/index.html rather than copied, so there
   is one source of truth for the transliteration. audioKey must stay identical
-  to the page's fnv1a or every rendered file lands under the wrong name.
+  to the page's fnv1a or every rendered file lands under a name the app never
+  looks up.
 
   Run: node scripts/audio-rerender-manifest.mjs
-  Writes: audio-rerender.json
+  Writes: audio-rerender.json  (feed it to scripts/render-lekha.sh on a Mac)
 */
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -57,6 +62,10 @@ const engineSrc = [
   slice("function tokenize(word){", "/* opts.sukun"),
   slice("const AZIPA={", "function toAzIPA"),
   "function toAzIPA(word){ return tokenize(word).map(t=>AZIPA[t]||'').join(''); }",
+  /* Devanagari is what actually gets spoken: the clips are rendered by Lekha,
+     the macOS Hindi voice, which reads Devanagari and not Urdu. */
+  slice("const DEVA_C={", "function lineDeva"),
+  "function lineDeva(t){ return t.split(/\\s+/).filter(Boolean).map(toDeva).join(' '); }",
   `const AUDIOCOLLISIONSET=new Set(${collisions[1]});`,
   slice("function audioKey(s){", "\nlet clip=null;"),
 ].join("\n");
@@ -64,9 +73,9 @@ const engineSrc = [
 const sandbox = {};
 vm.createContext(sandbox);
 vm.runInContext(engineSrc, sandbox);
-const { toAzIPA, audioKey } = sandbox;
+const { toAzIPA, audioKey, lineDeva } = sandbox;
 
-if (typeof toAzIPA !== "function" || typeof audioKey !== "function") {
+if (typeof toAzIPA !== "function" || typeof audioKey !== "function" || typeof lineDeva !== "function") {
   throw new Error("the engine did not load — index.html markers moved");
 }
 
@@ -109,7 +118,10 @@ function entry(text, reason) {
     .map((w) => toAzIPA(w.replace(/^[^\p{L}']+|[^\p{L}']+$/gu, "")))
     .filter(Boolean)
     .join(" ");
-  return { key, text, ipa, reason, existsOnDisk: onDisk.has(key) };
+  /* Devanagari is the string Lekha is actually given. IPA is carried alongside
+     as a cross-check: a reviewer can see at a glance that dá is daː and not
+     ɖaː, which is the distinction the old recordings lost. */
+  return { key, text, deva: lineDeva(text.trim()), ipa, reason, existsOnDisk: onDisk.has(key) };
 }
 
 const manifest = [
@@ -121,9 +133,10 @@ const manifest = [
 const out = {
   generated: new Date().toISOString().slice(0, 10),
   note:
-    "Render each entry from its IPA with <phoneme alphabet='ipa' ph='...'>, not from Urdu script. " +
-    "Write the result to public/brahui/audio/<key>.m4a and bump AUDIOREV in index.html so browsers " +
-    "do not serve a cached copy of the old pronunciation under the same key.",
+    "Render each entry's `deva` string with Lekha, the macOS Hindi voice, the same way the existing " +
+    "6,646 clips were made: say -v Lekha -o public/brahui/audio/<key>.m4a \"<deva>\". Do not render the " +
+    "Latin or the Urdu — Lekha reads Devanagari. Then bump AUDIOREV in index.html so browsers do not " +
+    "serve a cached copy of the old pronunciation under the same key.",
   count: manifest.length,
   replace: manifest.filter((m) => m.existsOnDisk).length,
   create: manifest.filter((m) => !m.existsOnDisk).length,
@@ -138,6 +151,6 @@ console.log(`  replace  ${out.replace}  (a wrong recording exists under this key
 console.log(`  create   ${out.create}`);
 console.log();
 for (const m of manifest.slice(0, 6)) {
-  console.log(`  ${m.key}  ${m.existsOnDisk ? "replace" : "create "}  ${m.ipa}`);
+  console.log(`  ${m.key}  ${m.existsOnDisk ? "replace" : "create "}  ${m.deva}`);
   console.log(`            ${m.text.slice(0, 60)}`);
 }
